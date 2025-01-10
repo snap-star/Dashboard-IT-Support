@@ -1,5 +1,5 @@
 "use client";
-import { ReactNode } from "react";
+import { ReactNode, useState } from "react";
 import Link from "next/link";
 import { ModeToggle } from "@/components/ui/darkmode";
 import { useTheme } from "next-themes";
@@ -19,6 +19,7 @@ type DashboardLayoutProps = {
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const router = useRouter();
   const { theme, setTheme } = useTheme();
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const handleLogout = async () => {
     try {
@@ -32,17 +33,33 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
   return (
     <div
-      className={`flex flex-col md:flex-row h-screen ${
-        theme === "dark" ? "bg-gray-900 text-gray-100" : "bg-gray-100 text-gray-900"
+      className={`flex h-screen ${
+        theme === "dark"
+          ? "bg-gray-900 text-gray-100"
+          : "bg-gray-100 text-gray-900"
       }`}
     >
       {/* Sidebar */}
       <aside
-        className={`w-full md:w-64 flex-shrink-0 shadow-md ${
-          theme === "dark" ? "bg-gray-800 text-gray-300" : "bg-white text-gray-700"
+        className={`fixed top-0 left-0 h-full z-50 transform shadow-lg md:static md:translate-x-0 transition-transform duration-300 ${
+          isSidebarOpen ? "translate-x-0" : "-translate-x-full"
+        } ${
+          theme === "dark"
+            ? "bg-gray-800 text-gray-300"
+            : "bg-white text-gray-700"
         }`}
       >
         <div className="flex flex-col items-center md:items-start p-4 space-y-4">
+          {/* Close Menu Button for Mobile */}
+          <div className="flex md:hidden justify-end w-full">
+            <Button
+              variant="outline"
+              onClick={() => setIsSidebarOpen(false)}
+              className="mb-4"
+            >
+              Close Menu
+            </Button>
+          </div>
           <nav className="w-full">
             <Link
               href="/dashboard"
@@ -66,19 +83,19 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
               href="/dashboard/ip-address"
               className="block px-4 py-2 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700"
             >
-              User ESTIM
+              Manage User ESTIM
             </Link>
             <Link
               href="/dashboard/insiden"
               className="block px-4 py-2 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700"
             >
-              Insiden
+              Laporan Insiden Kantor
             </Link>
             <Link
               href="/dashboard/atm"
               className="block px-4 py-2 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700"
             >
-              Laporan ATM
+              Laporan Komplain ATM
             </Link>
           </nav>
           <div className="w-full">
@@ -98,7 +115,18 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 p-4 md:p-8 overflow-y-auto">{children}</main>
+      <main className="flex-1 p-4 md:p-8 overflow-y-auto">
+        {/* Open Menu Button for Mobile */}
+        <div className="flex md:hidden p-4">
+          <Button
+            variant="outline"
+            onClick={() => setIsSidebarOpen(true)}
+          >
+            Open Menu
+          </Button>
+        </div>
+        {children}
+      </main>
     </div>
   );
 }
