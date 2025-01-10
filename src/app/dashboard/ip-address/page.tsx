@@ -2,15 +2,26 @@
 import { useEffect, useMemo, useState } from "react";
 import { createClient } from "@supabase/supabase-js";
 import {
-  ColumnDef,
-  flexRender,
-  getCoreRowModel,
   useReactTable,
+  ColumnDef,
+  getCoreRowModel,
+  flexRender
 } from "@tanstack/react-table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+} from "@/components/ui/card";
 import ReportLayout from "@/app/dashboard/reports/layout";
 
 const supabase = createClient(
@@ -57,7 +68,10 @@ export default function IPAddressManagement() {
 
   async function handleCreateOrUpdate() {
     if (editingUser) {
-      const { error } = await supabase.from("users").update(editingUser).eq("id", editingUser.id);
+      const { error } = await supabase
+        .from("users")
+        .update(editingUser)
+        .eq("id", editingUser.id);
       if (error) console.error("Error updating user:", error);
     } else {
       const { error } = await supabase.from("users").insert([newUser]);
@@ -109,7 +123,11 @@ export default function IPAddressManagement() {
             >
               Edit
             </Button>
-            <Button size="sm" variant="destructive" onClick={() => handleDelete(row.original.id)}>
+            <Button
+              size="sm"
+              variant="destructive"
+              onClick={() => handleDelete(row.original.id)}
+            >
               Delete
             </Button>
           </div>
@@ -122,46 +140,76 @@ export default function IPAddressManagement() {
   const table = useReactTable({
     data: users,
     columns,
-    getCoreRowModel: getCoreRowModel(),
-  });
+  getCoreRowModel: getCoreRowModel(),
+});
 
   return (
     <ReportLayout>
-      <h1 className="text-2xl font-bold mb-4">User and IP Address Management</h1>
+      <h1 className="text-2xl font-bold mb-4">
+        User and IP Address Management
+      </h1>
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogTrigger asChild>
           <Button className="mb-4">Add New User</Button>
         </DialogTrigger>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{editingUser ? "Edit User" : "Add New User"}</DialogTitle>
+            <DialogTitle>
+              {editingUser ? "Edit User" : "Add New User"}
+            </DialogTitle>
           </DialogHeader>
           <div className="grid gap-4 py-4">
-            {["user_estim", "ip_address", "nama", "nip", "jabatan", "unit_kerja", "cab", "status_user"].map((field) => (
+            {[
+              "user_estim",
+              "ip_address",
+              "nama",
+              "nip",
+              "jabatan",
+              "unit_kerja",
+              "cab",
+              "status_user",
+            ].map((field) => (
               <Input
                 key={field}
-                placeholder={field.charAt(0).toUpperCase() + field.slice(1).replace("_", " ")}
-                value={editingUser ? editingUser[field as keyof User] : newUser[field as keyof Omit<User, "id">]}
+                placeholder={
+                  field.charAt(0).toUpperCase() +
+                  field.slice(1).replace("_", " ")
+                }
+                value={
+                  editingUser
+                    ? editingUser[field as keyof User]
+                    : newUser[field as keyof Omit<User, "id">]
+                }
                 onChange={(e) =>
                   editingUser
-                    ? setEditingUser({ ...editingUser, [field]: e.target.value })
+                    ? setEditingUser({
+                        ...editingUser,
+                        [field]: e.target.value,
+                      })
                     : setNewUser({ ...newUser, [field]: e.target.value })
                 }
               />
             ))}
           </div>
-          <Button onClick={handleCreateOrUpdate}>{editingUser ? "Update" : "Create"}</Button>
+          <Button onClick={handleCreateOrUpdate}>
+            {editingUser ? "Update" : "Create"}
+          </Button>
         </DialogContent>
       </Dialog>
       <Card className="w-full">
-        <CardHeader className="font-bold text-lg">User ESTIM Cabang Ponorogo</CardHeader>
+        <CardHeader className="font-bold text-lg">
+          User ESTIM Cabang Ponorogo
+        </CardHeader>
         <CardContent>
           <table className="min-w-full border border-gray-300">
             <thead className="bg-gray-100">
-              {table.getHeaderGroups().map((headerGroup) => (
+              {table.getHeaderGroups().map((headerGroup: any) => (
                 <tr key={headerGroup.id}>
-                  {headerGroup.headers.map((header) => (
-                    <th key={header.id} className="border border-gray-300 px-4 py-2 text-left">
+                  {headerGroup.headers.map((header: any) => (
+                    <th
+                      key={header.id}
+                      className="border border-gray-300 px-4 py-2 text-left"
+                    >
                       {flexRender(header.column.columnDef.header, header.getContext())}
                     </th>
                   ))}
@@ -169,11 +217,14 @@ export default function IPAddressManagement() {
               ))}
             </thead>
             <tbody>
-              {table.getRowModel().rows.map((row) => (
+              {table.getRowModel().rows.map((row: any) => (
                 <tr key={row.id} className="hover:bg-gray-50">
-                  {row.getVisibleCells().map((cell) => (
-                    <td key={cell.id} className="border border-gray-300 px-4 py-2">
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                  {row.getVisibleCells().map((cell: any) => (
+                    <td
+                      key={cell.id}
+                      className="border border-gray-300 px-4 py-2"
+                    >
+                      {cell.renderCell()}
                     </td>
                   ))}
                 </tr>
@@ -181,7 +232,9 @@ export default function IPAddressManagement() {
             </tbody>
           </table>
         </CardContent>
-        <CardFooter className="text-xs font-bold italic">Terakhir di Update</CardFooter>
+        <CardFooter className="text-xs font-bold italic">
+          Terakhir di Update
+        </CardFooter>
       </Card>
     </ReportLayout>
   );
