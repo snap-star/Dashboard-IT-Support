@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Textarea } from "@/components/ui/textarea"
+import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
 import ReportLayout from '@/app/dashboard/reports/layout'
 
 const supabase = createClient('https://qqtcdaamobxjtahrorwl.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFxdGNkYWFtb2J4anRhaHJvcndsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Mjg5Mjg4MzEsImV4cCI6MjA0NDUwNDgzMX0.QabGqfgW1xflzw1QnuRMvh5jVv8pM5i3VJZeSiPOumE')
@@ -195,11 +196,15 @@ export default function ITIncidentManagement() {
           </div>
         </DialogContent>
       </Dialog>
-
+<Card className='w-full'>
+  <CardHeader className='font-bold text-lg'>
+    Handling Problem Incident
+  </CardHeader>
+<CardContent>
       <Table>
         <TableHeader>
           <TableRow>
-            <TableCell>Judul</TableCell>
+            <TableCell>Problem/Error</TableCell>
             <TableCell>Deskripsi</TableCell>
             <TableCell>Pelapor</TableCell>
             <TableCell>Tanggal Kejadian</TableCell>
@@ -226,14 +231,14 @@ export default function ITIncidentManagement() {
                       setEditingIncident(incident);
                       setIsDialogOpen(true);
                     }}
-                  >
+                    >
                     Edit
                   </Button>
                   <Button
                     variant="destructive"
                     size="sm"
                     onClick={() => handleDelete(incident.id)}
-                  >
+                    >
                     Delete
                   </Button>
                 </div>
@@ -242,6 +247,11 @@ export default function ITIncidentManagement() {
           ))}
         </TableBody>
       </Table>
+          </CardContent>
+      <CardFooter className='text-xs italic font-bold'>
+        Terakhir di update
+      </CardFooter>
+          </Card>
     </ReportLayout>
   );
 }

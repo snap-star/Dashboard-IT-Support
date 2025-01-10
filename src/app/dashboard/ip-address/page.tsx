@@ -6,6 +6,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
 import ReportLayout from '@/app/dashboard/reports/layout'
 
 const supabase = createClient('https://qqtcdaamobxjtahrorwl.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFxdGNkYWFtb2J4anRhaHJvcndsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Mjg5Mjg4MzEsImV4cCI6MjA0NDUwNDgzMX0.QabGqfgW1xflzw1QnuRMvh5jVv8pM5i3VJZeSiPOumE')
@@ -130,18 +131,23 @@ export default function IPAddressManagement() {
           </Button>
         </DialogContent>
       </Dialog>
+      <Card className='w-full'>
+        <CardHeader className='font-bold text-lg'>
+            User ESTIM Cabang Ponorogo
+        </CardHeader>
+        <CardContent>
       <Table>
         <TableHeader>
-          <TableRow>
+          <TableRow className='font-bold'>
             <TableHead>User Estim</TableHead>
             <TableHead>IP Address</TableHead>
-            <TableHead>Nama</TableHead>
+            <TableHead>Nama Pemegang</TableHead>
             <TableHead>NIP</TableHead>
             <TableHead>Jabatan</TableHead>
             <TableHead>Unit Kerja</TableHead>
             <TableHead>Cab</TableHead>
             <TableHead>Status User</TableHead>
-            <TableHead>Actions</TableHead>
+            <TableHead>Aksi</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -155,20 +161,23 @@ export default function IPAddressManagement() {
               <TableCell>{user.unit_kerja}</TableCell>
               <TableCell>{user.cab}</TableCell>
               <TableCell>{user.status_user}</TableCell>
-              <TableCell>
+              <TableCell className=''>
                 <Button
                   className="mr-2"
+                  variant={'outline'}
+                  size={'sm'}
                   onClick={() => {
                     setEditingUser(user)
                     setIsDialogOpen(true)
                   }}
-                >
+                  >
                   Edit
                 </Button>
                 <Button
                   variant="destructive"
+                  size={'sm'}
                   onClick={() => handleDelete(user.id)}
-                >
+                  >
                   Delete
                 </Button>
               </TableCell>
@@ -176,6 +185,11 @@ export default function IPAddressManagement() {
           ))}
         </TableBody>
       </Table>
+          </CardContent>
+          <CardFooter className='text-xs font-bold italic'>
+           Terakhir di Update
+          </CardFooter>
+          </Card>
     </ReportLayout>
   )
 }
