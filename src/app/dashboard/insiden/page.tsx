@@ -249,7 +249,7 @@ export default function ITIncidentManagement() {
       </Table>
           </CardContent>
       <CardFooter className='text-xs italic font-bold'>
-        Terakhir di update
+        Terakhir di update pada {new Date().toLocaleString()} 
       </CardFooter>
           </Card>
     </ReportLayout>

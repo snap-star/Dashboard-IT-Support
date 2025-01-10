@@ -1,28 +1,44 @@
 "use client";
-import { useEffect, useMemo, useState } from "react";
-import { createClient } from "@supabase/supabase-js";
+
+import * as React from "react";
 import {
-  useReactTable,
   ColumnDef,
+  ColumnFiltersState,
+  SortingState,
+  VisibilityState,
+  flexRender,
   getCoreRowModel,
-  flexRender
+  getFilteredRowModel,
+  getPaginationRowModel,
+  getSortedRowModel,
+  useReactTable,
 } from "@tanstack/react-table";
+import { Card, CardContent, CardHeader, CardFooter} from "@/components/ui/card"
+import { ArrowUpDown, ChevronDown, MoreHorizontal } from "lucide-react";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-} from "@/components/ui/card";
-import ReportLayout from "@/app/dashboard/reports/layout";
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { createClient } from "@supabase/supabase-js";
+import * as XLSX from "xlsx";
 
 const supabase = createClient(
   "https://qqtcdaamobxjtahrorwl.supabase.co",
@@ -42,8 +58,19 @@ type User = {
 };
 
 export default function IPAddressManagement() {
-  const [users, setUsers] = useState<User[]>([]);
-  const [newUser, setNewUser] = useState<Omit<User, "id">>({
+  const [users, setUsers] = React.useState<User[]>([]);
+  const [globalFilter, setGlobalFilter] = React.useState("");
+  const [sorting, setSorting] = React.useState<SortingState>([]);
+  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
+    []
+  );
+  const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>(
+    {}
+  );
+  const [rowSelection, setRowSelection] = React.useState({});
+  const [isDialogOpen, setIsDialogOpen] = React.useState(false);
+  const [editingUser, setEditingUser] = React.useState<User | null>(null);
+  const [newUser, setNewUser] = React.useState<Omit<User, "id">>({
     user_estim: "",
     ip_address: "",
     nama: "",
@@ -53,29 +80,36 @@ export default function IPAddressManagement() {
     cab: "",
     status_user: "",
   });
-  const [editingUser, setEditingUser] = useState<User | null>(null);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
 
-  useEffect(() => {
+  React.useEffect(() => {
     fetchUsers();
   }, []);
 
   async function fetchUsers() {
     const { data, error } = await supabase.from("users").select("*");
-    if (error) console.error("Error fetching users:", error);
-    else setUsers(data || []);
+    if (error) {
+      console.error("Error fetching users:", error);
+    } else {
+      setUsers(data || []);
+    }
   }
 
-  async function handleCreateOrUpdate() {
+  async function handleCreateOrUpdateUser() {
     if (editingUser) {
       const { error } = await supabase
         .from("users")
         .update(editingUser)
         .eq("id", editingUser.id);
-      if (error) console.error("Error updating user:", error);
+      if (error) {
+        console.error("Error updating user:", error);
+        return;
+      }
     } else {
       const { error } = await supabase.from("users").insert([newUser]);
-      if (error) console.error("Error creating user:", error);
+      if (error) {
+        console.error("Error creating user:", error);
+        return;
+      }
     }
     fetchUsers();
     setIsDialogOpen(false);
@@ -92,66 +126,124 @@ export default function IPAddressManagement() {
     });
   }
 
-  async function handleDelete(id: number) {
+  async function handleDeleteUser(id: number) {
     const { error } = await supabase.from("users").delete().eq("id", id);
-    if (error) console.error("Error deleting user:", error);
-    else fetchUsers();
+    if (error) {
+      console.error("Error deleting user:", error);
+      return;
+    }
+    fetchUsers();
   }
 
-  const columns = useMemo<ColumnDef<User>[]>(
-    () => [
-      { accessorKey: "user_estim", header: "User Estim" },
-      { accessorKey: "ip_address", header: "IP Address" },
-      { accessorKey: "nama", header: "Nama Pemegang" },
-      { accessorKey: "nip", header: "NIP" },
-      { accessorKey: "jabatan", header: "Jabatan" },
-      { accessorKey: "unit_kerja", header: "Unit Kerja" },
-      { accessorKey: "cab", header: "Cab" },
-      { accessorKey: "status_user", header: "Status User" },
-      {
-        id: "actions",
-        header: "Aksi",
-        cell: ({ row }) => (
-          <div className="flex gap-2">
-            <Button
-              size="sm"
-              variant="outline"
+  //fungsi export excel
+  const exportToExcel = () => {
+    const worksheet = XLSX.utils.json_to_sheet(users);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Users");
+    XLSX.writeFile(workbook, "Data User ESTIM.xlsx");
+  };
+  //fungsi print
+  const printTable = () => {
+    window.print();
+  };
+
+  const columns: ColumnDef<User>[] = [
+    {
+      id: "select",
+      header: ({ table }) => (
+        <Checkbox
+          checked={
+            table.getIsAllPageRowsSelected() ||
+            (table.getIsSomePageRowsSelected() && "indeterminate")
+          }
+          onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+          aria-label="Select all"
+        />
+      ),
+      cell: ({ row }) => (
+        <Checkbox
+          checked={row.getIsSelected()}
+          onCheckedChange={(value) => row.toggleSelected(!!value)}
+          aria-label="Select row"
+        />
+      ),
+      enableSorting: false,
+      enableHiding: false,
+    },
+    { accessorKey: "user_estim", header: "User ESTIM" },
+    { accessorKey: "ip_address", header: "IP Address" },
+    { accessorKey: "nama", header: "Nama Pemegang" },
+    { accessorKey: "nip", header: "NIP" },
+    { accessorKey: "jabatan", header: "Jabatan" },
+    { accessorKey: "unit_kerja", header: "Unit Kerja" },
+    { accessorKey: "cab", header: "Cabang" },
+    { accessorKey: "status_user", header: "Status User" },
+    {
+      id: "actions",
+      enableHiding: false,
+      cell: ({ row }) => (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" className="h-8 w-8 p-0">
+              <MoreHorizontal />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+            <DropdownMenuItem
               onClick={() => {
                 setEditingUser(row.original);
                 setIsDialogOpen(true);
               }}
             >
               Edit
-            </Button>
-            <Button
-              size="sm"
-              variant="destructive"
-              onClick={() => handleDelete(row.original.id)}
-            >
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={() => handleDeleteUser(row.original.id)}>
               Delete
-            </Button>
-          </div>
-        ),
-      },
-    ],
-    []
-  );
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      ),
+    },
+  ];
 
   const table = useReactTable({
     data: users,
     columns,
-  getCoreRowModel: getCoreRowModel(),
-});
+    state: {
+      globalFilter,
+      sorting,
+      columnFilters,
+      columnVisibility,
+      rowSelection,
+    },
+    onSortingChange: setSorting,
+    onColumnFiltersChange: setColumnFilters,
+    onColumnVisibilityChange: setColumnVisibility,
+    onRowSelectionChange: setRowSelection,
+    getCoreRowModel: getCoreRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+  });
 
   return (
-    <ReportLayout>
-      <h1 className="text-2xl font-bold mb-4">
-        User and IP Address Management
-      </h1>
+    <div className="w-full">
+      <div className="flex items-center justify-end py-4 gap-2">
+        <Input
+          placeholder="User/NIP/Nama untuk Filter data..."
+          value={globalFilter}
+          onChange={(e) => setGlobalFilter(e.target.value)}
+          className="max-w-sm"
+        />
+        {/* <DialogTrigger asChild> */}
+          <Button className="hover:bg-green-700" variant={"outline"} size={"default"} onClick={exportToExcel}>Export Excel</Button>
+          <Button variant={"outline"} size={"default"} onClick={printTable}>Print</Button>
+          <Button variant={"default"} size={"default"} onClick={() => setIsDialogOpen(true)}>Add New User</Button>
+        {/* </DialogTrigger> */}
+        </div>
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogTrigger asChild>
-          <Button className="mb-4">Add New User</Button>
-        </DialogTrigger>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
@@ -159,83 +251,109 @@ export default function IPAddressManagement() {
             </DialogTitle>
           </DialogHeader>
           <div className="grid gap-4 py-4">
-            {[
-              "user_estim",
-              "ip_address",
-              "nama",
-              "nip",
-              "jabatan",
-              "unit_kerja",
-              "cab",
-              "status_user",
-            ].map((field) => (
+            {Object.keys(newUser).map((key) => (
               <Input
-                key={field}
-                placeholder={
-                  field.charAt(0).toUpperCase() +
-                  field.slice(1).replace("_", " ")
-                }
+                key={key}
+                placeholder={key}
                 value={
                   editingUser
-                    ? editingUser[field as keyof User]
-                    : newUser[field as keyof Omit<User, "id">]
+                    ? editingUser[key as keyof User] || ""
+                    : newUser[key as keyof Omit<User, "id">]
                 }
                 onChange={(e) =>
                   editingUser
                     ? setEditingUser({
                         ...editingUser,
-                        [field]: e.target.value,
+                        [key]: e.target.value,
                       })
-                    : setNewUser({ ...newUser, [field]: e.target.value })
+                    : setNewUser({
+                        ...newUser,
+                        [key]: e.target.value,
+                      })
                 }
               />
             ))}
           </div>
-          <Button onClick={handleCreateOrUpdate}>
-            {editingUser ? "Update" : "Create"}
+          <Button onClick={handleCreateOrUpdateUser}>
+            {editingUser ? "Update User" : "Create User"}
           </Button>
         </DialogContent>
       </Dialog>
-      <Card className="w-full">
-        <CardHeader className="font-bold text-lg">
-          User ESTIM Cabang Ponorogo
-        </CardHeader>
-        <CardContent>
-          <table className="min-w-full border border-gray-300">
-            <thead className="bg-gray-100">
-              {table.getHeaderGroups().map((headerGroup: any) => (
-                <tr key={headerGroup.id}>
-                  {headerGroup.headers.map((header: any) => (
-                    <th
-                      key={header.id}
-                      className="border border-gray-300 px-4 py-2 text-left"
-                    >
-                      {flexRender(header.column.columnDef.header, header.getContext())}
-                    </th>
+      <div className="rounded-md border">
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-bold">Daftar User ESTIM & IP Address</h2>
+            </div>
+          </CardHeader>
+          <CardContent>
+        <Table>
+          <TableHeader>
+            {table.getHeaderGroups().map((headerGroup) => (
+              <TableRow key={headerGroup.id}>
+                {headerGroup.headers.map((header) => (
+                  <TableHead key={header.id}>
+                    {flexRender(
+                      header.column.columnDef.header,
+                      header.getContext()
+                    )}
+                  </TableHead>
+                ))}
+              </TableRow>
+            ))}
+          </TableHeader>
+          <TableBody>
+            {table.getRowModel().rows.length ? (
+              table.getRowModel().rows.map((row) => (
+                <TableRow key={row.id}>
+                  {row.getVisibleCells().map((cell) => (
+                    <TableCell key={cell.id}>
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext()
+                      )}
+                    </TableCell>
                   ))}
-                </tr>
-              ))}
-            </thead>
-            <tbody>
-              {table.getRowModel().rows.map((row: any) => (
-                <tr key={row.id} className="hover:bg-gray-50">
-                  {row.getVisibleCells().map((cell: any) => (
-                    <td
-                      key={cell.id}
-                      className="border border-gray-300 px-4 py-2"
-                    >
-                      {cell.renderCell()}
-                    </td>
-                  ))}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </CardContent>
-        <CardFooter className="text-xs font-bold italic">
-          Terakhir di Update
+                </TableRow>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell colSpan={columns.length} className="text-center">
+                  No data found.
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+            </CardContent>
+        <CardFooter className="font-bold italic text-xs">
+          Last updated pada {new Date().toLocaleString()}
         </CardFooter>
-      </Card>
-    </ReportLayout>
+          </Card>
+      </div>
+      <div className="flex justify-between items-center py-4">
+        <span className="text-sm text-muted-foreground">
+          {table.getFilteredRowModel().rows.length} rows
+        </span>
+        <div className="space-x-2">
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={!table.getCanPreviousPage()}
+            onClick={() => table.previousPage()}
+            >
+            Previous
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={!table.getCanNextPage()}
+            onClick={() => table.nextPage()}
+          >
+            Next
+          </Button>
+        </div>
+      </div>
+    </div>
   );
 }

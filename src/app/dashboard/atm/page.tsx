@@ -236,7 +236,7 @@ export default function ATMComplaints() {
       </Table>
           </CardContent>
       <CardFooter className="font-bold text-xs italic">
-        Terakhir update : 
+        Terakhir update : {new Date().toLocaleString()}
       </CardFooter>
           </Card>
     </ReportLayout>
