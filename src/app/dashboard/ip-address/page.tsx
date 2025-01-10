@@ -1,103 +1,129 @@
-// FILEPATH: e:/work-report/dev/reportapp/src/app/dashboard/ip-address/page.tsx
-"use client"
-import { useState, useEffect } from 'react'
-import { createClient } from '@supabase/supabase-js'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
-import ReportLayout from '@/app/dashboard/reports/layout'
+"use client";
+import { useEffect, useMemo, useState } from "react";
+import { createClient } from "@supabase/supabase-js";
+import {
+  ColumnDef,
+  flexRender,
+  getCoreRowModel,
+  useReactTable,
+} from "@tanstack/react-table";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
+import ReportLayout from "@/app/dashboard/reports/layout";
 
-const supabase = createClient('https://qqtcdaamobxjtahrorwl.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFxdGNkYWFtb2J4anRhaHJvcndsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Mjg5Mjg4MzEsImV4cCI6MjA0NDUwNDgzMX0.QabGqfgW1xflzw1QnuRMvh5jVv8pM5i3VJZeSiPOumE')
+const supabase = createClient(
+  "https://qqtcdaamobxjtahrorwl.supabase.co",
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFxdGNkYWFtb2J4anRhaHJvcndsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Mjg5Mjg4MzEsImV4cCI6MjA0NDUwNDgzMX0.QabGqfgW1xflzw1QnuRMvh5jVv8pM5i3VJZeSiPOumE"
+);
 
 type User = {
-  id: number
-  user_estim: string
-  ip_address: string
-  nama: string
-  nip: string
-  jabatan: string
-  unit_kerja: string
-  cab: string
-  status_user: string
-}
+  id: number;
+  user_estim: string;
+  ip_address: string;
+  nama: string;
+  nip: string;
+  jabatan: string;
+  unit_kerja: string;
+  cab: string;
+  status_user: string;
+};
 
 export default function IPAddressManagement() {
-  const [users, setUsers] = useState<User[]>([])
-  const [newUser, setNewUser] = useState<Omit<User, 'id'>>({
-    user_estim: '',
-    ip_address: '',
-    nama: '',
-    nip: '',
-    jabatan: '',
-    unit_kerja: '',
-    cab: '',
-    status_user: ''
-  })
-  const [editingUser, setEditingUser] = useState<User | null>(null)
-  const [isDialogOpen, setIsDialogOpen] = useState(false)
+  const [users, setUsers] = useState<User[]>([]);
+  const [newUser, setNewUser] = useState<Omit<User, "id">>({
+    user_estim: "",
+    ip_address: "",
+    nama: "",
+    nip: "",
+    jabatan: "",
+    unit_kerja: "",
+    cab: "",
+    status_user: "",
+  });
+  const [editingUser, setEditingUser] = useState<User | null>(null);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   useEffect(() => {
-    fetchUsers()
-  }, [])
+    fetchUsers();
+  }, []);
 
   async function fetchUsers() {
-    const { data, error } = await supabase
-      .from('users')
-      .select('*')
-    
-    if (error) console.error('Error fetching users:', error)
-    else setUsers(data || [])
+    const { data, error } = await supabase.from("users").select("*");
+    if (error) console.error("Error fetching users:", error);
+    else setUsers(data || []);
   }
 
-  async function handleCreate() {
-    const { data, error } = await supabase
-      .from('users')
-      .insert([newUser])
-    
-    if (error) console.error('Error creating user:', error)
-    else {
-      fetchUsers()
-      setNewUser({
-        user_estim: '',
-        ip_address: '',
-        nama: '',
-        nip: '',
-        jabatan: '',
-        unit_kerja: '',
-        cab: '',
-        status_user: ''
-      })
-      setIsDialogOpen(false)
+  async function handleCreateOrUpdate() {
+    if (editingUser) {
+      const { error } = await supabase.from("users").update(editingUser).eq("id", editingUser.id);
+      if (error) console.error("Error updating user:", error);
+    } else {
+      const { error } = await supabase.from("users").insert([newUser]);
+      if (error) console.error("Error creating user:", error);
     }
-  }
-
-  async function handleUpdate() {
-    if (!editingUser) return
-
-    const { error } = await supabase
-      .from('users')
-      .update(editingUser)
-      .eq('id', editingUser.id)
-
-    if (error) console.error('Error updating user:', error)
-    else {
-      fetchUsers()
-      setEditingUser(null)
-      setIsDialogOpen(false)
-    }
+    fetchUsers();
+    setIsDialogOpen(false);
+    setEditingUser(null);
+    setNewUser({
+      user_estim: "",
+      ip_address: "",
+      nama: "",
+      nip: "",
+      jabatan: "",
+      unit_kerja: "",
+      cab: "",
+      status_user: "",
+    });
   }
 
   async function handleDelete(id: number) {
-    const { error } = await supabase
-      .from('users')
-      .delete()
-      .eq('id', id)
-
-    if (error) console.error('Error deleting user:', error)
-    else fetchUsers()
+    const { error } = await supabase.from("users").delete().eq("id", id);
+    if (error) console.error("Error deleting user:", error);
+    else fetchUsers();
   }
+
+  const columns = useMemo<ColumnDef<User>[]>(
+    () => [
+      { accessorKey: "user_estim", header: "User Estim" },
+      { accessorKey: "ip_address", header: "IP Address" },
+      { accessorKey: "nama", header: "Nama Pemegang" },
+      { accessorKey: "nip", header: "NIP" },
+      { accessorKey: "jabatan", header: "Jabatan" },
+      { accessorKey: "unit_kerja", header: "Unit Kerja" },
+      { accessorKey: "cab", header: "Cab" },
+      { accessorKey: "status_user", header: "Status User" },
+      {
+        id: "actions",
+        header: "Aksi",
+        cell: ({ row }) => (
+          <div className="flex gap-2">
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => {
+                setEditingUser(row.original);
+                setIsDialogOpen(true);
+              }}
+            >
+              Edit
+            </Button>
+            <Button size="sm" variant="destructive" onClick={() => handleDelete(row.original.id)}>
+              Delete
+            </Button>
+          </div>
+        ),
+      },
+    ],
+    []
+  );
+
+  const table = useReactTable({
+    data: users,
+    columns,
+    getCoreRowModel: getCoreRowModel(),
+  });
 
   return (
     <ReportLayout>
@@ -108,88 +134,55 @@ export default function IPAddressManagement() {
         </DialogTrigger>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{editingUser ? 'Edit User' : 'Add New User'}</DialogTitle>
+            <DialogTitle>{editingUser ? "Edit User" : "Add New User"}</DialogTitle>
           </DialogHeader>
           <div className="grid gap-4 py-4">
-            {['user_estim', 'ip_address', 'nama', 'nip', 'jabatan', 'unit_kerja', 'cab', 'status_user'].map((field) => (
+            {["user_estim", "ip_address", "nama", "nip", "jabatan", "unit_kerja", "cab", "status_user"].map((field) => (
               <Input
                 key={field}
-                placeholder={field.charAt(0).toUpperCase() + field.slice(1).replace('_', ' ')}
-                value={editingUser ? editingUser[field as keyof User] : newUser[field as keyof Omit<User, 'id'>]}
-                onChange={(e) => {
-                  if (editingUser) {
-                    setEditingUser({...editingUser, [field]: e.target.value})
-                  } else {
-                    setNewUser({...newUser, [field]: e.target.value})
-                  }
-                }}
+                placeholder={field.charAt(0).toUpperCase() + field.slice(1).replace("_", " ")}
+                value={editingUser ? editingUser[field as keyof User] : newUser[field as keyof Omit<User, "id">]}
+                onChange={(e) =>
+                  editingUser
+                    ? setEditingUser({ ...editingUser, [field]: e.target.value })
+                    : setNewUser({ ...newUser, [field]: e.target.value })
+                }
               />
             ))}
           </div>
-          <Button onClick={editingUser ? handleUpdate : handleCreate}>
-            {editingUser ? 'Update' : 'Create'}
-          </Button>
+          <Button onClick={handleCreateOrUpdate}>{editingUser ? "Update" : "Create"}</Button>
         </DialogContent>
       </Dialog>
-      <Card className='w-full'>
-        <CardHeader className='font-bold text-lg'>
-            User ESTIM Cabang Ponorogo
-        </CardHeader>
+      <Card className="w-full">
+        <CardHeader className="font-bold text-lg">User ESTIM Cabang Ponorogo</CardHeader>
         <CardContent>
-      <Table>
-        <TableHeader>
-          <TableRow className='font-bold'>
-            <TableHead>User Estim</TableHead>
-            <TableHead>IP Address</TableHead>
-            <TableHead>Nama Pemegang</TableHead>
-            <TableHead>NIP</TableHead>
-            <TableHead>Jabatan</TableHead>
-            <TableHead>Unit Kerja</TableHead>
-            <TableHead>Cab</TableHead>
-            <TableHead>Status User</TableHead>
-            <TableHead>Aksi</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {users.map((user) => (
-            <TableRow key={user.id}>
-              <TableCell>{user.user_estim}</TableCell>
-              <TableCell>{user.ip_address}</TableCell>
-              <TableCell>{user.nama}</TableCell>
-              <TableCell>{user.nip}</TableCell>
-              <TableCell>{user.jabatan}</TableCell>
-              <TableCell>{user.unit_kerja}</TableCell>
-              <TableCell>{user.cab}</TableCell>
-              <TableCell>{user.status_user}</TableCell>
-              <TableCell className=''>
-                <Button
-                  className="mr-2"
-                  variant={'outline'}
-                  size={'sm'}
-                  onClick={() => {
-                    setEditingUser(user)
-                    setIsDialogOpen(true)
-                  }}
-                  >
-                  Edit
-                </Button>
-                <Button
-                  variant="destructive"
-                  size={'sm'}
-                  onClick={() => handleDelete(user.id)}
-                  >
-                  Delete
-                </Button>
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-          </CardContent>
-          <CardFooter className='text-xs font-bold italic'>
-           Terakhir di Update
-          </CardFooter>
-          </Card>
+          <table className="min-w-full border border-gray-300">
+            <thead className="bg-gray-100">
+              {table.getHeaderGroups().map((headerGroup) => (
+                <tr key={headerGroup.id}>
+                  {headerGroup.headers.map((header) => (
+                    <th key={header.id} className="border border-gray-300 px-4 py-2 text-left">
+                      {flexRender(header.column.columnDef.header, header.getContext())}
+                    </th>
+                  ))}
+                </tr>
+              ))}
+            </thead>
+            <tbody>
+              {table.getRowModel().rows.map((row) => (
+                <tr key={row.id} className="hover:bg-gray-50">
+                  {row.getVisibleCells().map((cell) => (
+                    <td key={cell.id} className="border border-gray-300 px-4 py-2">
+                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </CardContent>
+        <CardFooter className="text-xs font-bold italic">Terakhir di Update</CardFooter>
+      </Card>
     </ReportLayout>
-  )
+  );
 }
