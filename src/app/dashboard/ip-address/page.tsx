@@ -101,6 +101,7 @@ export default function IPAddressManagement() {
   React.useEffect(() => {
     fetchUsers();
   }, []);
+  const [lastUpdated, setLastUpdated] = React.useState<string>("");
 
   async function fetchUsers() {
     const { data, error } = await supabase.from("users").select("*");
@@ -108,6 +109,8 @@ export default function IPAddressManagement() {
       console.error("Error fetching users:", error);
     } else {
       setUsers(data || []);
+      //simpan timestamp terakhir kali di fetch
+      setLastUpdated(new Date().toLocaleString());
     }
   }
 
@@ -128,7 +131,7 @@ export default function IPAddressManagement() {
         return;
       }
     }
-    fetchUsers();
+    fetchUsers(); //ambil data terbaru
     setIsDialogOpen(false);
     setEditingUser(null);
     setNewUser({
@@ -141,6 +144,7 @@ export default function IPAddressManagement() {
       cab: "",
       status_user: "",
     });
+    setLastUpdated(new Date().toLocaleString());//update timestamp
   }
 
   async function handleDeleteUser(id: number) {
@@ -150,6 +154,7 @@ export default function IPAddressManagement() {
       return;
     }
     fetchUsers();
+    setLastUpdated(new Date().toLocaleString());
   }
 
   //fungsi export excel
@@ -187,8 +192,36 @@ export default function IPAddressManagement() {
       enableSorting: false,
       enableHiding: false,
     },
-    { accessorKey: "user_estim", header: "User ESTIM" },
-    { accessorKey: "ip_address", header: "IP Address" },
+    {
+      accessorKey: "user_estim",
+      header: ({ column }) => {
+        return (
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            User ESTIM
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+          </Button>
+        );
+      },
+      enableSorting: true,
+    },
+    {
+      accessorKey: "ip_address",
+      header: ({ column }) => {
+        return (
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            User ESTIM
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+          </Button>
+        );
+      },
+      enableSorting: true,
+    },
     { accessorKey: "nama", header: "Nama Pemegang" },
     { accessorKey: "nip", header: "NIP" },
     { accessorKey: "jabatan", header: "Jabatan" },
@@ -450,8 +483,8 @@ export default function IPAddressManagement() {
               </TableBody>
             </Table>
           </CardContent>
-          <CardFooter className="font-bold italic text-xs">
-            Last updated pada {new Date().toLocaleString()}
+          <CardFooter className="italic text-xs text-muted-foreground">
+            Last updated pada {lastUpdated}
           </CardFooter>
         </Card>
       </div>
