@@ -1,14 +1,38 @@
-// FILEPATH: e:/work-report/dev/reportapp/src/app/dashboard/atm-complaints/page.tsx
 "use client";
+
 import { useState, useEffect } from "react";
 import { createClient } from "@supabase/supabase-js";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
-import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+} from "@/components/ui/card";
 import ReportLayout from "@/app/dashboard/reports/layout";
 
 const supabase = createClient(
@@ -21,10 +45,22 @@ type ATMComplaint = {
   atm_id: string;
   complaint: string;
   reported_by: string;
+  account_number: string;
+  nominal: number;
+  date_complaint: string;
   date_reported: string;
   status: "Open" | "In Progress" | "Resolved" | "Closed";
   resolution?: string;
 };
+
+function formatToRupiah(amount: number): string {
+  return new Intl.NumberFormat('id-ID', {
+    style: 'currency',
+    currency: 'IDR',
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).format(amount);
+}
 
 export default function ATMComplaints() {
   const [complaints, setComplaints] = useState<ATMComplaint[]>([]);
@@ -32,11 +68,16 @@ export default function ATMComplaints() {
     atm_id: "",
     complaint: "",
     reported_by: "",
+    account_number: "",
+    nominal: 0,
+    date_complaint: new Date().toISOString().split("T")[0],
     date_reported: new Date().toISOString().split("T")[0],
     status: "Open",
     resolution: "",
   });
-  const [editingComplaint, setEditingComplaint] = useState<ATMComplaint | null>(null);
+  const [editingComplaint, setEditingComplaint] = useState<ATMComplaint | null>(
+    null
+  );
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   useEffect(() => {
@@ -54,7 +95,7 @@ export default function ATMComplaints() {
   }
 
   async function handleCreate() {
-    const { data, error } = await supabase.from("atm_complaints").insert([newComplaint]);
+    const { error } = await supabase.from("atm_complaints").insert([newComplaint]);
 
     if (error) console.error("Error creating complaint:", error);
     else {
@@ -63,6 +104,9 @@ export default function ATMComplaints() {
         atm_id: "",
         complaint: "",
         reported_by: "",
+        account_number: "",
+        nominal: 0,
+        date_complaint: new Date().toISOString().split("T")[0],
         date_reported: new Date().toISOString().split("T")[0],
         status: "Open",
         resolution: "",
@@ -103,7 +147,9 @@ export default function ATMComplaints() {
         </DialogTrigger>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
-            <DialogTitle>{editingComplaint ? "Edit Complaint" : "Report New Complaint"}</DialogTitle>
+            <DialogTitle>
+              {editingComplaint ? "Edit Complaint" : "Report New Complaint"}
+            </DialogTitle>
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <Input
@@ -111,47 +157,118 @@ export default function ATMComplaints() {
               value={editingComplaint ? editingComplaint.atm_id : newComplaint.atm_id}
               onChange={(e) =>
                 editingComplaint
-                ? setEditingComplaint({ ...editingComplaint, atm_id: e.target.value })
-                : setNewComplaint({ ...newComplaint, atm_id: e.target.value })
+                  ? setEditingComplaint({
+                      ...editingComplaint,
+                      atm_id: e.target.value,
+                    })
+                  : setNewComplaint({ ...newComplaint, atm_id: e.target.value })
               }
-              />
+            />
             <Textarea
               placeholder="Complaint Details"
-              value={editingComplaint ? editingComplaint.complaint : newComplaint.complaint}
+              value={
+                editingComplaint
+                  ? editingComplaint.complaint
+                  : newComplaint.complaint
+              }
               onChange={(e) =>
                 editingComplaint
-                ? setEditingComplaint({ ...editingComplaint, complaint: e.target.value })
-                : setNewComplaint({ ...newComplaint, complaint: e.target.value })
+                  ? setEditingComplaint({
+                      ...editingComplaint,
+                      complaint: e.target.value,
+                    })
+                  : setNewComplaint({
+                      ...newComplaint,
+                      complaint: e.target.value,
+                    })
               }
-              />
+            />
             <Input
               placeholder="Reported By"
-              value={editingComplaint ? editingComplaint.reported_by : newComplaint.reported_by}
+              value={
+                editingComplaint
+                  ? editingComplaint.reported_by
+                  : newComplaint.reported_by
+              }
               onChange={(e) =>
                 editingComplaint
-                ? setEditingComplaint({ ...editingComplaint, reported_by: e.target.value })
-                : setNewComplaint({ ...newComplaint, reported_by: e.target.value })
+                  ? setEditingComplaint({
+                      ...editingComplaint,
+                      reported_by: e.target.value,
+                    })
+                  : setNewComplaint({
+                      ...newComplaint,
+                      reported_by: e.target.value,
+                    })
               }
-              />
+            />
+            <Input
+              placeholder="Account Number"
+              value={
+                editingComplaint
+                  ? editingComplaint.account_number
+                  : newComplaint.account_number
+              }
+              onChange={(e) =>
+                editingComplaint
+                  ? setEditingComplaint({
+                      ...editingComplaint,
+                      account_number: e.target.value,
+                    })
+                  : setNewComplaint({
+                      ...newComplaint,
+                      account_number: e.target.value,
+                    })
+              }
+            />
+            <Input
+              type="number"
+              placeholder="Nominal"
+              value={
+                editingComplaint ? editingComplaint.nominal : newComplaint.nominal
+              }
+              onChange={(e) =>
+                editingComplaint
+                  ? setEditingComplaint({
+                      ...editingComplaint,
+                      nominal: Number(e.target.value),
+                    })
+                  : setNewComplaint({
+                      ...newComplaint,
+                      nominal: Number(e.target.value),
+                    })
+              }
+            />
             <Input
               type="date"
-              value={editingComplaint ? editingComplaint.date_reported : newComplaint.date_reported}
+              placeholder="Date Complaint"
+              value={
+                editingComplaint
+                  ? editingComplaint.date_complaint
+                  : newComplaint.date_complaint
+              }
               onChange={(e) =>
                 editingComplaint
-                ? setEditingComplaint({ ...editingComplaint, date_reported: e.target.value })
-                : setNewComplaint({ ...newComplaint, date_reported: e.target.value })
+                  ? setEditingComplaint({
+                      ...editingComplaint,
+                      date_complaint: e.target.value,
+                    })
+                  : setNewComplaint({
+                      ...newComplaint,
+                      date_complaint: e.target.value,
+                    })
               }
-              />
+            />
             <Select
               value={editingComplaint ? editingComplaint.status : newComplaint.status}
-              onValueChange={(value: "Open" | "In Progress" | "Resolved" | "Closed") =>
+              onValueChange={(value:any) =>
                 editingComplaint
-                ? setEditingComplaint({ ...editingComplaint, status: value })
+                  ? setEditingComplaint({ ...editingComplaint, status: value })
                   : setNewComplaint({ ...newComplaint, status: value })
-                }
-                >
+              }
+            >
               <SelectTrigger>
-                <SelectValue placeholder="Status" />
+                <SelectValue placeholder="Select Status" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="Open">Open</SelectItem>
@@ -162,11 +279,11 @@ export default function ATMComplaints() {
             </Select>
             {editingComplaint && (
               <Textarea
-              placeholder="Resolution (if applicable)"
-              value={editingComplaint.resolution || ""}
-              onChange={(e) =>
-                setEditingComplaint({ ...editingComplaint, resolution: e.target.value })
-              }
+                placeholder="Resolution"
+                value={editingComplaint.resolution || ""}
+                onChange={(e) =>
+                  setEditingComplaint({ ...editingComplaint, resolution: e.target.value })
+                }
               />
             )}
           </div>
@@ -176,7 +293,7 @@ export default function ATMComplaints() {
                 if (editingComplaint) handleUpdate();
                 else handleCreate();
               }}
-              >
+            >
               {editingComplaint ? "Update Complaint" : "Create Complaint"}
             </Button>
             <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
@@ -185,60 +302,67 @@ export default function ATMComplaints() {
           </div>
         </DialogContent>
       </Dialog>
-<Card className="w-full">
-  <CardHeader className="font-bold text-lg">
-              Laporan Komplain Nasabah
-  </CardHeader>
-  <CardContent>
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableCell>ATM ID</TableCell>
-            <TableCell>Complaint</TableCell>
-            <TableCell>Reported By</TableCell>
-            <TableCell>Date Reported</TableCell>
-            <TableCell>Status</TableCell>
-            <TableCell>Aksi</TableCell>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {complaints.map((complaint) => (
-            <TableRow key={complaint.id}>
-              <TableCell>{complaint.atm_id}</TableCell>
-              <TableCell>{complaint.complaint}</TableCell>
-              <TableCell>{complaint.reported_by}</TableCell>
-              <TableCell>{complaint.date_reported}</TableCell>
-              <TableCell>{complaint.status}</TableCell>
-              <TableCell>
-                <div className="flex gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => {
-                      setEditingComplaint(complaint);
-                      setIsDialogOpen(true);
-                    }}
-                    >
-                    Edit
-                  </Button>
-                  <Button
-                    variant="destructive"
-                    size="sm"
-                    onClick={() => handleDelete(complaint.id)}
-                    >
-                    Delete
-                  </Button>
-                </div>
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-          </CardContent>
-      <CardFooter className="font-bold text-xs italic">
-        Terakhir update : {new Date().toLocaleString()}
-      </CardFooter>
-          </Card>
-    </ReportLayout>
-  );
-}
+      <Card className="w-full">
+        <CardHeader className="font-bold text-lg">
+          Laporan Komplain Nasabah
+        </CardHeader>
+        <CardContent>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableCell>ATM ID</TableCell>
+                <TableCell>Komplain</TableCell>
+                <TableCell>Pelapor</TableCell>
+                <TableCell>Nomor Rekening</TableCell>
+                <TableCell>Nominal</TableCell>
+                <TableCell>Tanggal Komplain</TableCell>
+                <TableCell>Status</TableCell>
+                <TableCell>Resolution</TableCell>
+                <TableCell>Aksi</TableCell>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {complaints.map((complaint) => (
+                                <TableRow key={complaint.id}>
+                                <TableCell>{complaint.atm_id}</TableCell>
+                                <TableCell>{complaint.complaint}</TableCell>
+                                <TableCell>{complaint.reported_by}</TableCell>
+                                <TableCell>{complaint.account_number}</TableCell>
+                                <TableCell>{formatToRupiah(complaint.nominal)}</TableCell>
+                                <TableCell>{complaint.date_complaint}</TableCell>
+                                <TableCell>{complaint.status}</TableCell>
+                                <TableCell>{complaint.resolution || '-'}</TableCell>
+                                <TableCell>
+                                  <div className="flex gap-2">
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      onClick={() => {
+                                        setEditingComplaint(complaint);
+                                        setIsDialogOpen(true);
+                                      }}
+                                    >
+                                      Edit
+                                    </Button>
+                                    <Button
+                                      variant="destructive"
+                                      size="sm"
+                                      onClick={() => handleDelete(complaint.id)}
+                                    >
+                                      Delete
+                                    </Button>
+                                  </div>
+                                </TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                      </CardContent>
+                      <CardFooter className="font-bold text-xs italic">
+                        Terakhir update: {new Date().toLocaleString()}
+                      </CardFooter>
+                    </Card>
+                  </ReportLayout>
+                );
+              }
+              

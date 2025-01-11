@@ -97,6 +97,12 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             >
               Laporan Komplain ATM
             </Link>
+            <Link
+              href="/dashboard/weekend_banking"
+              className="blcok px-4 py-2 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700"
+            >
+              Laporan Weekend Banking
+            </Link>
           </nav>
           <div className="w-full">
             <Button
