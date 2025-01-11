@@ -23,7 +23,13 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
 import { DatePicker } from "@/components/ui/date-picker"; // Assume we have a custom date picker component
@@ -35,7 +41,12 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+} from "@/components/ui/card";
 import { createClient } from "@supabase/supabase-js";
 import ReportLayout from "@/app/dashboard/reports/layout";
 
@@ -66,12 +77,17 @@ export default function ITIncidentManagement() {
     priority: "Medium",
     resolution: "",
   });
-  const [editingIncident, setEditingIncident] = React.useState<Incident | null>(null);
+  const [editingIncident, setEditingIncident] = React.useState<Incident | null>(
+    null
+  );
   const [isDialogOpen, setIsDialogOpen] = React.useState(false);
   const [globalFilter, setGlobalFilter] = React.useState("");
   const [sorting, setSorting] = React.useState<SortingState>([]);
-  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
-  const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
+  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
+    []
+  );
+  const [columnVisibility, setColumnVisibility] =
+    React.useState<VisibilityState>({});
 
   React.useEffect(() => {
     fetchIncidents();
@@ -100,7 +116,9 @@ export default function ITIncidentManagement() {
         return;
       }
     } else {
-      const { error } = await supabase.from("it_incidents").insert([newIncident]);
+      const { error } = await supabase
+        .from("it_incidents")
+        .insert([newIncident]);
       if (error) {
         console.error("Error creating incident:", error);
         return;
@@ -151,7 +169,11 @@ export default function ITIncidentManagement() {
           >
             Edit
           </Button>
-          <Button variant="destructive" size="sm" onClick={() => handleDelete(row.original.id)}>
+          <Button
+            variant="destructive"
+            size="sm"
+            onClick={() => handleDelete(row.original.id)}
+          >
             Delete
           </Button>
         </div>
@@ -188,68 +210,99 @@ export default function ITIncidentManagement() {
           className="max-w-sm"
         />
         {/* <DialogTrigger asChild> */}
-          <Button onClick={() => setIsDialogOpen(true)}>Add New Incident</Button>
+        <Button onClick={() => setIsDialogOpen(true)}>Add New Incident</Button>
         {/* </DialogTrigger> */}
       </div>
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{editingIncident ? "Edit Incident" : "Add New Incident"}</DialogTitle>
+            <DialogTitle>
+              {editingIncident ? "Edit Incident" : "Add New Incident"}
+            </DialogTitle>
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <Input
               placeholder="Title"
-              value={editingIncident ? editingIncident.title : newIncident.title}
+              value={
+                editingIncident ? editingIncident.title : newIncident.title
+              }
               onChange={(e) =>
                 editingIncident
-                  ? setEditingIncident({ ...editingIncident, title: e.target.value })
+                  ? setEditingIncident({
+                      ...editingIncident,
+                      title: e.target.value,
+                    })
                   : setNewIncident({ ...newIncident, title: e.target.value })
               }
             />
             <Textarea
               placeholder="Description"
-              value={editingIncident ? editingIncident.description : newIncident.description}
+              value={
+                editingIncident
+                  ? editingIncident.description
+                  : newIncident.description
+              }
               onChange={(e) =>
                 editingIncident
-                  ? setEditingIncident({ ...editingIncident, description: e.target.value })
-                  : setNewIncident({ ...newIncident, description: e.target.value })
+                  ? setEditingIncident({
+                      ...editingIncident,
+                      description: e.target.value,
+                    })
+                  : setNewIncident({
+                      ...newIncident,
+                      description: e.target.value,
+                    })
               }
             />
             <Input
               placeholder="Reported By"
-              value={editingIncident ? editingIncident.reported_by : newIncident.reported_by}
+              value={
+                editingIncident
+                  ? editingIncident.reported_by
+                  : newIncident.reported_by
+              }
               onChange={(e) =>
                 editingIncident
-                  ? setEditingIncident({ ...editingIncident, reported_by: e.target.value })
-                  : setNewIncident({ ...newIncident, reported_by: e.target.value })
+                  ? setEditingIncident({
+                      ...editingIncident,
+                      reported_by: e.target.value,
+                    })
+                  : setNewIncident({
+                      ...newIncident,
+                      reported_by: e.target.value,
+                    })
               }
             />
             <DatePicker
-              selected={new Date(editingIncident?.date_reported || newIncident.date_reported)}
-              onChange={(date:any) =>
-                editingIncident
-                ? setEditingIncident({
-                  ...editingIncident,
-                  date_reported: date?.toISOString() || "",
-                })
-                : setNewIncident({
-                  ...newIncident,
-                  date_reported: date?.toISOString() || "",
-                })
-              }
-              >
-              <SelectTrigger>
-                <SelectValue>
-                  {format(
-                    new Date(editingIncident?.date_reported || newIncident.date_reported),
-                    "dd/MM/yyyy"
-                  )}
-                </SelectValue>
-              </SelectTrigger>
-            </DatePicker>
+  value={new Date(editingIncident?.date_reported || newIncident.date_reported)}
+  onChange={(date: Date | undefined) => {
+    const selectedDate = date || new Date(); // Fallback to current date if `date` is undefined
+    if (editingIncident) {
+      setEditingIncident({
+        ...editingIncident,
+        date_reported: selectedDate.toISOString(),
+      });
+    } else {
+      setNewIncident({
+        ...newIncident,
+        date_reported: selectedDate.toISOString(),
+      });
+    }
+  }}
+/>
+<SelectTrigger>
+  <SelectValue>
+    {format(
+      new Date(editingIncident?.date_reported || newIncident.date_reported),
+      "dd/MM/yyyy"
+    )}
+  </SelectValue>
+</SelectTrigger>
             <Select
-              value={editingIncident ? editingIncident.status : newIncident.status}
-              onValueChange={(value:any) =>
+              value={
+                editingIncident ? editingIncident.status : newIncident.status
+              }
+              onValueChange={(value: any) =>
                 editingIncident
                   ? setEditingIncident({ ...editingIncident, status: value })
                   : setNewIncident({ ...newIncident, status: value })
@@ -266,8 +319,12 @@ export default function ITIncidentManagement() {
               </SelectContent>
             </Select>
             <Select
-              value={editingIncident ? editingIncident.priority : newIncident.priority}
-              onValueChange={(value:any) =>
+              value={
+                editingIncident
+                  ? editingIncident.priority
+                  : newIncident.priority
+              }
+              onValueChange={(value: any) =>
                 editingIncident
                   ? setEditingIncident({ ...editingIncident, priority: value })
                   : setNewIncident({ ...newIncident, priority: value })
@@ -288,7 +345,10 @@ export default function ITIncidentManagement() {
                 placeholder="Resolution (optional)"
                 value={editingIncident.resolution || ""}
                 onChange={(e) =>
-                  setEditingIncident({ ...editingIncident, resolution: e.target.value })
+                  setEditingIncident({
+                    ...editingIncident,
+                    resolution: e.target.value,
+                  })
                 }
               />
             )}
@@ -300,48 +360,48 @@ export default function ITIncidentManagement() {
       </Dialog>
       <div className="rounded-md border">
         <Card className="w-full">
-          <CardHeader className="font-bold text-lg">
-            List Insiden
-          </CardHeader>
-            <CardContent>
-        <Table>
-          <TableHeader>
-            {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => (
-                  <TableHead key={header.id}>
-                    {flexRender(
-                      header.column.columnDef.header,
-                      header.getContext()
-                    )}
-                  </TableHead>
+          <CardHeader className="font-bold text-lg">List Insiden</CardHeader>
+          <CardContent>
+            <Table>
+              <TableHeader>
+                {table.getHeaderGroups().map((headerGroup) => (
+                  <TableRow key={headerGroup.id}>
+                    {headerGroup.headers.map((header) => (
+                      <TableHead key={header.id}>
+                        {flexRender(
+                          header.column.columnDef.header,
+                          header.getContext()
+                        )}
+                      </TableHead>
+                    ))}
+                  </TableRow>
                 ))}
-              </TableRow>
-            ))}
-          </TableHeader>
-          <TableBody>
-            {table.getRowModel().rows.map((row) => (
-              <TableRow key={row.id}>
-                {row.getVisibleCells().map((cell) => (
-                  <TableCell key={cell.id}>
-                    {flexRender(
-                      cell.column.columnDef.cell,
-                      cell.getContext()
-                    )}
-                  </TableCell>
+              </TableHeader>
+              <TableBody>
+                {table.getRowModel().rows.map((row) => (
+                  <TableRow key={row.id}>
+                    {row.getVisibleCells().map((cell) => (
+                      <TableCell key={cell.id}>
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext()
+                        )}
+                      </TableCell>
+                    ))}
+                  </TableRow>
                 ))}
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-        </CardContent>
-        <CardFooter className="font-bold italic text-xs">
-          Terakhir di update :
-        </CardFooter>
-            </Card>
+              </TableBody>
+            </Table>
+          </CardContent>
+          <CardFooter className="font-bold italic text-xs">
+            Terakhir di update :
+          </CardFooter>
+        </Card>
       </div>
       <div className="flex justify-between items-center py-4">
-        <span className="text-sm text-muted-foreground">{table.getFilteredRowModel().rows.length} rows</span>
+        <span className="text-sm text-muted-foreground">
+          {table.getFilteredRowModel().rows.length} rows
+        </span>
         <div className="space-x-2">
           <Button
             variant="outline"
