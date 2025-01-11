@@ -274,30 +274,26 @@ export default function ITIncidentManagement() {
               }
             />
             <DatePicker
-  value={new Date(editingIncident?.date_reported || newIncident.date_reported)}
-  onChange={(date: Date | undefined) => {
-    const selectedDate = date || new Date(); // Fallback to current date if `date` is undefined
-    if (editingIncident) {
-      setEditingIncident({
-        ...editingIncident,
-        date_reported: selectedDate.toISOString(),
-      });
-    } else {
-      setNewIncident({
-        ...newIncident,
-        date_reported: selectedDate.toISOString(),
-      });
-    }
-  }}
-/>
-<SelectTrigger>
-  <SelectValue>
-    {format(
-      new Date(editingIncident?.date_reported || newIncident.date_reported),
-      "dd/MM/yyyy"
-    )}
-  </SelectValue>
-</SelectTrigger>
+              value={
+                new Date(
+                  editingIncident?.date_reported || newIncident.date_reported
+                )
+              }
+              onChange={(date: Date | undefined) => {
+                const selectedDate = date || new Date(); // Fallback to current date if `date` is undefined
+                if (editingIncident) {
+                  setEditingIncident({
+                    ...editingIncident,
+                    date_reported: selectedDate.toISOString(),
+                  });
+                } else {
+                  setNewIncident({
+                    ...newIncident,
+                    date_reported: selectedDate.toISOString(),
+                  });
+                }
+              }}
+            />
             <Select
               value={
                 editingIncident ? editingIncident.status : newIncident.status
