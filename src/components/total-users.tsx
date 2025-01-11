@@ -21,7 +21,7 @@ export default function DashboardOverview() {
     // Query total IP addresses
     const { data: ipData, error: ipError } = await supabase
       .from("users")
-      .select("ip_address", { count: "exact"});
+      .select("ip_address", { count: "exact", head:false})
     if (ipError) {
       console.error("Error fetching IP addresses:", ipError);
     } else {
@@ -31,7 +31,7 @@ export default function DashboardOverview() {
     // Query total User ESTIM
     const { data: userEstimData, error: userEstimError } = await supabase
       .from("users")
-      .select("user_estim", { count: "exact"});
+      .select("user_estim", { count: "exact", head: false});
     if (userEstimError) {
       console.error("Error fetching User ESTIM:", userEstimError);
     } else {
@@ -42,22 +42,32 @@ export default function DashboardOverview() {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
       {/* Card: Total IP Address */}
-      <Card className="shadow-md">
-        <CardHeader>
-          <CardTitle>Total IP Address</CardTitle>
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle className="text-sm font-medium">IP Address</CardTitle>
         </CardHeader>
-        <CardContent className="text-2xl font-bold text-center">
+        <CardContent>
+          <div className="text-2xl font-bold">
           {totalIpAddress}
+          </div>
+          <p className="text-xs text-muted-foreground">
+            Total IP addresses registered
+          </p>
         </CardContent>
       </Card>
 
       {/* Card: Total User ESTIM */}
-      <Card className="shadow-md">
-        <CardHeader>
-          <CardTitle>Total User ESTIM</CardTitle>
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle className="text-sm font-medium">User ESTIM</CardTitle>
         </CardHeader>
-        <CardContent className="text-2xl font-bold text-center">
+        <CardContent>
+          <div className="text-2xl font-bold">
           {totalUserEstim}
+          </div>
+          <p className="text-xs text-muted-foreground">
+            Total User ESTIM sudah diregistrasi
+          </p>
         </CardContent>
       </Card>
     </div>

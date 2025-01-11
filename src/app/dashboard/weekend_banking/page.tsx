@@ -34,6 +34,7 @@ import {
 } from "@/components/ui/table";
 import { createClient } from "@supabase/supabase-js";
 import { Card, CardHeader, CardContent, CardFooter } from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 const supabase = createClient(
   "https://qqtcdaamobxjtahrorwl.supabase.co",
@@ -47,6 +48,9 @@ type AccessLog = {
   nama: string;
   akses_count: number;
   last_access: string;
+  tanggal_awal: Date;
+  tanggal_akhir: Date;
+  jenis_permohonan: string;
 };
 
 export default function WeekendBankingTable() {
@@ -60,6 +64,9 @@ export default function WeekendBankingTable() {
     user_estim: "",
     ip_address: "",
     nama: "",
+    tanggal_awal: new Date(),
+    tanggal_akhir: new Date(),
+    jenis_permohonan: "",
   });
 
   React.useEffect(() => {
@@ -92,13 +99,36 @@ export default function WeekendBankingTable() {
     }
     fetchAccessLogs();
     setIsDialogOpen(false);
-    setNewLog({ user_estim: "", ip_address: "", nama: "" });
+    setNewLog({ user_estim: "", ip_address: "", nama: "" , tanggal_awal: new Date(), tanggal_akhir: new Date(), jenis_permohonan: ""});
   }
 
   const columns: ColumnDef<AccessLog>[] = [
     { accessorKey: "user_estim", header: "User ESTIM" },
     { accessorKey: "ip_address", header: "IP Address" },
     { accessorKey: "nama", header: "Nama Pemegang" },
+    {
+      accessorKey: "tanggal_awal",
+      header: "Tanggal Awal",
+      cell: ({ row }) => (
+        <span>
+          {new Date(row.original.tanggal_awal).toLocaleString("id-ID", {
+            dateStyle: "medium",
+          })}
+        </span>
+      ),
+    },
+    {
+      accessorKey: "tanggal_akhir",
+      header: "Tanggal Akhir",
+      cell: ({ row }) => (
+        <span>
+          {new Date(row.original.tanggal_akhir).toLocaleString("id-ID", {
+            dateStyle: "medium",
+          })}
+        </span>
+      ),
+    },
+    { accessorKey: "jenis_permohonan", header: "Jenis Permohonan" },
     {
       accessorKey: "akses_count",
       header: () => (
@@ -201,6 +231,40 @@ export default function WeekendBankingTable() {
               value={newLog.nama}
               onChange={(e) => setNewLog({ ...newLog, nama: e.target.value })}
             />
+            <Input
+              type="date"
+              placeholder="Tanggal Awal"
+              value={newLog.tanggal_awal.toISOString().substring(0, 10)}
+              onChange={(e) =>
+                setNewLog({ ...newLog, tanggal_awal: new Date(e.target.value) })
+              }
+            />
+            <Input
+              type="date"
+              placeholder="Tanggal Akhir"
+              value={newLog.tanggal_akhir.toISOString().substring(0, 10)}
+              onChange={(e) =>
+                setNewLog({ ...newLog, tanggal_akhir: new Date(e.target.value) })
+              }
+            />
+            <Select
+              value={newLog.jenis_permohonan}
+              onValueChange={(value) =>
+                setNewLog({ ...newLog, jenis_permohonan: value})
+              }
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Jenis Permohonan" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Weekend Banking">
+                  Weekend Banking
+                </SelectItem>
+                <SelectItem value="Perpanjangan Akses">
+                  Perpanjangan Akses
+                </SelectItem>
+              </SelectContent>
+            </Select>
           </div>
           <Button onClick={handleAddLog}>Add Data</Button>
         </DialogContent>

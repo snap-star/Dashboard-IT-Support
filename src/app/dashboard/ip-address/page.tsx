@@ -13,7 +13,12 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import { Card, CardContent, CardHeader, CardFooter} from "@/components/ui/card"
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardFooter,
+} from "@/components/ui/card";
 import { ArrowUpDown, ChevronDown, MoreHorizontal } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -36,9 +41,22 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { createClient } from "@supabase/supabase-js";
 import * as XLSX from "xlsx";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const supabase = createClient(
   "https://qqtcdaamobxjtahrorwl.supabase.co",
@@ -64,9 +82,8 @@ export default function IPAddressManagement() {
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     []
   );
-  const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>(
-    {}
-  );
+  const [columnVisibility, setColumnVisibility] =
+    React.useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = React.useState({});
   const [isDialogOpen, setIsDialogOpen] = React.useState(false);
   const [editingUser, setEditingUser] = React.useState<User | null>(null);
@@ -238,11 +255,21 @@ export default function IPAddressManagement() {
           className="max-w-sm"
         />
         {/* <DialogTrigger asChild> */}
-          <Button className="hover:bg-green-700" variant={"outline"} size={"default"} onClick={exportToExcel}>Export Excel</Button>
-          <Button variant={"outline"} size={"default"} onClick={printTable}>Print</Button>
-          <Button variant={"default"} size={"default"} onClick={() => setIsDialogOpen(true)}>Add New User</Button>
+        <Button variant={"outline"} size={"default"} onClick={exportToExcel}>
+          Export Excel
+        </Button>
+        <Button variant={"outline"} size={"default"} onClick={printTable}>
+          Print
+        </Button>
+        <Button
+          variant={"default"}
+          size={"default"}
+          onClick={() => setIsDialogOpen(true)}
+        >
+          Add New User
+        </Button>
         {/* </DialogTrigger> */}
-        </div>
+      </div>
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent>
           <DialogHeader>
@@ -251,28 +278,123 @@ export default function IPAddressManagement() {
             </DialogTitle>
           </DialogHeader>
           <div className="grid gap-4 py-4">
-            {Object.keys(newUser).map((key) => (
-              <Input
-                key={key}
-                placeholder={key}
-                value={
-                  editingUser
-                    ? editingUser[key as keyof User] || ""
-                    : newUser[key as keyof Omit<User, "id">]
-                }
-                onChange={(e) =>
-                  editingUser
-                    ? setEditingUser({
-                        ...editingUser,
-                        [key]: e.target.value,
-                      })
-                    : setNewUser({
-                        ...newUser,
-                        [key]: e.target.value,
-                      })
-                }
-              />
-            ))}
+            {Object.keys(newUser).map((key) =>
+              key === "unit_kerja" ? (
+                <Select
+                  key={key}
+                  value={
+                    editingUser ? editingUser.unit_kerja : newUser.unit_kerja
+                  }
+                  onValueChange={(value) =>
+                    editingUser
+                      ? setEditingUser({ ...editingUser, unit_kerja: value })
+                      : setNewUser({ ...newUser, unit_kerja: value })
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Pilih Unit Kerja" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Umum">Umum</SelectItem>
+                    <SelectItem value="Pelayanan Nasabah">
+                      Pelayanan Nasabah
+                    </SelectItem>
+                    <SelectItem value="Teller">Teller</SelectItem>
+                    <SelectItem value="Service Assitant">
+                      Service Assistant
+                    </SelectItem>
+                    <SelectItem value="Kredit">Kredit</SelectItem>
+                    <SelectItem value="RPK">RPK</SelectItem>
+                    <SelectItem value="QA">QA</SelectItem>
+                  </SelectContent>
+                </Select>
+              ) : key === "status_user" ? (
+                <Select
+                  key={key}
+                  value={
+                    editingUser ? editingUser.status_user : newUser.status_user
+                  }
+                  onValueChange={(value) =>
+                    editingUser
+                      ? setEditingUser({ ...editingUser, status_user: value })
+                      : setNewUser({ ...newUser, status_user: value })
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Pilih Status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Aktif">Aktif</SelectItem>
+                    <SelectItem value="Tidak Aktif">Tidak Aktif</SelectItem>
+                  </SelectContent>
+                </Select>
+              ) : key === "cab" ? (
+                <Select
+                  key={key}
+                  value={editingUser ? editingUser.cab : newUser.cab}
+                  onValueChange={(value) =>
+                    editingUser
+                      ? setEditingUser({ ...editingUser, cab: value })
+                      : setNewUser({ ...newUser, cab: value })
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Pilih Cabang" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Cabang Ponorogo">
+                      Cabang Ponorogo
+                    </SelectItem>
+                    <SelectItem value="Capem Sumoroto">
+                      Capem Sumoroto
+                    </SelectItem>
+                    <SelectItem value="Capem Jetis">Capem Jetis</SelectItem>
+                    <SelectItem value="Capem Pulung">Capem Pulung</SelectItem>
+                    <SelectItem value="Capem Balong">Capem Balong</SelectItem>
+                    <SelectItem value="KFF Pemda Ponorogo">
+                      KFF Pemda Ponorogo
+                    </SelectItem>
+                    <SelectItem value="KFF Sukorejo">KFF Sukorejo</SelectItem>
+                    <SelectItem value="KFF Jenangan">KFF Jenangan</SelectItem>
+                    <SelectItem value="KFF RSUD Harjono">
+                      KFF RSUD Harjono
+                    </SelectItem>
+                    <SelectItem value="KFF Slahung">KFF Slahung</SelectItem>
+                    <SelectItem value="KFF Sawoo">KFF Sawoo</SelectItem>
+                    <SelectItem value="Payment Point Samsat">
+                      Payment Point Samsat
+                    </SelectItem>
+                    <SelectItem value="Mall Pelayanan Publik Ponorogo">
+                      Mall Pelayanan Publik Ponorogo
+                    </SelectItem>
+                    <SelectItem value="Payment Point PBB Ponorogo">
+                      Payment Point PBB Ponorogo
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              ) : (
+                <Input
+                  key={key}
+                  placeholder={key}
+                  value={
+                    editingUser
+                      ? editingUser[key as keyof User] || ""
+                      : newUser[key as keyof Omit<User, "id">]
+                  }
+                  onChange={(e) =>
+                    editingUser
+                      ? setEditingUser({
+                          ...editingUser,
+                          [key]: e.target.value,
+                        })
+                      : setNewUser({
+                          ...newUser,
+                          [key]: e.target.value,
+                        })
+                  }
+                />
+              )
+            )}
           </div>
           <Button onClick={handleCreateOrUpdateUser}>
             {editingUser ? "Update User" : "Create User"}
@@ -283,53 +405,55 @@ export default function IPAddressManagement() {
         <Card>
           <CardHeader>
             <div className="flex items-center justify-between">
-              <h2 className="text-lg font-bold">Daftar User ESTIM & IP Address</h2>
+              <h2 className="text-lg font-bold">
+                Daftar User ESTIM & IP Address
+              </h2>
             </div>
           </CardHeader>
           <CardContent>
-        <Table>
-          <TableHeader>
-            {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => (
-                  <TableHead key={header.id}>
-                    {flexRender(
-                      header.column.columnDef.header,
-                      header.getContext()
-                    )}
-                  </TableHead>
+            <Table>
+              <TableHeader>
+                {table.getHeaderGroups().map((headerGroup) => (
+                  <TableRow key={headerGroup.id}>
+                    {headerGroup.headers.map((header) => (
+                      <TableHead key={header.id}>
+                        {flexRender(
+                          header.column.columnDef.header,
+                          header.getContext()
+                        )}
+                      </TableHead>
+                    ))}
+                  </TableRow>
                 ))}
-              </TableRow>
-            ))}
-          </TableHeader>
-          <TableBody>
-            {table.getRowModel().rows.length ? (
-              table.getRowModel().rows.map((row) => (
-                <TableRow key={row.id}>
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext()
-                      )}
+              </TableHeader>
+              <TableBody>
+                {table.getRowModel().rows.length ? (
+                  table.getRowModel().rows.map((row) => (
+                    <TableRow key={row.id}>
+                      {row.getVisibleCells().map((cell) => (
+                        <TableCell key={cell.id}>
+                          {flexRender(
+                            cell.column.columnDef.cell,
+                            cell.getContext()
+                          )}
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={columns.length} className="text-center">
+                      No data found.
                     </TableCell>
-                  ))}
-                </TableRow>
-              ))
-            ) : (
-              <TableRow>
-                <TableCell colSpan={columns.length} className="text-center">
-                  No data found.
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
-            </CardContent>
-        <CardFooter className="font-bold italic text-xs">
-          Last updated pada {new Date().toLocaleString()}
-        </CardFooter>
-          </Card>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </CardContent>
+          <CardFooter className="font-bold italic text-xs">
+            Last updated pada {new Date().toLocaleString()}
+          </CardFooter>
+        </Card>
       </div>
       <div className="flex justify-between items-center py-4">
         <span className="text-sm text-muted-foreground">
@@ -341,7 +465,7 @@ export default function IPAddressManagement() {
             size="sm"
             disabled={!table.getCanPreviousPage()}
             onClick={() => table.previousPage()}
-            >
+          >
             Previous
           </Button>
           <Button

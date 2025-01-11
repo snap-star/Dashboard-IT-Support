@@ -99,9 +99,27 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             </Link>
             <Link
               href="/dashboard/weekend_banking"
-              className="blcok px-4 py-2 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700"
+              className="block px-4 py-2 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700"
             >
               Laporan Weekend Banking
+            </Link>
+            <Link
+              href="/dashboard/asset/hardware"
+              className="block px-4 py-2 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700"
+            >
+              Asset Hardware
+            </Link>
+            <Link
+              href="/dashboard/asset/software"
+              className="block px-4 py-2 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700"
+            >
+              Asset Software
+            </Link>
+            <Link
+              href="/dashboard/asset/edc"
+              className="block px-4 py-2 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700"
+            >
+                Asset EDC
             </Link>
           </nav>
           <div className="w-full">
