@@ -215,7 +215,7 @@ export default function IPAddressManagement() {
             variant="ghost"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
-            User ESTIM
+            IP Address
             <ArrowUpDown className="ml-2 h-4 w-4" />
           </Button>
         );
