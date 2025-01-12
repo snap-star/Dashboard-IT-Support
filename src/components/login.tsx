@@ -1,34 +1,61 @@
 // FILEPATH: e:/work-report/dev/reportapp/src/components/login.tsx
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { createClient } from "@supabase/supabase-js";
+import { Session } from "@supabase/supabase-js";
+import supabase from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 
-const supabase = createClient(
-  "https://qqtcdaamobxjtahrorwl.supabase.co",
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFxdGNkYWFtb2J4anRhaHJvcndsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Mjg5Mjg4MzEsImV4cCI6MjA0NDUwNDgzMX0.QabGqfgW1xflzw1QnuRMvh5jVv8pM5i3VJZeSiPOumE"
-);
-
+const idleTimeout = 30 * 60 * 1000; // 30 minutes
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const router = useRouter();
+  const [session, setSession] = useState<Session | null>(null);
+  const [idle,setIdle] = useState(false);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const now = new Date().getTime();
+      const lastActivity = localStorage.getItem("lastActivity");
+      if (lastActivity) {
+        const idleTime = now - parseInt(lastActivity);
+        if (idleTime > idleTimeout) {
+          setIdle(true);
+        }
+      }
+    }, 1000);
+    return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    if (idle) {
+      supabase.auth.signOut();
+      setSession(null);
+      router.push("/login");
+    }
+  }, [idle]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage(null); // Reset error message
     try {
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) throw error;
+      setSession(data.session);
+      localStorage.setItem("lastActivity", new Date().getTime.toString());
       router.push("/dashboard");
     } catch (error: any) {
       setErrorMessage("Invalid email or password. Please try again.");
       console.error("Error logging in:", error.message);
     }
+  };
+
+  const handleActivity = () => {
+    localStorage.setItem("lastActivity", new Date().getTime.toString());
   };
 
   return (
@@ -51,6 +78,8 @@ export default function Login() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             className="w-full"
+            onFocus={handleActivity}
+            onBlur={handleActivity}
           />
         </div>
         <div className="mb-6">
@@ -60,6 +89,8 @@ export default function Login() {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             className="w-full"
+            onFocus={handleActivity}
+            onBlur={handleActivity}
           />
         </div>
         <Button
@@ -70,7 +101,7 @@ export default function Login() {
         </Button>
         <p className="mt-4 text-sm text-center text-gray-600">
           Don't have an account?{" "}
-          <a href="/register" className="text-blue-600 hover:underline">
+          <a href="#" className="text-blue-600 hover:underline">
             Sign up
           </a>
         </p>

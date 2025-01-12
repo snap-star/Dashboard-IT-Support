@@ -1,11 +1,10 @@
 "use client"
 import { useState, useEffect } from 'react'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { createClient } from '@supabase/supabase-js'
+import supabase from '@/lib/supabase'
 import { Button } from '@/components/ui/button'
 import ReportLayout from './layout'
-
-const supabase = createClient('https://qqtcdaamobxjtahrorwl.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFxdGNkYWFtb2J4anRhaHJvcndsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Mjg5Mjg4MzEsImV4cCI6MjA0NDUwNDgzMX0.QabGqfgW1xflzw1QnuRMvh5jVv8pM5i3VJZeSiPOumE')
+import { Badge } from '@/components/ui/badge'
 
 type WorkReport = {
   id: number
@@ -79,7 +78,7 @@ async function handleDelete(report: WorkReport) {
               <TableCell>{report.id}</TableCell>
               <TableCell>{report.title}</TableCell>
               <TableCell>{report.date}</TableCell>
-              <TableCell>{report.status}</TableCell>
+              <TableCell><Badge>{report.status}</Badge></TableCell>
               <TableCell>
               <Button variant={'outline'} size={'default'} onClick={() => handleEdit(report)}>
                 Edit

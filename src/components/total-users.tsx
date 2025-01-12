@@ -3,11 +3,7 @@
 import * as React from "react";
 import { createClient } from "@supabase/supabase-js";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-
-const supabase = createClient(
-  "https://qqtcdaamobxjtahrorwl.supabase.co",
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFxdGNkYWFtb2J4anRhaHJvcndsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Mjg5Mjg4MzEsImV4cCI6MjA0NDUwNDgzMX0.QabGqfgW1xflzw1QnuRMvh5jVv8pM5i3VJZeSiPOumE"
-);
+import supabase from "@/lib/supabase";
 
 export default function DashboardOverview() {
   const [totalIpAddress, setTotalIpAddress] = React.useState(0);

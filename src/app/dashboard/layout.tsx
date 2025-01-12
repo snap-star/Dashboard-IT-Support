@@ -5,12 +5,8 @@ import { ModeToggle } from "@/components/ui/darkmode";
 import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
-import { createClient } from "@supabase/supabase-js";
-
-const supabase = createClient(
-  "https://qqtcdaamobxjtahrorwl.supabase.co",
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFxdGNkYWFtb2J4anRhaHJvcndsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Mjg5Mjg4MzEsImV4cCI6MjA0NDUwNDgzMX0.QabGqfgW1xflzw1QnuRMvh5jVv8pM5i3VJZeSiPOumE"
-);
+import supabase from "@/lib/supabase";
+import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion";
 
 type DashboardLayoutProps = {
   children: ReactNode;
@@ -97,12 +93,27 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             >
               Laporan Komplain ATM
             </Link>
+            <Accordion type="single" collapsible className="w-full">
+              <AccordionItem value="item-1">
+                <AccordionTrigger>
+                  Weekend Banking & Perpanjangan
+              </AccordionTrigger>
+              <AccordionContent>  
             <Link
               href="/dashboard/weekend_banking"
               className="block px-4 py-2 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700"
-            >
+              >
               Laporan Weekend Banking
             </Link>
+            <Link
+              href="/dashboard/weekend_banking/pengajuan"
+              className="block px-4 py-2 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700"
+              >
+              Pengajuan Weekend/Perpanjangan
+            </Link>
+              </AccordionContent>
+                </AccordionItem>
+            </Accordion>
             <Link
               href="/dashboard/asset/hardware"
               className="block px-4 py-2 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700"

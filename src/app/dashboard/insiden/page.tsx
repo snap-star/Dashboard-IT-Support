@@ -47,13 +47,8 @@ import {
   CardFooter,
   CardHeader,
 } from "@/components/ui/card";
-import { createClient } from "@supabase/supabase-js";
+import supabase from "@/lib/supabase";
 import ReportLayout from "@/app/dashboard/reports/layout";
-
-const supabase = createClient(
-  "https://qqtcdaamobxjtahrorwl.supabase.co",
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFxdGNkYWFtb2J4anRhaHJvcndsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Mjg5Mjg4MzEsImV4cCI6MjA0NDUwNDgzMX0.QabGqfgW1xflzw1QnuRMvh5jVv8pM5i3VJZeSiPOumE"
-);
 
 type Incident = {
   id: number;
@@ -354,8 +349,8 @@ export default function ITIncidentManagement() {
           </Button>
         </DialogContent>
       </Dialog>
-      <div className="rounded-md border">
-        <Card className="w-full">
+      <div className="rounded-md border w-full">
+        <Card>
           <CardHeader className="font-bold text-lg">List Insiden</CardHeader>
           <CardContent>
             <Table>

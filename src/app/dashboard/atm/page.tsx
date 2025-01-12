@@ -34,11 +34,9 @@ import {
   CardHeader,
 } from "@/components/ui/card";
 import ReportLayout from "@/app/dashboard/reports/layout";
+import { Badge } from "@/components/ui/badge";
+import supabase from "@/lib/supabase";
 
-const supabase = createClient(
-  "https://qqtcdaamobxjtahrorwl.supabase.co",
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFxdGNkYWFtb2J4anRhaHJvcndsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Mjg5Mjg4MzEsImV4cCI6MjA0NDUwNDgzMX0.QabGqfgW1xflzw1QnuRMvh5jVv8pM5i3VJZeSiPOumE"
-);
 
 type ATMComplaint = {
   id: number;
@@ -60,6 +58,21 @@ function formatToRupiah(amount: number): string {
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
   }).format(amount);
+}
+
+function getBadgeColor(status: string) {
+  switch (status) {
+    case "Open":
+      return "bg-blue-500 text-white"; //warna biru untuk status Open
+    case "In Progress":
+      return "bg-yellow-500 text-white"; //warna kuning untuk status in progress
+    case "Resolved":
+      return "bg-green-500 text-white"; //warna hijau untuk status resolved
+    case "Closed":
+      return "bg-gray-500 text-white"; //warna abu-abu untuk status closed
+    default:
+      return "bg-gray-500 text-white"; //warna default
+  }
 }
 
 export default function ATMComplaints() {
@@ -95,9 +108,9 @@ export default function ATMComplaints() {
   }
 
   async function handleCreate() {
-    const { error } = await supabase.from("atm_complaints").insert([newComplaint]);
+    const { data, error } = await supabase.from("atm_complaints").insert([newComplaint]);
 
-    if (error) console.error("Error creating complaint:", error);
+    if (error) console.error("Error creating complaint:", error.message, error.details);
     else {
       fetchComplaints();
       setNewComplaint({
@@ -330,7 +343,11 @@ export default function ATMComplaints() {
                                 <TableCell>{complaint.account_number}</TableCell>
                                 <TableCell>{formatToRupiah(complaint.nominal)}</TableCell>
                                 <TableCell>{complaint.date_complaint}</TableCell>
-                                <TableCell>{complaint.status}</TableCell>
+                                <TableCell>
+                                  <Badge variant="outline" className={`rounded-md ${getBadgeColor(complaint.status)}`}>
+                                  {complaint.status}
+                                  </Badge>
+                                  </TableCell>
                                 <TableCell>{complaint.resolution || '-'}</TableCell>
                                 <TableCell>
                                   <div className="flex gap-2">
@@ -359,7 +376,7 @@ export default function ATMComplaints() {
                         </Table>
                       </CardContent>
                       <CardFooter className="font-bold text-xs italic">
-                        Terakhir update: {new Date().toLocaleString()}
+                        Terakhir update:
                       </CardFooter>
                     </Card>
                   </ReportLayout>
