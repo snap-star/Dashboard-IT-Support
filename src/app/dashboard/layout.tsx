@@ -1,12 +1,35 @@
 "use client";
-import { ReactNode, useState } from "react";
+import { ReactNode, useState, useEffect } from "react";
 import Link from "next/link";
 import { ModeToggle } from "@/components/ui/darkmode";
 import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/button";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import supabase from "@/lib/supabase";
-import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion";
+import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { 
+  Menu,
+  Users,
+  LayoutDashboard,
+  FileText,
+  PenTool,
+  Network,
+  AlertCircle,
+  CreditCard,
+  Calendar,
+  HardDrive,
+  Database,
+  LogOut
+} from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+import Image from "next/image";
 
 type DashboardLayoutProps = {
   children: ReactNode;
@@ -14,153 +37,178 @@ type DashboardLayoutProps = {
 
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const router = useRouter();
-  const { theme, setTheme } = useTheme();
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const pathname = usePathname();
+  const { theme } = useTheme();
+  const [isOpen, setIsOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+
+  useEffect(() => {
+    setIsLoading(true);
+    const timeout = setTimeout(() => {
+      setIsLoading(false);
+    }, 1000);
+
+    return () => clearTimeout(timeout);
+  }, [pathname]);
 
   const handleLogout = async () => {
+    setIsLoggingOut(true);
     try {
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
-      router.push("/"); // Redirect to login page after logout
+      router.push("/");
     } catch (error) {
       console.error("Error logging out:", error);
+    } finally {
+      setIsLoggingOut(false);
     }
   };
 
-  return (
-    <div
-      className={`flex h-screen ${
-        theme === "dark"
-          ? "bg-gray-900 text-gray-100"
-          : "bg-gray-100 text-gray-900"
-      }`}
-    >
-      {/* Sidebar */}
-      <aside
-        className={`fixed top-0 left-0 h-full z-50 transform shadow-lg md:static md:translate-x-0 transition-transform duration-300 ${
-          isSidebarOpen ? "translate-x-0" : "-translate-x-full"
-        } ${
-          theme === "dark"
-            ? "bg-gray-800 text-gray-300"
-            : "bg-white text-gray-700"
-        }`}
-      >
-        <div className="flex flex-col items-center md:items-start p-4 space-y-4">
-          {/* Close Menu Button for Mobile */}
-          <div className="flex md:hidden justify-end w-full">
-            <Button
-              variant="outline"
-              onClick={() => setIsSidebarOpen(false)}
-              className="mb-4"
-            >
-              Close Menu
-            </Button>
-          </div>
-          <nav className="w-full">
-            <Link
-              href="/dashboard"
-              className="block px-4 py-2 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700"
-            >
-              Dashboard
-            </Link>
-            <Link
-              href="/dashboard/reports"
-              className="block px-4 py-2 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700"
-            >
-              Work Reports
-            </Link>
-            <Link
-              href="/dashboard/input"
-              className="block px-4 py-2 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700"
-            >
-              Input Data
-            </Link>
-            <Link
-              href="/dashboard/ip-address"
-              className="block px-4 py-2 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700"
-            >
-              Manage User ESTIM
-            </Link>
-            <Link
-              href="/dashboard/insiden"
-              className="block px-4 py-2 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700"
-            >
-              Laporan Insiden Kantor
-            </Link>
-            <Link
-              href="/dashboard/atm"
-              className="block px-4 py-2 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700"
-            >
-              Laporan Komplain ATM
-            </Link>
-            <Accordion type="single" collapsible className="w-full">
-              <AccordionItem value="item-1">
-                <AccordionTrigger>
-                  Weekend Banking & Perpanjangan
-              </AccordionTrigger>
-              <AccordionContent>  
-            <Link
-              href="/dashboard/weekend_banking"
-              className="block px-4 py-2 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700"
-              >
-              Laporan Weekend Banking
-            </Link>
-            <Link
-              href="/dashboard/weekend_banking/pengajuan"
-              className="block px-4 py-2 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700"
-              >
-              Pengajuan Weekend/Perpanjangan
-            </Link>
-              </AccordionContent>
-                </AccordionItem>
-            </Accordion>
-            <Link
-              href="/dashboard/asset/hardware"
-              className="block px-4 py-2 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700"
-            >
-              Asset Hardware
-            </Link>
-            <Link
-              href="/dashboard/asset/software"
-              className="block px-4 py-2 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700"
-            >
-              Asset Software
-            </Link>
-            <Link
-              href="/dashboard/asset/edc"
-              className="block px-4 py-2 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700"
-            >
-                Asset EDC
-            </Link>
-          </nav>
-          <div className="w-full">
-            <Button
-              variant={"default"}
-              size={"default"}
-              onClick={handleLogout}
-              className="w-full"
-            >
-              Logout
-            </Button>
-          </div>
-          <div className="w-full flex justify-center md:justify-start">
-            <ModeToggle />
+  const menuItems = [
+    { href: "/dashboard", label: "Dashboard", icon: <LayoutDashboard className="h-4 w-4" /> },
+    { href: "/dashboard/reports", label: "Work Reports", icon: <FileText className="h-4 w-4" /> },
+    { href: "/dashboard/input", label: "Input Data", icon: <PenTool className="h-4 w-4" /> },
+    { href: "/dashboard/ip-address", label: "Manage User ESTIM", icon: <Users className="h-4 w-4" /> },
+    { href: "/dashboard/insiden", label: "Laporan Insiden Kantor", icon: <AlertCircle className="h-4 w-4" /> },
+    { href: "/dashboard/atm", label: "Laporan Komplain ATM", icon: <CreditCard className="h-4 w-4" /> },
+    { 
+      href: "/dashboard/weekend_banking", 
+      label: "Weekend Banking", 
+      icon: <Calendar className="h-4 w-4" />,
+      subItems: [
+        { href: "/dashboard/weekend_banking", label: "Laporan Weekend Banking" },
+        { href: "/dashboard/weekend_banking/pengajuan", label: "Pengajuan Weekend/Perpanjangan" }
+      ]
+    },
+    { href: "/dashboard/asset/hardware", label: "Asset Hardware", icon: <HardDrive className="h-4 w-4" /> },
+    { href: "/dashboard/asset/software", label: "Asset Software", icon: <Database className="h-4 w-4" /> },
+    { href: "/dashboard/asset/edc", label: "Asset EDC", icon: <Network className="h-4 w-4" /> },
+  ];
+
+  const LoadingSkeleton = () => (
+    <div className="space-y-4">
+      <Skeleton className="h-8 w-full" />
+      <Skeleton className="h-[200px] w-full" />
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <Skeleton className="h-[120px]" />
+        <Skeleton className="h-[120px]" />
+      </div>
+    </div>
+  );
+
+  const SidebarContent = () => (
+    <div className="flex h-full flex-col gap-4">
+      <div className="flex h-[60px] items-center border-b px-6">
+        <Link href="/dashboard" className="flex items-center gap-2">
+          <Image 
+            src="/logo.png"
+            alt="IT Support Logo"
+            width={32}
+            height={32}
+            className="object-contain"
+          />
+          <span className="font-bold">IT Support Dashboard</span>
+        </Link>
+      </div>
+      <ScrollArea className="flex-1 px-6">
+        <div className="space-y-4">
+          <div className="py-2">
+            <nav className="space-y-2">
+              {menuItems.map((item) => (
+                <div key={item.href}>
+                  {item.subItems ? (
+                    <Accordion type="single" collapsible>
+                      <AccordionItem value="weekend-banking" className="border-none">
+                        <AccordionTrigger className="flex items-center gap-3 rounded-lg px-3 py-2 text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-50 hover:no-underline">
+                          <div className="flex items-center gap-3">
+                            {item.icon}
+                            <span>{item.label}</span>
+                          </div>
+                        </AccordionTrigger>
+                        <AccordionContent>
+                          <div className="ml-6 mt-2 space-y-2">
+                            {item.subItems.map((subItem) => (
+                              <Link
+                                key={subItem.href}
+                                href={subItem.href}
+                                onClick={() => setIsOpen(false)}
+                                className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-gray-500 transition-all hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-50"
+                              >
+                                {subItem.label}
+                              </Link>
+                            ))}
+                          </div>
+                        </AccordionContent>
+                      </AccordionItem>
+                    </Accordion>
+                  ) : (
+                    <Link
+                      href={item.href}
+                      onClick={() => setIsOpen(false)}
+                      className="flex items-center gap-3 rounded-lg px-3 py-2 text-gray-500 transition-all hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-50"
+                    >
+                      {item.icon}
+                      <span>{item.label}</span>
+                    </Link>
+                  )}
+                </div>
+              ))}
+            </nav>
           </div>
         </div>
+      </ScrollArea>
+      <div className="border-t p-6 space-y-4">
+        <Button
+          variant="outline"
+          className="w-full justify-start gap-2"
+          onClick={handleLogout}
+          disabled={isLoggingOut}
+        >
+          {isLoggingOut ? (
+            <Skeleton className="h-4 w-4" />
+          ) : (
+            <LogOut className="h-4 w-4" />
+          )}
+          {isLoggingOut ? "Logging out..." : "Logout"}
+        </Button>
+        <div className="flex items-center gap-2">
+          <ModeToggle />
+        </div>
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="flex min-h-screen">
+      {/* Mobile Sidebar */}
+      <Sheet open={isOpen} onOpenChange={setIsOpen}>
+        <SheetTrigger asChild>
+          <Button
+            variant="secondary"
+            className="md:hidden fixed left-4 top-4 z-40 p-2 rounded-lg shadow-md hover:bg-accent"
+          >
+            <Menu className="h-5 w-5" />
+          </Button>
+        </SheetTrigger>
+        <SheetContent side="left" className="w-72 p-0">
+          <SheetTitle className="sr-only">
+            Menu Navigasi
+          </SheetTitle>
+          <SidebarContent />
+        </SheetContent>
+      </Sheet>
+
+      {/* Desktop Sidebar */}
+      <aside className="hidden md:flex w-72 flex-col border-r">
+        <SidebarContent />
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 p-4 md:p-8 overflow-y-auto">
-        {/* Open Menu Button for Mobile */}
-        <div className="flex md:hidden p-4">
-          <Button
-            variant="outline"
-            onClick={() => setIsSidebarOpen(true)}
-          >
-            Open Menu
-          </Button>
+      <main className="flex-1 overflow-y-auto">
+        <div className="container mx-auto p-6">
+          {isLoading ? <LoadingSkeleton /> : children}
         </div>
-        {children}
       </main>
     </div>
   );

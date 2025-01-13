@@ -41,8 +41,6 @@ type AccessLog = {
   user_estim: string;
   ip_address: string;
   nama: string;
-  akses_count: number;
-  last_access: string;
   tanggal_awal: Date;
   tanggal_akhir: Date;
   jenis_permohonan: string;
@@ -63,21 +61,76 @@ export default function WeekendBankingTable() {
     tanggal_akhir: new Date(),
     jenis_permohonan: "",
   });
+  const [users, setUsers] = React.useState<Array<{
+    user_estim: string;
+    ip_address: string;
+    nama: string;
+  }>>([]);
 
   React.useEffect(() => {
+    fetchUsers();
     fetchAccessLogs();
   }, []);
 
-  async function fetchAccessLogs() {
+  const groupUsersByEstim = (users: Array<{
+    user_estim: string;
+    ip_address: string;
+    nama: string;
+  }>) => {
+    const grouped = users.reduce((acc, user) => {
+      if (!acc[user.user_estim]) {
+        acc[user.user_estim] = user;
+      }
+      return acc;
+    }, {} as Record<string, { user_estim: string; ip_address: string; nama: string; }>);
+    
+    return Object.values(grouped);
+  };
+
+  async function fetchUsers() {
     const { data, error } = await supabase
-      .from("access_logs")
-      .select("*")
-      .order("akses_count", { ascending: false }); // Sort by akses_count descending
+      .from("users")
+      .select("user_estim, ip_address, nama")
+      .not("user_estim", "is", null);
+    
     if (error) {
-      console.error("Error fetching access logs:", error);
-    } else {
-      setAccessLogs(data || []);
+      console.error("Error fetching users:", error);
+      return;
     }
+
+    const groupedUsers = groupUsersByEstim(data || []);
+    setUsers(groupedUsers);
+  }
+
+  async function fetchAccessLogs() {
+    const { data: userData, error: userError } = await supabase
+      .from("users")
+      .select("user_estim, ip_address, nama");
+    
+    if (userError) {
+      console.error("Error fetching users:", userError);
+      return;
+    }
+
+    const { data: logsData, error: logsError } = await supabase
+      .from("access_logs")
+      .select("*");
+
+    if (logsError) {
+      console.error("Error fetching access logs:", logsError);
+      return;
+    }
+
+    const combinedData = logsData?.map(log => {
+      const user = userData?.find(u => u.user_estim === log.user_estim);
+      return {
+        ...log,
+        ip_address: user?.ip_address || '',
+        nama: user?.nama || '',
+      };
+    });
+
+    setAccessLogs(combinedData || []);
   }
 
   async function handleAddLog() {
@@ -124,30 +177,6 @@ export default function WeekendBankingTable() {
       ),
     },
     { accessorKey: "jenis_permohonan", header: "Jenis Permohonan" },
-    {
-      accessorKey: "akses_count",
-      header: () => (
-        <Button
-          variant="ghost"
-          onClick={() => console.log("Sort by akses_count")}
-        >
-          Jumlah Akses <ArrowUpDown />
-        </Button>
-      ),
-      cell: ({ row }) => <span>{row.original.akses_count}</span>,
-    },
-    {
-      accessorKey: "last_access",
-      header: "Akses Terakhir",
-      cell: ({ row }) => (
-        <span>
-          {new Date(row.original.last_access).toLocaleString("id-ID", {
-            dateStyle: "medium",
-            timeStyle: "short",
-          })}
-        </span>
-      ),
-    },
   ];
 
   const table = useReactTable({
@@ -211,20 +240,44 @@ export default function WeekendBankingTable() {
             <DialogTitle>Add New Access Log</DialogTitle>
           </DialogHeader>
           <div className="grid gap-4 py-4">
-            <Input
-              placeholder="User ESTIM"
-              value={newLog.user_estim}
-              onChange={(e) => setNewLog({ ...newLog, user_estim: e.target.value })}
-            />
+            <Select
+              value={newLog.user_estim || undefined}
+              onValueChange={(value) => {
+                const selectedUser = users.find(u => u.user_estim === value);
+                setNewLog({
+                  ...newLog,
+                  user_estim: value,
+                  ip_address: selectedUser?.ip_address || '',
+                  nama: selectedUser?.nama || ''
+                });
+              }}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Pilih User ESTIM" />
+              </SelectTrigger>
+              <SelectContent>
+                {users
+                  .filter(user => user.user_estim && user.user_estim.trim() !== '')
+                  .map((user) => (
+                    <SelectItem 
+                      key={user.user_estim} 
+                      value={user.user_estim}
+                    >
+                      {user.user_estim} - {user.nama}
+                    </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
             <Input
               placeholder="IP Address"
               value={newLog.ip_address}
-              onChange={(e) => setNewLog({ ...newLog, ip_address: e.target.value })}
+              disabled
             />
             <Input
               placeholder="Nama"
               value={newLog.nama}
-              onChange={(e) => setNewLog({ ...newLog, nama: e.target.value })}
+              disabled
             />
             <Input
               type="date"
@@ -243,7 +296,7 @@ export default function WeekendBankingTable() {
               }
             />
             <Select
-              value={newLog.jenis_permohonan}
+              value={newLog.jenis_permohonan || undefined}
               onValueChange={(value) =>
                 setNewLog({ ...newLog, jenis_permohonan: value})
               }

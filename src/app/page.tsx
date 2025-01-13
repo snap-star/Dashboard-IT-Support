@@ -1,30 +1,32 @@
+"use client";
+import { motion } from "framer-motion";
 import Login from "@/components/login";
 
 export default function Home() {
   return (
-    <div className="flex flex-col min-h-screen bg-gray-50 font-sans">
-      {/* Header */}
-      <header className="py-4 shadow-sm bg-white">
-        <div className="container mx-auto px-6 text-center">
-          <h1 className="text-2xl font-bold text-gray-800">Dashboard IT Support</h1>
-        </div>
-      </header>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
+      <Login />
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="h-min px-4"
+      >
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.2 }}
+          className="max-w-4xl mx-auto"
+        >
+          <h1 className="text-3xl font-bold text-center text-gray-800 mb-2">Dashboard IT Support</h1>
+          <p className="text-center text-gray-600 text-sm mb-6">Selamat datang di sistem manajemen IT Support</p>
+          
 
-      {/* Main Content */}
-      <main className="flex flex-1 items-center justify-center p-8">
-        <div className="w-full max-w-md">
-          <Login />
-        </div>
-      </main>
-
-      {/* Footer */}
-      <footer className="py-4 bg-gray-100 shadow-inner">
-        <div className="container mx-auto px-6 text-center">
-          <p className="text-sm text-gray-600">
-            &copy; {new Date().getFullYear()} Dashboard IT Support by Oren. All rights reserved.
+          <p className="text-sm text-center text-gray-600 mt-6">
+            &copy; {new Date().getFullYear()} Dashboard IT Support by Oren
           </p>
-        </div>
-      </footer>
+        </motion.div>
+      </motion.div>
     </div>
   );
 }

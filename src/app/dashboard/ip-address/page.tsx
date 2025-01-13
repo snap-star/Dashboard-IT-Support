@@ -63,6 +63,7 @@ type User = {
   id: number;
   user_estim: string;
   ip_address: string;
+  mac_address: string;
   nama: string;
   nip: string;
   jabatan: string;
@@ -86,6 +87,7 @@ export default function IPAddressManagement() {
   const [newUser, setNewUser] = React.useState<Omit<User, "id">>({
     user_estim: "",
     ip_address: "",
+    mac_address: "",
     nama: "",
     nip: "",
     jabatan: "",
@@ -93,22 +95,43 @@ export default function IPAddressManagement() {
     cab: "",
     status_user: "",
   });
-
+  const [pageIndex, setPageIndex] = React.useState(0);
+  const [pageSize, setPageSize] = React.useState(10);
+  
   React.useEffect(() => {
     fetchUsers();
   }, []);
   const [lastUpdated, setLastUpdated] = React.useState<string>("");
 
-  async function fetchUsers() {
-    const { data, error } = await supabase.from("users").select("*");
-    if (error) {
-      console.error("Error fetching users:", error);
+  // Tambahkan fungsi ini sebelum useEffect
+const groupUsersByNIP = (users: User[]) => {
+  const grouped = users.reduce((acc, user) => {
+    const key = `${user.nip}-${user.nama}`;
+    if (!acc[key]) {
+      acc[key] = user;
     } else {
-      setUsers(data || []);
-      //simpan timestamp terakhir kali di fetch
-      setLastUpdated(new Date().toLocaleString());
+      // Jika user dengan NIP yang sama sudah ada, gabungkan informasi user
+      acc[key].user_estim += `, ${user.user_estim}`;
+      acc[key].ip_address += `, ${user.ip_address}`;
+      acc[key].mac_address += `, ${user.mac_address}`;
     }
+    return acc;
+  }, {} as Record<string, User>);
+
+  return Object.values(grouped);
+};
+
+// Update fungsi fetchUsers
+async function fetchUsers() {
+  const { data, error } = await supabase.from("users").select("*");
+  if (error) {
+    console.error("Error fetching users:", error);
+  } else {
+    const groupedUsers = groupUsersByNIP(data || []);
+    setUsers(groupedUsers);
+    setLastUpdated(new Date().toLocaleString());
   }
+}
 
   async function handleCreateOrUpdateUser() {
     if (editingUser) {
@@ -133,6 +156,7 @@ export default function IPAddressManagement() {
     setNewUser({
       user_estim: "",
       ip_address: "",
+      mac_address: "",
       nama: "",
       nip: "",
       jabatan: "",
@@ -165,68 +189,184 @@ export default function IPAddressManagement() {
     window.print();
   };
 
+  // Tambahkan fungsi untuk mengupdate data berdasarkan user_estim
+  async function updateEmptyUsers() {
+    try {
+      // Ambil semua data dari database
+      const { data: allUsers, error: fetchError } = await supabase
+        .from("users")
+        .select("*");
+
+      if (fetchError) throw fetchError;
+
+      // Buat map untuk menyimpan data referensi
+      const userEstimMap = new Map();
+
+      // Isi map dengan data yang memiliki informasi lengkap
+      allUsers?.forEach(user => {
+        if (user.user_estim && user.nama && user.nip) {
+          userEstimMap.set(user.user_estim, {
+            nama: user.nama,
+            nip: user.nip,
+            jabatan: user.jabatan,
+            unit_kerja: user.unit_kerja,
+            cab: user.cab,
+            status_user: user.status_user
+          });
+        }
+      });
+
+      // Update data yang kosong berdasarkan user_estim
+      const updates = [];
+      for (const user of allUsers || []) {
+        if (user.user_estim && (!user.nama || !user.nip)) {
+          const referenceData = userEstimMap.get(user.user_estim);
+          if (referenceData) {
+            updates.push({
+              id: user.id,
+              ...referenceData
+            });
+          }
+        }
+      }
+
+      // Lakukan update batch
+      if (updates.length > 0) {
+        for (const update of updates) {
+          const { error: updateError } = await supabase
+            .from("users")
+            .update(update)
+            .eq("id", update.id);
+          
+          if (updateError) throw updateError;
+        }
+      }
+
+      // Refresh data
+      await fetchUsers();
+      alert(`Berhasil mengupdate ${updates.length} data`);
+    } catch (error) {
+      console.error("Error updating users:", error);
+      alert("Terjadi kesalahan saat mengupdate data");
+    }
+  }
+
   const columns: ColumnDef<User>[] = [
     {
-      id: "select",
-      header: ({ table }) => (
-        <Checkbox
-          checked={
-            table.getIsAllPageRowsSelected() ||
-            (table.getIsSomePageRowsSelected() && "indeterminate")
-          }
-          onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-          aria-label="Select all"
-        />
-      ),
-      cell: ({ row }) => (
-        <Checkbox
-          checked={row.getIsSelected()}
-          onCheckedChange={(value) => row.toggleSelected(!!value)}
-          aria-label="Select row"
-        />
-      ),
+      accessorKey: "No",
+      header: "No",
       enableSorting: false,
       enableHiding: false,
+      size: 60,
+      cell: ({ row }) => {
+        const pageIndex = table.getState().pagination.pageIndex;
+        const pageSize = table.getState().pagination.pageSize;
+        return pageIndex * pageSize + row.index + 1;
+      },
     },
     {
-      accessorKey: "user_estim",
+      accessorKey: "nama",
       header: ({ column }) => {
         return (
           <Button
             variant="ghost"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
-            User ESTIM
+            Nama Pemegang
             <ArrowUpDown className="ml-2 h-4 w-4" />
           </Button>
         );
       },
+      size: 200,
       enableSorting: true,
     },
     {
-      accessorKey: "ip_address",
+      accessorKey: "nip",
       header: ({ column }) => {
         return (
           <Button
             variant="ghost"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
-            IP Address
+            NIP
             <ArrowUpDown className="ml-2 h-4 w-4" />
           </Button>
         );
       },
+      size: 150,
       enableSorting: true,
     },
-    { accessorKey: "nama", header: "Nama Pemegang" },
-    { accessorKey: "nip", header: "NIP" },
-    { accessorKey: "jabatan", header: "Jabatan" },
-    { accessorKey: "unit_kerja", header: "Unit Kerja" },
-    { accessorKey: "cab", header: "Cabang" },
-    { accessorKey: "status_user", header: "Status User" },
+    {
+      accessorKey: "jabatan",
+      header: "Jabatan",
+      size: 150,
+      enableSorting: false,
+    },
+    {
+      accessorKey: "unit_kerja",
+      header: "Unit Kerja",
+      size: 150,
+      enableSorting: false,
+    },
+    {
+      accessorKey: "cab",
+      header: ({ column }) => {
+        return (
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            Cabang/Capem
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+          </Button>
+        );
+      },
+      size: 180,
+      enableSorting: true,
+    },
+    {
+      id: "user_details",
+      header: "User Details",
+      size: 400,
+      enableResizing: true,
+      cell: ({ row }) => {
+        const user = row.original;
+        return (
+          <div className="space-y-1">
+            <div className="grid grid-cols-3 gap-2 text-sm">
+              <div>
+                <span className="font-semibold">User ESTIM:</span>
+                <br />
+                <span className="whitespace-pre-wrap break-words">
+                  {user.user_estim}
+                </span>
+              </div>
+              <div>
+                <span className="font-semibold">IP Address:</span>
+                <br />
+                <span className="whitespace-pre-wrap break-words">
+                  {user.ip_address}
+                </span>
+              </div>
+              <div>
+                <span className="font-semibold">MAC Address:</span>
+                <br />
+                <span className="whitespace-pre-wrap break-words">
+                  {user.mac_address}
+                </span>
+              </div>
+            </div>
+            <Badge variant={user.status_user === 'Aktif' ? 'default' : 'secondary'}>
+              {user.status_user}
+            </Badge>
+          </div>
+        );
+      },
+    },
     {
       id: "actions",
       enableHiding: false,
+      size: 80,
       cell: ({ row }) => (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -243,6 +383,38 @@ export default function IPAddressManagement() {
               }}
             >
               Edit
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={async () => {
+                const { data: referenceData } = await supabase
+                  .from("users")
+                  .select("*")
+                  .eq("user_estim", row.original.user_estim)
+                  .not("nama", "is", null)
+                  .limit(1)
+                  .single();
+
+                if (referenceData) {
+                  const { error } = await supabase
+                    .from("users")
+                    .update({
+                      nama: referenceData.nama,
+                      nip: referenceData.nip,
+                      jabatan: referenceData.jabatan,
+                      unit_kerja: referenceData.unit_kerja,
+                      cab: referenceData.cab,
+                      status_user: referenceData.status_user
+                    })
+                    .eq("id", row.original.id);
+
+                  if (!error) {
+                    fetchUsers();
+                    alert("Data berhasil diupdate");
+                  }
+                }
+              }}
+            >
+              Update from Reference
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={() => handleDeleteUser(row.original.id)}>
@@ -263,6 +435,20 @@ export default function IPAddressManagement() {
       columnFilters,
       columnVisibility,
       rowSelection,
+      pagination: {
+        pageIndex,
+        pageSize,
+      },
+    },
+    onPaginationChange: (updater) => {
+      if (typeof updater === 'function') {
+        const newState = updater({
+          pageIndex,
+          pageSize,
+        });
+        setPageIndex(newState.pageIndex);
+        setPageSize(newState.pageSize);
+      }
     },
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
@@ -272,6 +458,8 @@ export default function IPAddressManagement() {
     getFilteredRowModel: getFilteredRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
+    manualPagination: false,
+    pageCount: Math.ceil(users.length / pageSize),
   });
 
   return (
@@ -283,21 +471,27 @@ export default function IPAddressManagement() {
           onChange={(e) => setGlobalFilter(e.target.value)}
           className="max-w-sm"
         />
-        {/* <DialogTrigger asChild> */}
-        <Button variant={"outline"} size={"default"} onClick={exportToExcel}>
+        <Button 
+          variant="secondary" 
+          size="default" 
+          onClick={updateEmptyUsers}
+          className="bg-yellow-500 hover:bg-yellow-600 text-white"
+        >
+          Update Empty Data
+        </Button>
+        <Button variant="outline" size="default" onClick={exportToExcel}>
           Export Excel
         </Button>
-        <Button variant={"outline"} size={"default"} onClick={printTable}>
+        <Button variant="outline" size="default" onClick={printTable}>
           Print
         </Button>
         <Button
-          variant={"default"}
-          size={"default"}
+          variant="default"
+          size="default"
           onClick={() => setIsDialogOpen(true)}
         >
           Add New User
         </Button>
-        {/* </DialogTrigger> */}
       </div>
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent>
@@ -440,12 +634,16 @@ export default function IPAddressManagement() {
             </div>
           </CardHeader>
           <CardContent>
-            <Table>
+            <Table className="border-collapse table-fixed w-full">
               <TableHeader>
                 {table.getHeaderGroups().map((headerGroup) => (
                   <TableRow key={headerGroup.id}>
                     {headerGroup.headers.map((header) => (
-                      <TableHead key={header.id}>
+                      <TableHead 
+                        key={header.id}
+                        style={{ width: header.getSize() }}
+                        className="overflow-hidden"
+                      >
                         {flexRender(
                           header.column.columnDef.header,
                           header.getContext()
@@ -456,11 +654,15 @@ export default function IPAddressManagement() {
                 ))}
               </TableHeader>
               <TableBody>
-                {table.getRowModel().rows.length ? (
+                {table.getRowModel().rows?.length ? (
                   table.getRowModel().rows.map((row) => (
                     <TableRow key={row.id}>
                       {row.getVisibleCells().map((cell) => (
-                        <TableCell key={cell.id}>
+                        <TableCell 
+                          key={cell.id}
+                          style={{ width: cell.column.getSize() }}
+                          className="overflow-hidden"
+                        >
                           {flexRender(
                             cell.column.columnDef.cell,
                             cell.getContext()
@@ -484,26 +686,65 @@ export default function IPAddressManagement() {
           </CardFooter>
         </Card>
       </div>
-      <div className="flex justify-between items-center py-4">
-        <span className="text-sm text-muted-foreground">
-          {table.getFilteredRowModel().rows.length} rows
-        </span>
-        <div className="space-x-2">
+      <div className="flex items-center justify-between py-4">
+        <div className="flex items-center gap-2">
+          <p className="text-sm text-muted-foreground">
+            Rows per page:
+          </p>
+          <Select
+            value={`${pageSize}`}
+            onValueChange={(value) => {
+              table.setPageSize(Number(value));
+            }}
+          >
+            <SelectTrigger className="h-8 w-[70px]">
+              <SelectValue placeholder={pageSize} />
+            </SelectTrigger>
+            <SelectContent>
+              {[5, 10, 20, 30, 40, 50].map((size) => (
+                <SelectItem key={size} value={`${size}`}>
+                  {size}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <div className="flex w-[100px] items-center justify-center text-sm text-muted-foreground">
+            Page {table.getState().pagination.pageIndex + 1} of{" "}
+            {table.getPageCount()}
+          </div>
+        </div>
+        <div className="flex items-center space-x-2">
           <Button
             variant="outline"
             size="sm"
+            onClick={() => table.setPageIndex(0)}
             disabled={!table.getCanPreviousPage()}
+          >
+            {"First Page"}
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
             onClick={() => table.previousPage()}
+            disabled={!table.getCanPreviousPage()}
           >
             Previous
           </Button>
           <Button
             variant="outline"
             size="sm"
-            disabled={!table.getCanNextPage()}
             onClick={() => table.nextPage()}
+            disabled={!table.getCanNextPage()}
           >
             Next
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => table.setPageIndex(table.getPageCount() - 1)}
+            disabled={!table.getCanNextPage()}
+          >
+            {"Last Page"}
           </Button>
         </div>
       </div>

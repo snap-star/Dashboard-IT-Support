@@ -1,71 +1,127 @@
 "use client";
 
 import * as React from "react";
-import { createClient } from "@supabase/supabase-js";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import supabase from "@/lib/supabase";
+import { Users, Network } from "lucide-react";
+import { motion } from "framer-motion";
 
 export default function DashboardOverview() {
   const [totalIpAddress, setTotalIpAddress] = React.useState(0);
   const [totalUserEstim, setTotalUserEstim] = React.useState(0);
+  const [isLoading, setIsLoading] = React.useState(true);
 
   React.useEffect(() => {
     fetchOverviewData();
   }, []);
 
   async function fetchOverviewData() {
-    // Query total IP addresses
-    const { data: ipData, error: ipError } = await supabase
-      .from("users")
-      .select("ip_address", { count: "exact", head:false})
-    if (ipError) {
-      console.error("Error fetching IP addresses:", ipError);
-    } else {
-      setTotalIpAddress(ipData.length);
-    }
+    setIsLoading(true);
+    try {
+      // Query untuk mendapatkan IP address unik
+      const { data: ipData, error: ipError } = await supabase
+        .from("users")
+        .select("ip_address");
+      
+      if (ipError) throw ipError;
 
-    // Query total User ESTIM
-    const { data: userEstimData, error: userEstimError } = await supabase
-      .from("users")
-      .select("user_estim", { count: "exact", head: false});
-    if (userEstimError) {
-      console.error("Error fetching User ESTIM:", userEstimError);
-    } else {
-      setTotalUserEstim(userEstimData.length);
+      // Filter IP address unik
+      const uniqueIpAddresses = new Set(
+        ipData
+          ?.map(item => item.ip_address)
+          .filter(ip => ip && ip.trim() !== '')
+      );
+
+      // Query untuk mendapatkan user ESTIM unik
+      const { data: userEstimData, error: userEstimError } = await supabase
+        .from("users")
+        .select("user_estim");
+
+      if (userEstimError) throw userEstimError;
+
+      // Filter user ESTIM unik
+      const uniqueUserEstim = new Set(
+        userEstimData
+          ?.map(item => item.user_estim)
+          .filter(user => user && user.trim() !== '')
+      );
+
+      setTotalIpAddress(uniqueIpAddresses.size);
+      setTotalUserEstim(uniqueUserEstim.size);
+    } catch (error) {
+      console.error("Error fetching overview data:", error);
+    } finally {
+      setIsLoading(false);
     }
   }
+
+  // Animasi untuk angka
+  const AnimatedNumber = ({ value }: { value: number }) => {
+    return (
+      <motion.div
+        initial={{ scale: 0 }}
+        animate={{ scale: 1 }}
+        transition={{ type: "spring", stiffness: 100 }}
+        className="text-4xl font-bold"
+      >
+        {value}
+      </motion.div>
+    );
+  };
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
       {/* Card: Total IP Address */}
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">IP Address</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold">
-          {totalIpAddress}
-          </div>
-          <p className="text-xs text-muted-foreground">
-            Total IP addresses registered
-          </p>
-        </CardContent>
-      </Card>
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+      >
+        <Card className="hover:shadow-lg transition-shadow duration-300">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total IP Address</CardTitle>
+            <Network className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-col gap-2">
+              {isLoading ? (
+                <div className="h-10 bg-gray-200 animate-pulse rounded" />
+              ) : (
+                <AnimatedNumber value={totalIpAddress} />
+              )}
+              <p className="text-xs text-muted-foreground">
+                IP Address unik yang terdaftar
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      </motion.div>
 
       {/* Card: Total User ESTIM */}
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">User ESTIM</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold">
-          {totalUserEstim}
-          </div>
-          <p className="text-xs text-muted-foreground">
-            Total User ESTIM sudah diregistrasi
-          </p>
-        </CardContent>
-      </Card>
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.2 }}
+      >
+        <Card className="hover:shadow-lg transition-shadow duration-300">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total User ESTIM</CardTitle>
+            <Users className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-col gap-2">
+              {isLoading ? (
+                <div className="h-10 bg-gray-200 animate-pulse rounded" />
+              ) : (
+                <AnimatedNumber value={totalUserEstim} />
+              )}
+              <p className="text-xs text-muted-foreground">
+                User ESTIM unik yang terdaftar
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      </motion.div>
     </div>
   );
 }

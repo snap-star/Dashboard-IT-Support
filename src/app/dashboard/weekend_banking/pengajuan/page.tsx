@@ -2,7 +2,7 @@
 
 import { useForm, useFieldArray } from "react-hook-form";
 import Image from "next/image";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Table, TableBody, TableRow, TableCell, TableHeader } from "@/components/ui/table";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -11,14 +11,25 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import supabase from "@/lib/supabase";
 import WeekendLayout from "@/app/dashboard/weekend_banking/layout";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+
+type User = {
+  user_estim: string;
+  nama: string;
+  nip: string;
+  ip_address: string;
+  unit_kerja: string;
+};
 
 type FormData = {
   supervisor: {
     name: string;
     nip: string;
     position: string;
+    unit: string;
   };
   applicant: {
+    user_estim: string;
     name: string;
     nip: string;
     unit: string;
@@ -45,8 +56,9 @@ type FormData = {
 };
 
 export default function Home() {
+  const [users, setUsers] = useState<User[]>([]);
   const formRef = useRef<HTMLFormElement>(null);
-  const { register, control, handleSubmit } = useForm<FormData>({
+  const { register, control, handleSubmit, setValue, watch } = useForm<FormData>({
     defaultValues: {
       applications: [{ appName: "", user: "", startDate: "", endDate: "", reason: "", risk: "" }],
     },
@@ -58,8 +70,51 @@ export default function Home() {
   });
 
   const [loading, setLoading] = useState(false);
-// handle print sesuai form
-const handlePrint = () => {
+
+  // Fetch users saat komponen dimount
+  useEffect(() => {
+    fetchUsers();
+  }, []);
+
+  async function fetchUsers() {
+    try {
+      const { data, error } = await supabase
+        .from('users')
+        .select('user_estim, nama, nip, ip_address, unit_kerja')
+        .not('user_estim', 'is', null);
+
+      if (error) throw error;
+
+      // Filter untuk mendapatkan user unik dan memastikan user_estim tidak kosong
+      const uniqueUsers = data?.reduce((acc, current) => {
+        if (current.user_estim && current.user_estim.trim() !== '') {
+          const x = acc.find(item => item.user_estim === current.user_estim);
+          if (!x) {
+            return acc.concat([current]);
+          }
+        }
+        return acc;
+      }, [] as User[]);
+
+      setUsers(uniqueUsers || []);
+    } catch (error) {
+      console.error('Error fetching users:', error);
+    }
+  }
+
+  // Handle saat user dipilih
+  const handleUserChange = (selectedUserEstim: string) => {
+    const selectedUser = users.find(user => user.user_estim === selectedUserEstim);
+    if (selectedUser) {
+      setValue('applicant.name', selectedUser.nama);
+      setValue('applicant.nip', selectedUser.nip);
+      setValue('applicant.ip', selectedUser.ip_address);
+      setValue('applicant.unit', selectedUser.unit_kerja);
+    }
+  };
+
+  //handle print sesuai form
+  const handlePrint = () => {
     if (formRef.current) {
         // Simpan styling asli form
         const originalStyles = document.querySelectorAll("style, link[rel='stylesheet']");
@@ -142,24 +197,41 @@ const handlePrint = () => {
 
   const onSubmit = async (data: FormData) => {
     try {
-        setLoading(true);
-        const { error } = await supabase.from("access_logs").
-        insert({
-            ...data,
-        });
-        if ( error ) {
-            console.error("Error sumbit data: ", error);
-            alert("Gagal menyimpan data");
-        } else {
-            alert("Data berhasil disimpan");
-        }
+      setLoading(true);
+      
+      // Transform data untuk access_logs
+      const accessLogData = {
+        user_estim: data.applicant.user_estim,
+        ip_address: data.applicant.ip,
+        nama: data.applicant.name,
+        nip: data.applicant.nip,
+        tanggal_awal: data.applications[0].startDate,
+        tanggal_akhir: data.applications[0].endDate,
+        jenis_permohonan: data.requestType,
+        nama_supervisor: data.supervisor.name,
+        jabatan_atasan: data.supervisor.position,
+        nip_atasan: data.supervisor.nip,
+        unit_kerja: data.applicant.unit,
+        unit_kerja_atasan: data.supervisor.unit,
+        alasan_pengguna: data.applications[0].reason,
+        risiko: data.applications[0].risk,
+        tanggal_dokumen_dibuat: new Date().toISOString(),
+        tanggal_dokumen_disetujui: null
+      };
+
+      const { error } = await supabase
+        .from('access_logs')
+        .insert(accessLogData);
+
+      if (error) throw error;
+      alert('Data berhasil disimpan');
     } catch (err) {
-        console.error("Unexpected error: ", err);
-        alert("Terjadi Kesalahan");
+      console.error("Error submitting data:", err);
+      alert("Gagal menyimpan data");
     } finally {
-        setLoading(false);
+      setLoading(false);
     }
-  }
+  };
 
   //internal styles
   const styles = {
@@ -261,34 +333,52 @@ const handlePrint = () => {
   </TableHeader>
   <TableBody>
     <TableRow>
-      {/* <TableCell className="border px-4 py-2 text-left font-bold" rowSpan={5}>Informasi Pemohon</TableCell> */}
+      <TableCell className="border px-4 py-2 text-left font-normal text-xs">User ESTIM</TableCell>
+      <TableCell className="border px-4 py-2 text-left">
+        <Select 
+          onValueChange={handleUserChange}
+          value={watch("applicant.user_estim") || undefined}
+        >
+          <SelectTrigger className="border-0" style={styles.input}>
+            <SelectValue placeholder="Pilih User ESTIM" />
+          </SelectTrigger>
+          <SelectContent>
+            {users
+              .filter(user => user.user_estim && user.user_estim.trim() !== '')
+              .map((user) => (
+                <SelectItem 
+                  key={user.user_estim} 
+                  value={user.user_estim}
+                >
+                  {user.user_estim} - {user.nama}
+                </SelectItem>
+              ))}
+          </SelectContent>
+        </Select>
+      </TableCell>
+    </TableRow>
+    <TableRow>
       <TableCell className="border px-4 py-2 text-left font-normal text-xs">Nama</TableCell>
       <TableCell className="border px-4 py-2 text-left">
-        <Input aria-placeholder="Nama Pemohon" placeholder="Nama Pemohon" type="text" {...register("applicant.name")} className="border-0" style={styles.input} />
+        <Input {...register("applicant.name")} className="border-0" style={styles.input} readOnly />
       </TableCell>
     </TableRow>
     <TableRow>
       <TableCell className="border px-4 py-2 text-left font-normal text-xs">NIP/NIK</TableCell>
       <TableCell className="border px-4 py-2 text-left">
-        <Input aria-placeholder="NIP Pemohon" placeholder="NIP Pemohon" type="text" {...register("applicant.nip")} className="border-0" style={styles.input} />
+        <Input {...register("applicant.nip")} className="border-0" style={styles.input} readOnly />
       </TableCell>
     </TableRow>
     <TableRow>
       <TableCell className="border px-4 py-2 text-left font-normal text-xs">Unit Kerja</TableCell>
       <TableCell className="border px-4 py-2 text-left">
-        <Input aria-placeholder="Unit Kerja" placeholder="Unit Kerja" type="text" {...register("applicant.unit")} className="border-0" style={styles.input} />
-      </TableCell>
-    </TableRow>
-    <TableRow>
-      <TableCell className="border px-4 py-2 text-left font-normal text-xs">Jabatan</TableCell>
-      <TableCell className="border px-4 py-2 text-left">
-        <Input aria-placeholder="Jabatan" placeholder="Jabatan" type="text" {...register("applicant.position")} className="border-0" style={styles.input} />
+        <Input {...register("applicant.unit")} className="border-0" style={styles.input} readOnly />
       </TableCell>
     </TableRow>
     <TableRow>
       <TableCell className="border px-4 py-2 text-left font-normal text-xs">IP Address</TableCell>
       <TableCell className="border px-4 py-2 text-left">
-        <Input aria-placeholder="IP Address Komputer" placeholder="IP Address Komputer" type="text" {...register("applicant.ip")} className="border-0" style={styles.input} />
+        <Input {...register("applicant.ip")} className="border-0" style={styles.input} readOnly />
       </TableCell>
     </TableRow>
   </TableBody>
