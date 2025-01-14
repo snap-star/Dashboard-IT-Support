@@ -45,7 +45,7 @@ export default function Login() {
   const handleLogout = async () => {
     await supabase.auth.signOut();
     setSession(null);
-    router.push("/login");
+    router.push("/");
   };
 
   const handleLogin = async (e: React.FormEvent) => {
