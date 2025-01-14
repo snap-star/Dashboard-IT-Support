@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -65,6 +64,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import supabase from "@/lib/supabase";
 
 // Schema untuk form checklist
 const checklistSchema = z.object({
@@ -135,11 +135,6 @@ export default function RoomChecklistPage() {
   });
   const [isExporting, setIsExporting] = useState(false);
 
-  const supabase = createClientComponentClient({
-    supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL,
-    supabaseKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-  });
-
   const form = useForm<z.infer<typeof checklistSchema>>({
     resolver: zodResolver(checklistSchema),
     defaultValues: {
@@ -176,9 +171,6 @@ export default function RoomChecklistPage() {
         
         if (roomError) throw roomError;
 
-        console.log('Locations:', locationsData); // Debug
-        console.log('Rooms:', roomsData); // Debug
-
         if (locationsData) setLocations(locationsData);
         if (roomsData) setRooms(roomsData);
       } catch (error) {
@@ -189,7 +181,7 @@ export default function RoomChecklistPage() {
       }
     }
     fetchData();
-  }, [supabase]);
+  }, []);
 
   // Fetch checklist hari ini
   useEffect(() => {
@@ -226,7 +218,6 @@ export default function RoomChecklistPage() {
             room_name: check.rooms.name,
             formatted_time: formatIndonesianTime(`${check.check_date}T${check.check_time}`)
           }));
-          console.log('Formatted Checks:', formattedChecks); // Debug
           setChecks(formattedChecks);
         }
       } catch (error) {
@@ -237,7 +228,7 @@ export default function RoomChecklistPage() {
       }
     }
     fetchChecks();
-  }, [supabase]);
+  }, []);
 
   // Filter rooms berdasarkan location
   const handleLocationChange = (locationId: string) => {
@@ -256,19 +247,6 @@ export default function RoomChecklistPage() {
       const checkDate = format(jakartaTime, 'yyyy-MM-dd');
       const checkTime = format(jakartaTime, 'HH:mm:ss');
 
-      console.log('Attempting to insert with values:', {
-        room_id: values.room_id,
-        checked_by: values.checked_by,
-        temperature: parseFloat(values.temperature),
-        humidity: parseFloat(values.humidity),
-        is_clean: values.is_clean,
-        is_secure: values.is_secure,
-        equipment_status: values.equipment_status,
-        notes: values.notes || '',
-        check_date: checkDate,
-        check_time: checkTime
-      });
-
       const { data, error } = await supabase
         .from('room_checks')
         .insert([{
@@ -286,12 +264,8 @@ export default function RoomChecklistPage() {
         .select()
         .single();
 
-      if (error) {
-        console.error('Supabase error details:', error);
-        throw new Error(`Database error: ${error.message}`);
-      }
+      if (error) throw error;
 
-      console.log('Successfully inserted data:', data);
       toast.success('Checklist berhasil disimpan');
       form.reset();
       
@@ -325,8 +299,8 @@ export default function RoomChecklistPage() {
       }
 
     } catch (error) {
-      console.error('Detailed error:', error);
-      toast.error(error instanceof Error ? error.message : 'Gagal menyimpan checklist');
+      console.error('Error saving checklist:', error);
+      toast.error('Gagal menyimpan checklist');
     }
   };
 

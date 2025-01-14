@@ -4,7 +4,6 @@ import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -57,6 +56,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { MoreHorizontal, Pencil, Trash, Plus } from "lucide-react";
 import { toast } from "sonner";
+import supabase from "@/lib/supabase";
 
 // Schema validasi form
 const formSchema = z.object({
@@ -104,8 +104,6 @@ export default function EDCAssetPage() {
   const [selectedAsset, setSelectedAsset] = useState<EDCAsset | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   
-  const supabase = createClientComponentClient();
-
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
