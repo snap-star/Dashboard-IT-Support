@@ -47,6 +47,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  DialogFooter,
 } from "@/components/ui/dialog";
 import supabase from "@/lib/supabase";
 import * as XLSX from "xlsx";
@@ -58,6 +59,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
+import { Label } from "@/components/ui/label";
 
 type User = {
   id: number;
@@ -97,6 +99,8 @@ export default function IPAddressManagement() {
   });
   const [pageIndex, setPageIndex] = React.useState(0);
   const [pageSize, setPageSize] = React.useState(10);
+  const [userEstimOptions, setUserEstimOptions] = React.useState<string[]>([]);
+  const [ipAddressOptions, setIpAddressOptions] = React.useState<string[]>([]);
   
   React.useEffect(() => {
     fetchUsers();
@@ -129,10 +133,47 @@ async function fetchUsers() {
   } else {
     const groupedUsers = groupUsersByNIP(data || []);
     setUsers(groupedUsers);
+    
+    // Kumpulkan semua user_estim dan ip_address yang unik
+    const allUserEstims = new Set<string>();
+    const allIpAddresses = new Set<string>();
+    
+    data?.forEach(user => {
+      if (user.user_estim) {
+        user.user_estim.split(', ').forEach((estim: string) => {
+          allUserEstims.add(estim.trim());
+        });
+      }
+      if (user.ip_address) {
+        user.ip_address.split(', ').forEach((ip: string) => {
+          allIpAddresses.add(ip.trim());
+        });
+      }
+    });
+    
+    setUserEstimOptions(Array.from(allUserEstims));
+    setIpAddressOptions(Array.from(allIpAddresses));
     setLastUpdated(new Date().toLocaleString());
   }
 }
 
+  // Tambahkan fungsi untuk mereset form
+  const resetForm = () => {
+    setNewUser({
+      user_estim: "",
+      ip_address: "",
+      mac_address: "",
+      nama: "",
+      nip: "",
+      jabatan: "",
+      unit_kerja: "",
+      cab: "",
+      status_user: "",
+    });
+    setEditingUser(null);
+  };
+
+  // Update fungsi handleCreateOrUpdateUser
   async function handleCreateOrUpdateUser() {
     if (editingUser) {
       const { error } = await supabase
@@ -152,19 +193,8 @@ async function fetchUsers() {
     }
     fetchUsers(); //ambil data terbaru
     setIsDialogOpen(false);
-    setEditingUser(null);
-    setNewUser({
-      user_estim: "",
-      ip_address: "",
-      mac_address: "",
-      nama: "",
-      nip: "",
-      jabatan: "",
-      unit_kerja: "",
-      cab: "",
-      status_user: "",
-    });
-    setLastUpdated(new Date().toLocaleString());//update timestamp
+    resetForm(); // Reset form setelah create/update
+    setLastUpdated(new Date().toLocaleString());
   }
 
   async function handleDeleteUser(id: number) {
@@ -195,7 +225,8 @@ async function fetchUsers() {
       // Ambil semua data dari database
       const { data: allUsers, error: fetchError } = await supabase
         .from("users")
-        .select("*");
+        .select("*")
+        .order('user_estim');  // Menambahkan pengurutan untuk konsistensi
 
       if (fetchError) throw fetchError;
 
@@ -204,15 +235,24 @@ async function fetchUsers() {
 
       // Isi map dengan data yang memiliki informasi lengkap
       allUsers?.forEach(user => {
-        if (user.user_estim && user.nama && user.nip) {
-          userEstimMap.set(user.user_estim, {
-            nama: user.nama,
-            nip: user.nip,
-            jabatan: user.jabatan,
-            unit_kerja: user.unit_kerja,
-            cab: user.cab,
-            status_user: user.status_user
-          });
+        if (user.user_estim) {
+          // Split multiple user_estim jika ada
+          const userEstims = user.user_estim.split(',').map((e: string) => e.trim());
+          
+          if (user.nama && user.nip) {
+            userEstims.forEach((estim: string) => {
+              if (estim) {
+                userEstimMap.set(estim, {
+                  nama: user.nama,
+                  nip: user.nip,
+                  jabatan: user.jabatan || '',
+                  unit_kerja: user.unit_kerja || '',
+                  cab: user.cab || '',
+                  status_user: user.status_user || 'Aktif'
+                });
+              }
+            });
+          }
         }
       });
 
@@ -220,31 +260,58 @@ async function fetchUsers() {
       const updates = [];
       for (const user of allUsers || []) {
         if (user.user_estim && (!user.nama || !user.nip)) {
-          const referenceData = userEstimMap.get(user.user_estim);
-          if (referenceData) {
-            updates.push({
-              id: user.id,
-              ...referenceData
-            });
+          // Split multiple user_estim jika ada
+          const userEstims = user.user_estim.split(',').map((e: string) => e.trim());
+          
+          for (const estim of userEstims) {
+            const referenceData = userEstimMap.get(estim);
+            if (referenceData) {
+              updates.push({
+                id: user.id,
+                ...referenceData,
+                user_estim: user.user_estim, // Pertahankan user_estim asli
+                ip_address: user.ip_address, // Pertahankan ip_address asli
+                mac_address: user.mac_address // Pertahankan mac_address asli
+              });
+              break; // Gunakan data referensi pertama yang ditemukan
+            }
           }
         }
       }
 
-      // Lakukan update batch
+      // Lakukan update batch dengan penanganan error yang lebih baik
       if (updates.length > 0) {
+        let successCount = 0;
         for (const update of updates) {
-          const { error: updateError } = await supabase
-            .from("users")
-            .update(update)
-            .eq("id", update.id);
-          
-          if (updateError) throw updateError;
+          try {
+            const { error: updateError } = await supabase
+              .from("users")
+              .update({
+                nama: update.nama,
+                nip: update.nip,
+                jabatan: update.jabatan,
+                unit_kerja: update.unit_kerja,
+                cab: update.cab,
+                status_user: update.status_user
+              })
+              .eq("id", update.id);
+            
+            if (!updateError) {
+              successCount++;
+            } else {
+              console.error(`Error updating user ${update.id}:`, updateError);
+            }
+          } catch (error) {
+            console.error(`Failed to update user ${update.id}:`, error);
+          }
         }
-      }
 
-      // Refresh data
-      await fetchUsers();
-      alert(`Berhasil mengupdate ${updates.length} data`);
+        // Refresh data dan tampilkan hasil
+        await fetchUsers();
+        alert(`Berhasil mengupdate ${successCount} dari ${updates.length} data`);
+      } else {
+        alert("Tidak ada data yang perlu diupdate");
+      }
     } catch (error) {
       console.error("Error updating users:", error);
       alert("Terjadi kesalahan saat mengupdate data");
@@ -488,140 +555,218 @@ async function fetchUsers() {
         <Button
           variant="default"
           size="default"
-          onClick={() => setIsDialogOpen(true)}
+          onClick={() => {
+            resetForm();
+            setIsDialogOpen(true);
+          }}
         >
           Add New User
         </Button>
       </div>
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent>
+      <Dialog 
+        open={isDialogOpen} 
+        onOpenChange={(open) => {
+          if (!open) {
+            resetForm(); // Reset form saat dialog ditutup
+          }
+          setIsDialogOpen(open);
+        }}
+      >
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
               {editingUser ? "Edit User" : "Add New User"}
             </DialogTitle>
           </DialogHeader>
           <div className="grid gap-4 py-4">
-            {Object.keys(newUser).map((key) =>
-              key === "unit_kerja" ? (
-                <Select
-                  key={key}
-                  value={
-                    editingUser ? editingUser.unit_kerja : newUser.unit_kerja
-                  }
-                  onValueChange={(value) =>
-                    editingUser
-                      ? setEditingUser({ ...editingUser, unit_kerja: value })
-                      : setNewUser({ ...newUser, unit_kerja: value })
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Pilih Unit Kerja" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Umum">Umum</SelectItem>
-                    <SelectItem value="Pelayanan Nasabah">
-                      Pelayanan Nasabah
-                    </SelectItem>
-                    <SelectItem value="Teller">Teller</SelectItem>
-                    <SelectItem value="Service Assitant">
-                      Service Assistant
-                    </SelectItem>
-                    <SelectItem value="Kredit">Kredit</SelectItem>
-                    <SelectItem value="RPK">RPK</SelectItem>
-                    <SelectItem value="QA">QA</SelectItem>
-                  </SelectContent>
-                </Select>
+            {Object.keys(newUser).map((key) => {
+              if (key === "user_estim") {
+                return (
+                  <div key={key} className="space-y-2">
+                    <Label>User ESTIM</Label>
+                    {editingUser ? (
+                      // Dropdown untuk edit user
+                      <Select
+                        value={editingUser.user_estim || undefined}
+                        onValueChange={(value) =>
+                          setEditingUser({ ...editingUser, user_estim: value })
+                        }
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Pilih User ESTIM" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {userEstimOptions
+                            .filter(estim => estim && estim.trim() !== '')
+                            .map((estim) => (
+                              <SelectItem key={estim} value={estim}>
+                                {estim}
+                              </SelectItem>
+                            ))}
+                        </SelectContent>
+                      </Select>
+                    ) : (
+                      // Input manual untuk new user
+                      <Input
+                        placeholder="Masukkan User ESTIM"
+                        value={newUser.user_estim}
+                        onChange={(e) =>
+                          setNewUser({ ...newUser, user_estim: e.target.value })
+                        }
+                      />
+                    )}
+                  </div>
+                );
+              }
+              
+              if (key === "ip_address") {
+                return (
+                  <div key={key} className="space-y-2">
+                    <Label>IP Address</Label>
+                    {editingUser ? (
+                      // Dropdown untuk edit user
+                      <Select
+                        value={editingUser.ip_address || undefined}
+                        onValueChange={(value) =>
+                          setEditingUser({ ...editingUser, ip_address: value })
+                        }
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Pilih IP Address" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {ipAddressOptions
+                            .filter(ip => ip && ip.trim() !== '')
+                            .map((ip) => (
+                              <SelectItem key={ip} value={ip}>
+                                {ip}
+                              </SelectItem>
+                            ))}
+                        </SelectContent>
+                      </Select>
+                    ) : (
+                      // Input manual untuk new user
+                      <Input
+                        placeholder="Masukkan IP Address"
+                        value={newUser.ip_address}
+                        onChange={(e) =>
+                          setNewUser({ ...newUser, ip_address: e.target.value })
+                        }
+                      />
+                    )}
+                  </div>
+                );
+              }
+
+              // Untuk field lainnya...
+              return key === "unit_kerja" ? (
+                <div key={key} className="space-y-2">
+                  <Label>Unit Kerja</Label>
+                  <Select
+                    value={editingUser?.unit_kerja || newUser.unit_kerja || undefined}
+                    onValueChange={(value) =>
+                      editingUser
+                        ? setEditingUser({ ...editingUser, unit_kerja: value })
+                        : setNewUser({ ...newUser, unit_kerja: value })
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Pilih Unit Kerja" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Umum">Umum</SelectItem>
+                      <SelectItem value="Pelayanan Nasabah">Pelayanan Nasabah</SelectItem>
+                      <SelectItem value="Teller">Teller</SelectItem>
+                      <SelectItem value="Service Assistant">Service Assistant</SelectItem>
+                      <SelectItem value="Kredit">Kredit</SelectItem>
+                      <SelectItem value="RPK">RPK</SelectItem>
+                      <SelectItem value="QA">QA</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               ) : key === "status_user" ? (
-                <Select
-                  key={key}
-                  value={
-                    editingUser ? editingUser.status_user : newUser.status_user
-                  }
-                  onValueChange={(value) =>
-                    editingUser
-                      ? setEditingUser({ ...editingUser, status_user: value })
-                      : setNewUser({ ...newUser, status_user: value })
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Pilih Status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Aktif">Aktif</SelectItem>
-                    <SelectItem value="Tidak Aktif">Tidak Aktif</SelectItem>
-                  </SelectContent>
-                </Select>
+                <div key={key} className="space-y-2">
+                  <Label>Status User</Label>
+                  <Select
+                    value={editingUser?.status_user || newUser.status_user || undefined}
+                    onValueChange={(value) =>
+                      editingUser
+                        ? setEditingUser({ ...editingUser, status_user: value })
+                        : setNewUser({ ...newUser, status_user: value })
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Pilih Status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Aktif">Aktif</SelectItem>
+                      <SelectItem value="Tidak Aktif">Tidak Aktif</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               ) : key === "cab" ? (
-                <Select
-                  key={key}
-                  value={editingUser ? editingUser.cab : newUser.cab}
-                  onValueChange={(value) =>
-                    editingUser
-                      ? setEditingUser({ ...editingUser, cab: value })
-                      : setNewUser({ ...newUser, cab: value })
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Pilih Cabang" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Cabang Ponorogo">
-                      Cabang Ponorogo
-                    </SelectItem>
-                    <SelectItem value="Capem Sumoroto">
-                      Capem Sumoroto
-                    </SelectItem>
-                    <SelectItem value="Capem Jetis">Capem Jetis</SelectItem>
-                    <SelectItem value="Capem Pulung">Capem Pulung</SelectItem>
-                    <SelectItem value="Capem Balong">Capem Balong</SelectItem>
-                    <SelectItem value="KFF Pemda Ponorogo">
-                      KFF Pemda Ponorogo
-                    </SelectItem>
-                    <SelectItem value="KFF Sukorejo">KFF Sukorejo</SelectItem>
-                    <SelectItem value="KFF Jenangan">KFF Jenangan</SelectItem>
-                    <SelectItem value="KFF RSUD Harjono">
-                      KFF RSUD Harjono
-                    </SelectItem>
-                    <SelectItem value="KFF Slahung">KFF Slahung</SelectItem>
-                    <SelectItem value="KFF Sawoo">KFF Sawoo</SelectItem>
-                    <SelectItem value="Payment Point Samsat">
-                      Payment Point Samsat
-                    </SelectItem>
-                    <SelectItem value="Mall Pelayanan Publik Ponorogo">
-                      Mall Pelayanan Publik Ponorogo
-                    </SelectItem>
-                    <SelectItem value="Payment Point PBB Ponorogo">
-                      Payment Point PBB Ponorogo
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
+                <div key={key} className="space-y-2">
+                  <Label>Cabang</Label>
+                  <Select
+                    value={editingUser?.cab || newUser.cab || undefined}
+                    onValueChange={(value) =>
+                      editingUser
+                        ? setEditingUser({ ...editingUser, cab: value })
+                        : setNewUser({ ...newUser, cab: value })
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Pilih Cabang" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Cabang Ponorogo">Cabang Ponorogo</SelectItem>
+                      <SelectItem value="Capem Sumoroto">Capem Sumoroto</SelectItem>
+                      <SelectItem value="Capem Jetis">Capem Jetis</SelectItem>
+                      <SelectItem value="Capem Pulung">Capem Pulung</SelectItem>
+                      <SelectItem value="Capem Balong">Capem Balong</SelectItem>
+                      <SelectItem value="KFF Pemda Ponorogo">KFF Pemda Ponorogo</SelectItem>
+                      <SelectItem value="KFF Sukorejo">KFF Sukorejo</SelectItem>
+                      <SelectItem value="KFF Jenangan">KFF Jenangan</SelectItem>
+                      <SelectItem value="KFF RSUD Harjono">KFF RSUD Harjono</SelectItem>
+                      <SelectItem value="KFF Slahung">KFF Slahung</SelectItem>
+                      <SelectItem value="KFF Sawoo">KFF Sawoo</SelectItem>
+                      <SelectItem value="Payment Point Samsat">Payment Point Samsat</SelectItem>
+                      <SelectItem value="Mall Pelayanan Publik Ponorogo">Mall Pelayanan Publik Ponorogo</SelectItem>
+                      <SelectItem value="Payment Point PBB Ponorogo">Payment Point PBB Ponorogo</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               ) : (
-                <Input
-                  key={key}
-                  placeholder={key}
-                  value={
-                    editingUser
-                      ? editingUser[key as keyof User] || ""
-                      : newUser[key as keyof Omit<User, "id">]
-                  }
-                  onChange={(e) =>
-                    editingUser
-                      ? setEditingUser({
-                          ...editingUser,
-                          [key]: e.target.value,
-                        })
-                      : setNewUser({
-                          ...newUser,
-                          [key]: e.target.value,
-                        })
-                  }
-                />
-              )
-            )}
+                <div key={key} className="space-y-2">
+                  <Label>{key.charAt(0).toUpperCase() + key.slice(1).replace(/_/g, ' ')}</Label>
+                  <Input
+                    placeholder={key.charAt(0).toUpperCase() + key.slice(1).replace(/_/g, ' ')}
+                    value={
+                      editingUser
+                        ? editingUser[key as keyof User] || ""
+                        : newUser[key as keyof Omit<User, "id">]
+                    }
+                    onChange={(e) =>
+                      editingUser
+                        ? setEditingUser({
+                            ...editingUser,
+                            [key]: e.target.value,
+                          })
+                        : setNewUser({
+                            ...newUser,
+                            [key]: e.target.value,
+                          })
+                    }
+                  />
+                </div>
+              );
+            })}
           </div>
-          <Button onClick={handleCreateOrUpdateUser}>
-            {editingUser ? "Update User" : "Create User"}
-          </Button>
+          <DialogFooter>
+            <Button onClick={handleCreateOrUpdateUser}>
+              {editingUser ? "Update User" : "Create User"}
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
       <div className="rounded-md border">
