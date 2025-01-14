@@ -46,9 +46,13 @@ import {
   CardContent,
   CardFooter,
   CardHeader,
+  CardTitle,
+  CardDescription,
 } from "@/components/ui/card";
 import supabase from "@/lib/supabase";
 import ReportLayout from "@/app/dashboard/reports/layout";
+import { Pencil, Trash, Plus } from "lucide-react";
+import { id } from "date-fns/locale/id";
 
 type Incident = {
   id: number;
@@ -142,13 +146,100 @@ export default function ITIncidentManagement() {
     fetchIncidents();
   }
 
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'Open':
+        return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300';
+      case 'In Progress':
+        return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300';
+      case 'Resolved':
+        return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300';
+      case 'Closed':
+        return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300';
+      default:
+        return 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300';
+    }
+  };
+
+  const getPriorityColor = (priority: string) => {
+    switch (priority) {
+      case 'Critical':
+        return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300';
+      case 'High':
+        return 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300';
+      case 'Medium':
+        return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300';
+      case 'Low':
+        return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300';
+      default:
+        return 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300';
+    }
+  };
+
   const columns: ColumnDef<Incident>[] = [
-    { accessorKey: "title", header: "Problem/Error" },
-    { accessorKey: "description", header: "Deskripsi" },
-    { accessorKey: "reported_by", header: "Pelapor" },
-    { accessorKey: "date_reported", header: "Tanggal Kejadian" },
-    { accessorKey: "status", header: "Status" },
-    { accessorKey: "priority", header: "Priority" },
+    { 
+      accessorKey: "title", 
+      header: "Problem/Error",
+      cell: ({ row }) => (
+        <div className="font-medium">{row.getValue("title")}</div>
+      )
+    },
+    { 
+      accessorKey: "description", 
+      header: "Deskripsi",
+      cell: ({ row }) => (
+        <div className="max-w-[300px] truncate" title={row.getValue("description")}>
+          {row.getValue("description")}
+        </div>
+      )
+    },
+    { 
+      accessorKey: "reported_by", 
+      header: "Pelapor",
+      cell: ({ row }) => (
+        <div className="flex items-center gap-2">
+          <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
+            <span className="text-sm font-medium">
+              {(row.getValue("reported_by") as string).charAt(0).toUpperCase()}
+            </span>
+          </div>
+          <span>{row.getValue("reported_by")}</span>
+        </div>
+      )
+    },
+    { 
+      accessorKey: "date_reported", 
+      header: "Tanggal Kejadian",
+      cell: ({ row }) => (
+        <div className="font-medium">
+          {format(new Date(row.getValue("date_reported")), "dd MMM yyyy", { locale: id })}
+        </div>
+      )
+    },
+    { 
+      accessorKey: "status", 
+      header: "Status",
+      cell: ({ row }) => {
+        const status = row.getValue("status") as string;
+        return (
+          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(status)}`}>
+            {status}
+          </span>
+        );
+      }
+    },
+    { 
+      accessorKey: "priority", 
+      header: "Priority",
+      cell: ({ row }) => {
+        const priority = row.getValue("priority") as string;
+        return (
+          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getPriorityColor(priority)}`}>
+            {priority}
+          </span>
+        );
+      }
+    },
     {
       id: "actions",
       header: "Aksi",
@@ -161,15 +252,19 @@ export default function ITIncidentManagement() {
               setEditingIncident(row.original);
               setIsDialogOpen(true);
             }}
+            className="h-8 px-2 lg:px-3"
           >
-            Edit
+            <Pencil className="h-4 w-4 lg:mr-2" />
+            <span className="hidden lg:inline">Edit</span>
           </Button>
           <Button
             variant="destructive"
             size="sm"
             onClick={() => handleDelete(row.original.id)}
+            className="h-8 px-2 lg:px-3"
           >
-            Delete
+            <Trash className="h-4 w-4 lg:mr-2" />
+            <span className="hidden lg:inline">Hapus</span>
           </Button>
         </div>
       ),
@@ -204,9 +299,7 @@ export default function ITIncidentManagement() {
           onChange={(e) => setGlobalFilter(e.target.value)}
           className="max-w-sm"
         />
-        {/* <DialogTrigger asChild> */}
         <Button onClick={() => setIsDialogOpen(true)}>Add New Incident</Button>
-        {/* </DialogTrigger> */}
       </div>
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent>
@@ -349,69 +442,98 @@ export default function ITIncidentManagement() {
           </Button>
         </DialogContent>
       </Dialog>
-      <div className="rounded-md border w-full">
-        <Card>
-          <CardHeader className="font-bold text-lg">List Insiden</CardHeader>
-          <CardContent>
-            <Table>
-              <TableHeader>
-                {table.getHeaderGroups().map((headerGroup) => (
-                  <TableRow key={headerGroup.id}>
-                    {headerGroup.headers.map((header) => (
-                      <TableHead key={header.id}>
-                        {flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )}
-                      </TableHead>
-                    ))}
-                  </TableRow>
-                ))}
-              </TableHeader>
-              <TableBody>
-                {table.getRowModel().rows.map((row) => (
-                  <TableRow key={row.id}>
-                    {row.getVisibleCells().map((cell) => (
-                      <TableCell key={cell.id}>
-                        {flexRender(
-                          cell.column.columnDef.cell,
-                          cell.getContext()
-                        )}
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-lg font-semibold">List Insiden</CardTitle>
+          <CardDescription>
+            Daftar semua insiden yang telah dilaporkan
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            <div className="flex items-center gap-4">
+              <Input
+                placeholder="Cari insiden..."
+                value={globalFilter}
+                onChange={(e) => setGlobalFilter(e.target.value)}
+                className="max-w-sm"
+              />
+              <Button onClick={() => setIsDialogOpen(true)}>
+                <Plus className="mr-2 h-4 w-4" />
+                Tambah Insiden
+              </Button>
+            </div>
+            
+            <div className="rounded-md border">
+              <Table>
+                <TableHeader>
+                  {table.getHeaderGroups().map((headerGroup) => (
+                    <TableRow key={headerGroup.id}>
+                      {headerGroup.headers.map((header) => (
+                        <TableHead key={header.id} className="font-semibold">
+                          {flexRender(
+                            header.column.columnDef.header,
+                            header.getContext()
+                          )}
+                        </TableHead>
+                      ))}
+                    </TableRow>
+                  ))}
+                </TableHeader>
+                <TableBody>
+                  {table.getRowModel().rows.length === 0 ? (
+                    <TableRow>
+                      <TableCell
+                        colSpan={columns.length}
+                        className="h-24 text-center"
+                      >
+                        Tidak ada data insiden
                       </TableCell>
-                    ))}
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </CardContent>
-          <CardFooter className="font-bold italic text-xs">
-            Terakhir di update :
-          </CardFooter>
-        </Card>
-      </div>
-      <div className="flex justify-between items-center py-4">
-        <span className="text-sm text-muted-foreground">
-          {table.getFilteredRowModel().rows.length} rows
-        </span>
-        <div className="space-x-2">
-          <Button
-            variant="outline"
-            size="sm"
-            disabled={!table.getCanPreviousPage()}
-            onClick={() => table.previousPage()}
-          >
-            Previous
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            disabled={!table.getCanNextPage()}
-            onClick={() => table.nextPage()}
-          >
-            Next
-          </Button>
-        </div>
-      </div>
+                    </TableRow>
+                  ) : (
+                    table.getRowModel().rows.map((row) => (
+                      <TableRow key={row.id}>
+                        {row.getVisibleCells().map((cell) => (
+                          <TableCell key={cell.id}>
+                            {flexRender(
+                              cell.column.columnDef.cell,
+                              cell.getContext()
+                            )}
+                          </TableCell>
+                        ))}
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-muted-foreground">
+                Total {table.getFilteredRowModel().rows.length} insiden
+              </span>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => table.previousPage()}
+                  disabled={!table.getCanPreviousPage()}
+                >
+                  Previous
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => table.nextPage()}
+                  disabled={!table.getCanNextPage()}
+                >
+                  Next
+                </Button>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
     </ReportLayout>
   );
 }

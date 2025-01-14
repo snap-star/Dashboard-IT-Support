@@ -8,7 +8,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { motion } from "framer-motion";
-import { Eye, EyeOff, Lock, Mail } from "lucide-react";
+import { Eye, EyeOff, Lock, Mail, Moon, Sun } from "lucide-react";
+import { useTheme } from "next-themes";
 
 const idleTimeout = 30 * 60 * 1000; // 30 minutes
 
@@ -21,6 +22,7 @@ export default function Login() {
   const router = useRouter();
   const [session, setSession] = useState<Session | null>(null);
   const [idle, setIdle] = useState(false);
+  const { theme, setTheme } = useTheme();
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -77,7 +79,19 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-background">
+      <div className="absolute top-4 right-4">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+          className="rounded-full"
+        >
+          <Sun className="h-5 w-5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+          <Moon className="absolute h-5 w-5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+          <span className="sr-only">Toggle theme</span>
+        </Button>
+      </div>
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -86,15 +100,18 @@ export default function Login() {
       >
         <form
           onSubmit={handleLogin}
-          className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl p-8 space-y-6"
+          className="bg-card/50 backdrop-blur-sm rounded-2xl shadow-xl p-8 space-y-6 border"
         >
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.2 }}
+            className="text-center space-y-2"
           >
-            <h1 className="text-3xl font-bold text-center text-gray-800 mb-2">Welcome Back</h1>
-            <p className="text-center text-gray-600 text-sm mb-6">Silahkan login untuk melanjutkan</p>
+            <h1 className="text-3xl font-bold text-foreground">Welcome Back</h1>
+            <p className="text-muted-foreground text-sm">
+              Silahkan login untuk melanjutkan
+            </p>
           </motion.div>
 
           {errorMessage && (
@@ -111,35 +128,31 @@ export default function Login() {
 
           <div className="space-y-4">
             <div className="relative">
-              <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+              <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-5 w-5" />
               <Input
                 type="email"
                 placeholder="Email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="pl-10 pr-4 py-2 w-full bg-white/50 focus:bg-white transition-colors"
-                onFocus={handleActivity}
-                onBlur={handleActivity}
+                className="pl-10 pr-4 py-2 w-full bg-background/50 focus:bg-background transition-colors"
                 required
               />
             </div>
 
             <div className="relative">
-              <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+              <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-5 w-5" />
               <Input
                 type={showPassword ? "text" : "password"}
                 placeholder="Password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="pl-10 pr-12 py-2 w-full bg-white/50 focus:bg-white transition-colors"
-                onFocus={handleActivity}
-                onBlur={handleActivity}
+                className="pl-10 pr-12 py-2 w-full bg-background/50 focus:bg-background transition-colors"
                 required
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
               >
                 {showPassword ? (
                   <EyeOff className="h-5 w-5" />
@@ -152,23 +165,23 @@ export default function Login() {
 
           <Button
             type="submit"
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-200"
+            className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold"
             disabled={loading}
           >
             {loading ? (
               <motion.div
                 animate={{ rotate: 360 }}
                 transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                className="w-5 h-5 border-2 border-white border-t-transparent rounded-full"
+                className="w-5 h-5 border-2 border-primary-foreground border-t-transparent rounded-full"
               />
             ) : (
               "Login"
             )}
           </Button>
 
-          <p className="text-sm text-center text-gray-600">
-            Tidak punya akun ?{" "}
-            <a href="/register" className="text-blue-600 hover:underline font-medium">
+          <p className="text-sm text-center text-muted-foreground">
+            Tidak punya akun?{" "}
+            <a href="/register" className="text-primary hover:underline font-medium">
               Daftar Akun
             </a>
           </p>

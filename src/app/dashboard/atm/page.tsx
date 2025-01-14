@@ -1,7 +1,14 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { createClient } from "@supabase/supabase-js";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardFooter,
+} from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -12,6 +19,18 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import {
   Select,
   SelectContent,
@@ -20,25 +39,23 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { Textarea } from "@/components/ui/textarea";
-import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-} from "@/components/ui/card";
-import ReportLayout from "@/app/dashboard/reports/layout";
-import { Badge } from "@/components/ui/badge";
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Plus, Search, Download, Pencil, Trash } from "lucide-react";
+import { format } from "date-fns";
+import { id } from "date-fns/locale";
+import { toast } from "sonner";
 import supabase from "@/lib/supabase";
 
-
-type ATMComplaint = {
+// Types
+interface ATMComplaint {
   id: number;
   atm_id: string;
   complaint: string;
@@ -47,36 +64,42 @@ type ATMComplaint = {
   nominal: number;
   date_complaint: string;
   date_reported: string;
-  status: "Open" | "In Progress" | "Resolved" | "Closed";
-  resolution?: string;
+  status: string;
+  resolution: string;
+}
+
+// Utility functions
+const formatToRupiah = (amount: number) => {
+  return new Intl.NumberFormat("id-ID", {
+    style: "currency",
+    currency: "IDR",
+  }).format(amount);
 };
 
-function formatToRupiah(amount: number): string {
-  return new Intl.NumberFormat('id-ID', {
-    style: 'currency',
-    currency: 'IDR',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(amount);
-}
-
-function getBadgeColor(status: string) {
+const getStatusColor = (status: string) => {
   switch (status) {
     case "Open":
-      return "bg-blue-500 text-white"; //warna biru untuk status Open
+      return "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300";
     case "In Progress":
-      return "bg-yellow-500 text-white"; //warna kuning untuk status in progress
+      return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300";
     case "Resolved":
-      return "bg-green-500 text-white"; //warna hijau untuk status resolved
+      return "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300";
     case "Closed":
-      return "bg-gray-500 text-white"; //warna abu-abu untuk status closed
+      return "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300";
     default:
-      return "bg-gray-500 text-white"; //warna default
+      return "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300";
   }
-}
+};
+
+// Tambahkan konstanta untuk page size
+const PAGE_SIZE = 10;
 
 export default function ATMComplaints() {
+  // States
   const [complaints, setComplaints] = useState<ATMComplaint[]>([]);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isDeleteAlertOpen, setIsDeleteAlertOpen] = useState(false);
+  const [selectedId, setSelectedId] = useState<number | null>(null);
   const [newComplaint, setNewComplaint] = useState<Omit<ATMComplaint, "id">>({
     atm_id: "",
     complaint: "",
@@ -91,40 +114,74 @@ export default function ATMComplaints() {
   const [editingComplaint, setEditingComplaint] = useState<ATMComplaint | null>(
     null
   );
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  // Tambahkan state untuk pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
 
+  // Effects
   useEffect(() => {
     fetchComplaints();
   }, []);
 
+  // Functions
   async function fetchComplaints() {
-    const { data, error } = await supabase
-      .from("atm_complaints")
-      .select("*")
-      .order("date_reported", { ascending: false });
+    setIsLoading(true);
+    try {
+      // Fetch total count
+      const { count } = await supabase
+        .from("atm_complaints")
+        .select("*", { count: "exact", head: true });
 
-    if (error) console.error("Error fetching complaints:", error);
-    else setComplaints(data || []);
+      // Fetch paginated data
+      const { data, error } = await supabase
+        .from("atm_complaints")
+        .select("*")
+        .order("date_reported", { ascending: false })
+        .range((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE - 1);
+
+      if (error) throw error;
+
+      setComplaints(data || []);
+      setTotalPages(Math.ceil((count || 0) / PAGE_SIZE));
+    } catch (error) {
+      console.error("Error fetching complaints:", error);
+      toast.error("Gagal memuat data komplain");
+    } finally {
+      setIsLoading(false);
+    }
   }
 
-  async function handleCreate() {
-    const { data, error } = await supabase.from("atm_complaints").insert([newComplaint]);
+  // Effect untuk memuat ulang data saat halaman berubah
+  useEffect(() => {
+    fetchComplaints();
+  }, [currentPage]);
 
-    if (error) console.error("Error creating complaint:", error.message, error.details);
-    else {
+  // Fungsi untuk navigasi halaman
+  const nextPage = () => {
+    if (currentPage < totalPages) {
+      setCurrentPage(prev => prev + 1);
+    }
+  };
+
+  const previousPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage(prev => prev - 1);
+    }
+  };
+
+  async function handleCreate() {
+    const { error } = await supabase
+      .from("atm_complaints")
+      .insert([newComplaint]);
+
+    if (error) {
+      console.error("Error creating complaint:", error);
+      toast.error("Gagal menambah komplain");
+    } else {
       fetchComplaints();
-      setNewComplaint({
-        atm_id: "",
-        complaint: "",
-        reported_by: "",
-        account_number: "",
-        nominal: 0,
-        date_complaint: new Date().toISOString().split("T")[0],
-        date_reported: new Date().toISOString().split("T")[0],
-        status: "Open",
-        resolution: "",
-      });
       setIsDialogOpen(false);
+      toast.success("Komplain berhasil ditambahkan");
     }
   }
 
@@ -136,250 +193,456 @@ export default function ATMComplaints() {
       .update(editingComplaint)
       .eq("id", editingComplaint.id);
 
-    if (error) console.error("Error updating complaint:", error);
-    else {
+    if (error) {
+      console.error("Error updating complaint:", error);
+      toast.error("Gagal mengupdate komplain");
+    } else {
       fetchComplaints();
       setEditingComplaint(null);
       setIsDialogOpen(false);
+      toast.success("Komplain berhasil diupdate");
     }
   }
 
-  async function handleDelete(id: number) {
-    const { error } = await supabase.from("atm_complaints").delete().eq("id", id);
+  const handleDelete = (id: number) => {
+    setSelectedId(id);
+    setIsDeleteAlertOpen(true);
+  };
 
-    if (error) console.error("Error deleting complaint:", error);
-    else fetchComplaints();
-  }
+  const confirmDelete = async () => {
+    if (!selectedId) return;
+
+    const { error } = await supabase
+      .from("atm_complaints")
+      .delete()
+      .eq("id", selectedId);
+
+    if (error) {
+      console.error("Error deleting complaint:", error);
+      toast.error("Gagal menghapus komplain");
+    } else {
+      fetchComplaints();
+      toast.success("Komplain berhasil dihapus");
+    }
+    setIsDeleteAlertOpen(false);
+    setSelectedId(null);
+  };
 
   return (
-    <ReportLayout>
-      <h1 className="text-2xl font-bold mb-4">ATM Complaint Management</h1>
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogTrigger asChild>
-          <Button className="mb-4">Report New Complaint</Button>
-        </DialogTrigger>
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle>
-              {editingComplaint ? "Edit Complaint" : "Report New Complaint"}
-            </DialogTitle>
-          </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <Input
-              placeholder="ATM ID"
-              value={editingComplaint ? editingComplaint.atm_id : newComplaint.atm_id}
-              onChange={(e) =>
-                editingComplaint
-                  ? setEditingComplaint({
-                      ...editingComplaint,
-                      atm_id: e.target.value,
-                    })
-                  : setNewComplaint({ ...newComplaint, atm_id: e.target.value })
-              }
-            />
-            <Textarea
-              placeholder="Complaint Details"
-              value={
-                editingComplaint
-                  ? editingComplaint.complaint
-                  : newComplaint.complaint
-              }
-              onChange={(e) =>
-                editingComplaint
-                  ? setEditingComplaint({
-                      ...editingComplaint,
-                      complaint: e.target.value,
-                    })
-                  : setNewComplaint({
-                      ...newComplaint,
-                      complaint: e.target.value,
-                    })
-              }
-            />
-            <Input
-              placeholder="Reported By"
-              value={
-                editingComplaint
-                  ? editingComplaint.reported_by
-                  : newComplaint.reported_by
-              }
-              onChange={(e) =>
-                editingComplaint
-                  ? setEditingComplaint({
-                      ...editingComplaint,
-                      reported_by: e.target.value,
-                    })
-                  : setNewComplaint({
-                      ...newComplaint,
-                      reported_by: e.target.value,
-                    })
-              }
-            />
-            <Input
-              placeholder="Account Number"
-              value={
-                editingComplaint
-                  ? editingComplaint.account_number
-                  : newComplaint.account_number
-              }
-              onChange={(e) =>
-                editingComplaint
-                  ? setEditingComplaint({
-                      ...editingComplaint,
-                      account_number: e.target.value,
-                    })
-                  : setNewComplaint({
-                      ...newComplaint,
-                      account_number: e.target.value,
-                    })
-              }
-            />
-            <Input
-              type="number"
-              placeholder="Nominal"
-              value={
-                editingComplaint ? editingComplaint.nominal : newComplaint.nominal
-              }
-              onChange={(e) =>
-                editingComplaint
-                  ? setEditingComplaint({
-                      ...editingComplaint,
-                      nominal: Number(e.target.value),
-                    })
-                  : setNewComplaint({
-                      ...newComplaint,
-                      nominal: Number(e.target.value),
-                    })
-              }
-            />
-            <Input
-              type="date"
-              placeholder="Date Complaint"
-              value={
-                editingComplaint
-                  ? editingComplaint.date_complaint
-                  : newComplaint.date_complaint
-              }
-              onChange={(e) =>
-                editingComplaint
-                  ? setEditingComplaint({
-                      ...editingComplaint,
-                      date_complaint: e.target.value,
-                    })
-                  : setNewComplaint({
-                      ...newComplaint,
-                      date_complaint: e.target.value,
-                    })
-              }
-            />
-            <Select
-              value={editingComplaint ? editingComplaint.status : newComplaint.status}
-              onValueChange={(value:any) =>
-                editingComplaint
-                  ? setEditingComplaint({ ...editingComplaint, status: value })
-                  : setNewComplaint({ ...newComplaint, status: value })
-              }
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select Status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="Open">Open</SelectItem>
-                <SelectItem value="In Progress">In Progress</SelectItem>
-                <SelectItem value="Resolved">Resolved</SelectItem>
-                <SelectItem value="Closed">Closed</SelectItem>
-              </SelectContent>
-            </Select>
-            {editingComplaint && (
-              <Textarea
-                placeholder="Resolution"
-                value={editingComplaint.resolution || ""}
-                onChange={(e) =>
-                  setEditingComplaint({ ...editingComplaint, resolution: e.target.value })
-                }
-              />
-            )}
-          </div>
-          <div className="flex justify-end gap-4">
-            <Button
-              onClick={() => {
-                if (editingComplaint) handleUpdate();
-                else handleCreate();
-              }}
-            >
-              {editingComplaint ? "Update Complaint" : "Create Complaint"}
-            </Button>
-            <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
-              Cancel
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
-      <Card className="w-full">
-        <CardHeader className="font-bold text-lg">
-          Laporan Komplain Nasabah
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-xl font-bold">
+            ATM Complaint Management
+          </CardTitle>
+          <CardDescription>
+            Manajemen dan tracking komplain ATM dari nasabah
+          </CardDescription>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableCell>ATM ID</TableCell>
-                <TableCell>Komplain</TableCell>
-                <TableCell>Pelapor</TableCell>
-                <TableCell>Nomor Rekening</TableCell>
-                <TableCell>Nominal</TableCell>
-                <TableCell>Tanggal Komplain</TableCell>
-                <TableCell>Status</TableCell>
-                <TableCell>Resolution</TableCell>
-                <TableCell>Aksi</TableCell>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {complaints.map((complaint) => (
-                                <TableRow key={complaint.id}>
-                                <TableCell>{complaint.atm_id}</TableCell>
-                                <TableCell>{complaint.complaint}</TableCell>
-                                <TableCell>{complaint.reported_by}</TableCell>
-                                <TableCell>{complaint.account_number}</TableCell>
-                                <TableCell>{formatToRupiah(complaint.nominal)}</TableCell>
-                                <TableCell>{complaint.date_complaint}</TableCell>
-                                <TableCell>
-                                  <Badge variant="outline" className={`rounded-md ${getBadgeColor(complaint.status)}`}>
-                                  {complaint.status}
-                                  </Badge>
-                                  </TableCell>
-                                <TableCell>{complaint.resolution || '-'}</TableCell>
-                                <TableCell>
-                                  <div className="flex gap-2">
-                                    <Button
-                                      variant="outline"
-                                      size="sm"
-                                      onClick={() => {
-                                        setEditingComplaint(complaint);
-                                        setIsDialogOpen(true);
-                                      }}
-                                    >
-                                      Edit
-                                    </Button>
-                                    <Button
-                                      variant="destructive"
-                                      size="sm"
-                                      onClick={() => handleDelete(complaint.id)}
-                                    >
-                                      Delete
-                                    </Button>
-                                  </div>
-                                </TableCell>
-                              </TableRow>
-                            ))}
-                          </TableBody>
-                        </Table>
-                      </CardContent>
-                      <CardFooter className="font-bold text-xs italic">
-                        Terakhir update:
-                      </CardFooter>
-                    </Card>
-                  </ReportLayout>
-                );
-              }
-              
+          <div className="space-y-4">
+            {/* Search and Add Button */}
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex items-center gap-2 flex-1 max-w-sm">
+                <Search className="w-4 h-4 text-muted-foreground" />
+                <Input 
+                  placeholder="Cari komplain..." 
+                  className="flex-1"
+                  onChange={(e) => {
+                    // Implement search functionality
+                  }}
+                />
+              </div>
+              <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button>
+                    <Plus className="mr-2 h-4 w-4" />
+                    Tambah Komplain
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-[500px]">
+                  <DialogHeader className="space-y-3">
+                    <DialogTitle>
+                      {editingComplaint ? "Edit Komplain" : "Tambah Komplain Baru"}
+                    </DialogTitle>
+                    <DialogDescription>
+                      {editingComplaint 
+                        ? "Edit detail komplain ATM yang sudah ada" 
+                        : "Tambahkan komplain ATM baru dari nasabah"}
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="py-4">
+                    <div className="grid gap-4">
+                      {/* Informasi ATM dan Pelapor */}
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="space-y-1.5">
+                          <Label htmlFor="atm_id">ATM ID</Label>
+                          <Input
+                            id="atm_id"
+                            placeholder="Masukkan ID ATM"
+                            value={editingComplaint ? editingComplaint.atm_id : newComplaint.atm_id}
+                            onChange={(e) =>
+                              editingComplaint
+                                ? setEditingComplaint({
+                                    ...editingComplaint,
+                                    atm_id: e.target.value,
+                                  })
+                                : setNewComplaint({ ...newComplaint, atm_id: e.target.value })
+                            }
+                          />
+                        </div>
+                        <div className="space-y-1.5">
+                          <Label htmlFor="reported_by">Nama Pelapor</Label>
+                          <Input
+                            id="reported_by"
+                            placeholder="Masukkan nama pelapor"
+                            value={editingComplaint ? editingComplaint.reported_by : newComplaint.reported_by}
+                            onChange={(e) =>
+                              editingComplaint
+                                ? setEditingComplaint({
+                                    ...editingComplaint,
+                                    reported_by: e.target.value,
+                                  })
+                                : setNewComplaint({ ...newComplaint, reported_by: e.target.value })
+                            }
+                          />
+                        </div>
+                      </div>
+
+                      {/* Informasi Rekening dan Nominal */}
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="space-y-1.5">
+                          <Label htmlFor="account_number">Nomor Rekening</Label>
+                          <Input
+                            id="account_number"
+                            placeholder="Masukkan nomor rekening"
+                            value={editingComplaint ? editingComplaint.account_number : newComplaint.account_number}
+                            onChange={(e) =>
+                              editingComplaint
+                                ? setEditingComplaint({
+                                    ...editingComplaint,
+                                    account_number: e.target.value,
+                                  })
+                                : setNewComplaint({ ...newComplaint, account_number: e.target.value })
+                            }
+                          />
+                        </div>
+                        <div className="space-y-1.5">
+                          <Label htmlFor="nominal">Nominal</Label>
+                          <Input
+                            id="nominal"
+                            type="number"
+                            placeholder="Masukkan nominal"
+                            value={editingComplaint ? editingComplaint.nominal : newComplaint.nominal}
+                            onChange={(e) =>
+                              editingComplaint
+                                ? setEditingComplaint({
+                                    ...editingComplaint,
+                                    nominal: Number(e.target.value),
+                                  })
+                                : setNewComplaint({ ...newComplaint, nominal: Number(e.target.value) })
+                            }
+                          />
+                        </div>
+                      </div>
+
+                      {/* Tanggal dan Status */}
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="space-y-1.5">
+                          <Label htmlFor="date_complaint">Tanggal Kejadian</Label>
+                          <Input
+                            id="date_complaint"
+                            type="date"
+                            value={editingComplaint ? editingComplaint.date_complaint : newComplaint.date_complaint}
+                            onChange={(e) =>
+                              editingComplaint
+                                ? setEditingComplaint({
+                                    ...editingComplaint,
+                                    date_complaint: e.target.value,
+                                  })
+                                : setNewComplaint({ ...newComplaint, date_complaint: e.target.value })
+                            }
+                          />
+                        </div>
+                        <div className="space-y-1.5">
+                          <Label htmlFor="status">Status</Label>
+                          <Select
+                            value={editingComplaint ? editingComplaint.status : newComplaint.status}
+                            onValueChange={(value) =>
+                              editingComplaint
+                                ? setEditingComplaint({
+                                    ...editingComplaint,
+                                    status: value,
+                                  })
+                                : setNewComplaint({ ...newComplaint, status: value })
+                            }
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Pilih status" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="Open">Open</SelectItem>
+                              <SelectItem value="In Progress">In Progress</SelectItem>
+                              <SelectItem value="Resolved">Resolved</SelectItem>
+                              <SelectItem value="Closed">Closed</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+
+                      {/* Deskripsi Komplain */}
+                      <div className="space-y-1.5">
+                        <Label htmlFor="complaint">Deskripsi Komplain</Label>
+                        <Textarea
+                          id="complaint"
+                          placeholder="Masukkan deskripsi komplain"
+                          className="min-h-[80px] resize-none"
+                          value={editingComplaint ? editingComplaint.complaint : newComplaint.complaint}
+                          onChange={(e) =>
+                            editingComplaint
+                              ? setEditingComplaint({
+                                  ...editingComplaint,
+                                  complaint: e.target.value,
+                                })
+                              : setNewComplaint({ ...newComplaint, complaint: e.target.value })
+                          }
+                        />
+                      </div>
+
+                      {/* Resolusi */}
+                      <div className="space-y-1.5">
+                        <Label htmlFor="resolution">Resolusi</Label>
+                        <Textarea
+                          id="resolution"
+                          placeholder="Masukkan resolusi komplain"
+                          className="min-h-[80px] resize-none"
+                          value={editingComplaint ? editingComplaint.resolution : newComplaint.resolution}
+                          onChange={(e) =>
+                            editingComplaint
+                              ? setEditingComplaint({
+                                  ...editingComplaint,
+                                  resolution: e.target.value,
+                                })
+                              : setNewComplaint({ ...newComplaint, resolution: e.target.value })
+                          }
+                        />
+                      </div>
+                    </div>
+                  </div>
+                  <DialogFooter>
+                    <Button variant="outline" onClick={() => {
+                      setIsDialogOpen(false);
+                      setEditingComplaint(null);
+                    }}>
+                      Batal
+                    </Button>
+                    <Button 
+                      onClick={() => {
+                        if (editingComplaint) handleUpdate();
+                        else handleCreate();
+                      }}
+                    >
+                      {editingComplaint ? "Simpan Perubahan" : "Tambah Komplain"}
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+            </div>
+
+            {/* Table */}
+            <div className="rounded-md border shadow-sm">
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-muted/50">
+                    <TableHead className="font-semibold">ATM ID</TableHead>
+                    <TableHead className="font-semibold">Komplain</TableHead>
+                    <TableHead className="font-semibold">Pelapor</TableHead>
+                    <TableHead className="font-semibold">No. Rekening</TableHead>
+                    <TableHead className="font-semibold">Nominal</TableHead>
+                    <TableHead className="font-semibold">Tanggal</TableHead>
+                    <TableHead className="font-semibold">Status</TableHead>
+                    <TableHead className="font-semibold">Resolusi</TableHead>
+                    <TableHead className="font-semibold w-[100px]">Aksi</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {isLoading ? (
+                    <TableRow>
+                      <TableCell 
+                        colSpan={9} 
+                        className="h-32 text-center"
+                      >
+                        <div className="flex items-center justify-center">
+                          <svg
+                            className="animate-spin h-6 w-6 text-primary"
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                          >
+                            <circle
+                              className="opacity-25"
+                              cx="12"
+                              cy="12"
+                              r="10"
+                              stroke="currentColor"
+                              strokeWidth="4"
+                            />
+                            <path
+                              className="opacity-75"
+                              fill="currentColor"
+                              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                            />
+                          </svg>
+                          <span className="ml-2">Memuat data...</span>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ) : complaints.length === 0 ? (
+                    <TableRow>
+                      <TableCell 
+                        colSpan={9} 
+                        className="h-32 text-center text-muted-foreground"
+                      >
+                        Tidak ada data komplain
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    complaints.map((complaint) => (
+                      <TableRow key={complaint.id} className="hover:bg-muted/50">
+                        <TableCell className="font-medium">
+                          {complaint.atm_id}
+                        </TableCell>
+                        <TableCell>
+                          <div className="max-w-[200px] truncate" title={complaint.complaint}>
+                            {complaint.complaint}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
+                              <span className="text-sm font-medium">
+                                {complaint.reported_by.charAt(0).toUpperCase()}
+                              </span>
+                            </div>
+                            <span>{complaint.reported_by}</span>
+                          </div>
+                        </TableCell>
+                        <TableCell>{complaint.account_number}</TableCell>
+                        <TableCell className="font-medium">
+                          {formatToRupiah(complaint.nominal)}
+                        </TableCell>
+                        <TableCell>
+                          {format(new Date(complaint.date_complaint), "dd MMM yyyy", { locale: id })}
+                        </TableCell>
+                        <TableCell>
+                          <Badge 
+                            variant="outline" 
+                            className={`${getStatusColor(complaint.status)}`}
+                          >
+                            {complaint.status}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <div className="max-w-[200px] truncate" title={complaint.resolution || '-'}>
+                            {complaint.resolution || '-'}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                setEditingComplaint(complaint);
+                                setIsDialogOpen(true);
+                              }}
+                              className="h-8 px-2 lg:px-3"
+                            >
+                              <Pencil className="h-4 w-4 lg:mr-2" />
+                              <span className="hidden lg:inline">Edit</span>
+                            </Button>
+                            <Button
+                              variant="destructive"
+                              size="sm"
+                              onClick={() => handleDelete(complaint.id)}
+                              className="h-8 px-2 lg:px-3"
+                            >
+                              <Trash className="h-4 w-4 lg:mr-2" />
+                              <span className="hidden lg:inline">Hapus</span>
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+          </div>
+        </CardContent>
+        <CardFooter className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <span>Total komplain:</span>
+              <Badge variant="outline">{totalPages * PAGE_SIZE}</Badge>
+            </div>
+            <div className="flex items-center gap-1 text-sm text-muted-foreground">
+              <span>Halaman</span>
+              <span className="font-medium">{currentPage}</span>
+              <span>dari</span>
+              <span className="font-medium">{totalPages}</span>
+            </div>
+          </div>
+          
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={previousPage}
+              disabled={currentPage === 1 || isLoading}
+            >
+              Previous
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={nextPage}
+              disabled={currentPage === totalPages || isLoading}
+            >
+              Next
+            </Button>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={() => {/* Implement export */}}
+            >
+              <Download className="mr-2 h-4 w-4" />
+              Export Data
+            </Button>
+          </div>
+        </CardFooter>
+      </Card>
+
+      {/* Alert Dialog */}
+      <AlertDialog open={isDeleteAlertOpen} onOpenChange={setIsDeleteAlertOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Konfirmasi Hapus</AlertDialogTitle>
+            <AlertDialogDescription>
+              Apakah Anda yakin ingin menghapus komplain ini?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Batal</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={() => confirmDelete()}
+              className="bg-red-600"
+            >
+              Hapus
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </div>
+  );
+}

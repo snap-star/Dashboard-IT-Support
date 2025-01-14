@@ -25,7 +25,7 @@ export default function Register() {
     setErrorMessage(null);
 
     if (password !== confirmPassword) {
-      setErrorMessage("Passwords do not match");
+      setErrorMessage("Password tidak cocok");
       setLoading(false);
       return;
     }
@@ -53,7 +53,7 @@ export default function Register() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-background">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -62,15 +62,18 @@ export default function Register() {
       >
         <form
           onSubmit={handleRegister}
-          className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl p-8 space-y-6"
+          className="bg-card/50 backdrop-blur-sm rounded-2xl shadow-xl p-8 space-y-6 border"
         >
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.2 }}
+            className="text-center space-y-2"
           >
-            <h1 className="text-3xl font-bold text-center text-gray-800 mb-2">Create Account</h1>
-            <p className="text-center text-gray-600 text-sm mb-6">Silahkan isi data diri anda untuk membuat akun</p>
+            <h1 className="text-3xl font-bold text-foreground">Create Account</h1>
+            <p className="text-muted-foreground text-sm">
+              Silahkan isi data diri anda untuk membuat akun
+            </p>
           </motion.div>
 
           {errorMessage && (
@@ -87,43 +90,43 @@ export default function Register() {
 
           <div className="space-y-4">
             <div className="relative">
-              <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+              <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-5 w-5" />
               <Input
                 type="text"
                 placeholder="Nama Lengkap"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="pl-10 pr-4 py-2 w-full bg-white/50 focus:bg-white transition-colors"
+                className="pl-10 pr-4 py-2 w-full bg-background/50 focus:bg-background transition-colors"
                 required
               />
             </div>
 
             <div className="relative">
-              <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+              <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-5 w-5" />
               <Input
                 type="email"
                 placeholder="Email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="pl-10 pr-4 py-2 w-full bg-white/50 focus:bg-white transition-colors"
+                className="pl-10 pr-4 py-2 w-full bg-background/50 focus:bg-background transition-colors"
                 required
               />
             </div>
 
             <div className="relative">
-              <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+              <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-5 w-5" />
               <Input
                 type={showPassword ? "text" : "password"}
                 placeholder="Password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="pl-10 pr-12 py-2 w-full bg-white/50 focus:bg-white transition-colors"
+                className="pl-10 pr-12 py-2 w-full bg-background/50 focus:bg-background transition-colors"
                 required
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
               >
                 {showPassword ? (
                   <EyeOff className="h-5 w-5" />
@@ -134,19 +137,19 @@ export default function Register() {
             </div>
 
             <div className="relative">
-              <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+              <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-5 w-5" />
               <Input
                 type={showConfirmPassword ? "text" : "password"}
                 placeholder="Konfirmasi Password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
-                className="pl-10 pr-12 py-2 w-full bg-white/50 focus:bg-white transition-colors"
+                className="pl-10 pr-12 py-2 w-full bg-background/50 focus:bg-background transition-colors"
                 required
               />
               <button
                 type="button"
                 onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
               >
                 {showConfirmPassword ? (
                   <EyeOff className="h-5 w-5" />
@@ -159,23 +162,23 @@ export default function Register() {
 
           <Button
             type="submit"
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-200"
+            className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold"
             disabled={loading}
           >
             {loading ? (
               <motion.div
                 animate={{ rotate: 360 }}
                 transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                className="w-5 h-5 border-2 border-white border-t-transparent rounded-full"
+                className="w-5 h-5 border-2 border-primary-foreground border-t-transparent rounded-full"
               />
             ) : (
               "Daftar Akun"
             )}
           </Button>
 
-          <p className="text-sm text-center text-gray-600">
-            Sudah punya akun ?{" "}
-            <a href="/" className="text-blue-600 hover:underline font-medium">
+          <p className="text-sm text-center text-muted-foreground">
+            Sudah punya akun?{" "}
+            <a href="/" className="text-primary hover:underline font-medium">
               Login
             </a>
           </p>
