@@ -60,6 +60,19 @@ body {
     --chart-4: 280 65% 60%;
     --chart-5: 340 75% 55%;
   }
+
+  .select-content {
+    max-height: 300px;
+    overflow-y: auto;
+  }
+  
+  .select-item {
+    padding: 0.5rem;
+  }
+  
+  .select-item:hover {
+    background-color: var(--accent);
+  }
 }
 
 @layer base {

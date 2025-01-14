@@ -67,8 +67,8 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
   const menuItems = [
     { href: "/dashboard", label: "Dashboard", icon: <LayoutDashboard className="h-4 w-4" /> },
-    { href: "/dashboard/reports", label: "Work Reports", icon: <FileText className="h-4 w-4" /> },
-    { href: "/dashboard/input", label: "Input Data", icon: <PenTool className="h-4 w-4" /> },
+    { href: "/dashboard/reports", label: "Pengecekan Peralatan", icon: <FileText className="h-4 w-4" /> },
+    { href: "/dashboard/rekon_atm", label: "Rekon ATM", icon: <PenTool className="h-4 w-4" /> },
     { href: "/dashboard/ip-address", label: "Manage User ESTIM", icon: <Users className="h-4 w-4" /> },
     { href: "/dashboard/insiden", label: "Laporan Insiden Kantor", icon: <AlertCircle className="h-4 w-4" /> },
     { href: "/dashboard/atm", label: "Laporan Komplain ATM", icon: <CreditCard className="h-4 w-4" /> },
@@ -84,6 +84,8 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     { href: "/dashboard/asset/hardware", label: "Asset Hardware", icon: <HardDrive className="h-4 w-4" /> },
     { href: "/dashboard/asset/software", label: "Asset Software", icon: <Database className="h-4 w-4" /> },
     { href: "/dashboard/asset/edc", label: "Asset EDC", icon: <Network className="h-4 w-4" /> },
+    { href: "/dashboard/ip-address/catalyst", label: "IP Address Catalyst", icon: <Users className="h-4 w-4" /> },
+    { href: "/dashboard/macro/generator", label: "Macro Generator", icon: <Users className="h-4 w-4" /> },
   ];
 
   const LoadingSkeleton = () => (
