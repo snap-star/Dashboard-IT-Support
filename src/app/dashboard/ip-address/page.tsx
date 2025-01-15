@@ -19,7 +19,9 @@ import {
   CardHeader,
   CardFooter,
 } from "@/components/ui/card";
-import { ArrowUpDown, ChevronDown, MoreHorizontal } from "lucide-react";
+import { ArrowUpDown, ChevronDown, MoreHorizontal, Loader2, AlertCircle } from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -48,6 +50,7 @@ import {
   DialogTitle,
   DialogTrigger,
   DialogFooter,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import supabase from "@/lib/supabase";
 import * as XLSX from "xlsx";
@@ -86,7 +89,7 @@ export default function IPAddressManagement() {
   const [rowSelection, setRowSelection] = React.useState({});
   const [isDialogOpen, setIsDialogOpen] = React.useState(false);
   const [editingUser, setEditingUser] = React.useState<User | null>(null);
-  const [newUser, setNewUser] = React.useState<Omit<User, "id">>({
+  const [formData, setFormData] = React.useState({
     user_estim: "",
     ip_address: "",
     mac_address: "",
@@ -95,12 +98,14 @@ export default function IPAddressManagement() {
     jabatan: "",
     unit_kerja: "",
     cab: "",
-    status_user: "",
+    status_user: "Aktif"
   });
   const [pageIndex, setPageIndex] = React.useState(0);
   const [pageSize, setPageSize] = React.useState(10);
   const [userEstimOptions, setUserEstimOptions] = React.useState<string[]>([]);
   const [ipAddressOptions, setIpAddressOptions] = React.useState<string[]>([]);
+  const [isLoading, setIsLoading] = React.useState(true);
+  const [error, setError] = React.useState<string | null>(null);
   
   React.useEffect(() => {
     fetchUsers();
@@ -125,16 +130,46 @@ const groupUsersByNIP = (users: User[]) => {
   return Object.values(grouped);
 };
 
-// Update fungsi fetchUsers
-async function fetchUsers() {
-  const { data, error } = await supabase.from("users").select("*");
-  if (error) {
-    console.error("Error fetching users:", error);
-  } else {
+// Fungsi untuk cek duplikasi
+const checkDuplicateUser = async (userEstim: string, nip: string, id?: number) => {
+  try {
+    let query = supabase
+      .from("users")
+      .select("id")
+      .or(`user_estim.ilike.%${userEstim}%,nip.eq.${nip}`);
+    
+    if (id) {
+      query = query.neq('id', id);
+    }
+
+    const { data, error } = await query;
+    
+    if (error) throw error;
+    
+    return data.length > 0;
+  } catch (error) {
+    console.error('Error checking duplicate:', error);
+    throw new Error('Gagal memeriksa duplikasi data');
+  }
+};
+
+// Update fungsi fetchUsers dengan loading dan error handling
+const fetchUsers = async () => {
+  try {
+    setIsLoading(true);
+    setError(null);
+
+    const { data, error } = await supabase
+      .from("users")
+      .select("*")
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+
     const groupedUsers = groupUsersByNIP(data || []);
     setUsers(groupedUsers);
     
-    // Kumpulkan semua user_estim dan ip_address yang unik
+    // Update options untuk dropdowns
     const allUserEstims = new Set<string>();
     const allIpAddresses = new Set<string>();
     
@@ -154,12 +189,18 @@ async function fetchUsers() {
     setUserEstimOptions(Array.from(allUserEstims));
     setIpAddressOptions(Array.from(allIpAddresses));
     setLastUpdated(new Date().toLocaleString());
+
+  } catch (error: any) {
+    console.error('Error fetching users:', error);
+    setError(error.message || 'Gagal memuat data');
+  } finally {
+    setIsLoading(false);
   }
-}
+};
 
   // Tambahkan fungsi untuk mereset form
   const resetForm = () => {
-    setNewUser({
+    setFormData({
       user_estim: "",
       ip_address: "",
       mac_address: "",
@@ -168,34 +209,91 @@ async function fetchUsers() {
       jabatan: "",
       unit_kerja: "",
       cab: "",
-      status_user: "",
+      status_user: "Aktif"
     });
     setEditingUser(null);
   };
 
-  // Update fungsi handleCreateOrUpdateUser
-  async function handleCreateOrUpdateUser() {
-    if (editingUser) {
-      const { error } = await supabase
-        .from("users")
-        .update(editingUser)
-        .eq("id", editingUser.id);
-      if (error) {
-        console.error("Error updating user:", error);
+  // Fungsi untuk handle edit
+  const handleEdit = (user: User) => {
+    setEditingUser(user);
+    setFormData({
+      user_estim: user.user_estim,
+      ip_address: user.ip_address,
+      mac_address: user.mac_address,
+      nama: user.nama,
+      nip: user.nip,
+      jabatan: user.jabatan,
+      unit_kerja: user.unit_kerja,
+      cab: user.cab,
+      status_user: user.status_user
+    });
+    setIsDialogOpen(true);
+  };
+
+  // Fungsi untuk handle tambah baru
+  const handleAddNew = () => {
+    setEditingUser(null);
+    setFormData({
+      user_estim: "",
+      ip_address: "",
+      mac_address: "",
+      nama: "",
+      nip: "",
+      jabatan: "",
+      unit_kerja: "",
+      cab: "",
+      status_user: "Aktif"
+    });
+    setIsDialogOpen(true);
+  };
+
+  // Fungsi untuk handle submit form
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      setIsLoading(true);
+
+      // Cek duplikasi
+      const isDuplicate = await checkDuplicateUser(
+        formData.user_estim,
+        formData.nip,
+        editingUser?.id
+      );
+
+      if (isDuplicate) {
+        toast.error('User ESTIM atau NIP sudah terdaftar');
         return;
       }
-    } else {
-      const { error } = await supabase.from("users").insert([newUser]);
-      if (error) {
-        console.error("Error creating user:", error);
-        return;
+
+      if (editingUser) {
+        // Update existing user
+        const { error } = await supabase
+          .from("users")
+          .update(formData)
+          .eq("id", editingUser.id);
+
+        if (error) throw error;
+        toast.success("Data berhasil diperbarui");
+      } else {
+        // Create new user
+        const { error } = await supabase
+          .from("users")
+          .insert([formData]);
+
+        if (error) throw error;
+        toast.success("Data berhasil ditambahkan");
       }
+
+      setIsDialogOpen(false);
+      fetchUsers();
+    } catch (error: any) {
+      console.error('Error saving user:', error);
+      toast.error(error.message || 'Gagal menyimpan data');
+    } finally {
+      setIsLoading(false);
     }
-    fetchUsers(); //ambil data terbaru
-    setIsDialogOpen(false);
-    resetForm(); // Reset form setelah create/update
-    setLastUpdated(new Date().toLocaleString());
-  }
+  };
 
   async function handleDeleteUser(id: number) {
     const { error } = await supabase.from("users").delete().eq("id", id);
@@ -332,6 +430,41 @@ async function fetchUsers() {
       },
     },
     {
+      accessorKey: "user_estim",
+      header: ({ column }) => {
+        return (
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            User ESTIM
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+          </Button>
+        );
+      },
+      size: 150,
+    },
+    {
+      accessorKey: "ip_address",
+      header: ({ column }) => {
+        return (
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            IP Address
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+          </Button>
+        );
+      },
+      size: 150,
+    },
+    {
+      accessorKey: "mac_address",
+      header: "MAC Address",
+      size: 150,
+    },
+    {
       accessorKey: "nama",
       header: ({ column }) => {
         return (
@@ -345,7 +478,6 @@ async function fetchUsers() {
         );
       },
       size: 200,
-      enableSorting: true,
     },
     {
       accessorKey: "nip",
@@ -361,19 +493,16 @@ async function fetchUsers() {
         );
       },
       size: 150,
-      enableSorting: true,
     },
     {
       accessorKey: "jabatan",
       header: "Jabatan",
       size: 150,
-      enableSorting: false,
     },
     {
       accessorKey: "unit_kerja",
       header: "Unit Kerja",
-      size: 150,
-      enableSorting: false,
+      size: 200,
     },
     {
       accessorKey: "cab",
@@ -388,108 +517,53 @@ async function fetchUsers() {
           </Button>
         );
       },
-      size: 180,
-      enableSorting: true,
+      size: 150,
     },
     {
-      id: "user_details",
-      header: "User Details",
-      size: 400,
-      enableResizing: true,
+      accessorKey: "status_user",
+      header: "Status",
+      size: 100,
       cell: ({ row }) => {
-        const user = row.original;
+        const status = row.getValue("status_user") as string;
         return (
-          <div className="space-y-1">
-            <div className="grid grid-cols-3 gap-2 text-sm">
-              <div>
-                <span className="font-semibold">User ESTIM:</span>
-                <br />
-                <span className="whitespace-pre-wrap break-words">
-                  {user.user_estim}
-                </span>
-              </div>
-              <div>
-                <span className="font-semibold">IP Address:</span>
-                <br />
-                <span className="whitespace-pre-wrap break-words">
-                  {user.ip_address}
-                </span>
-              </div>
-              <div>
-                <span className="font-semibold">MAC Address:</span>
-                <br />
-                <span className="whitespace-pre-wrap break-words">
-                  {user.mac_address}
-                </span>
-              </div>
-            </div>
-            <Badge variant={user.status_user === 'Aktif' ? 'default' : 'secondary'}>
-              {user.status_user}
-            </Badge>
-          </div>
+          <Badge
+            variant={status === "Aktif" ? "default" : "secondary"}
+          >
+            {status}
+          </Badge>
         );
       },
     },
     {
       id: "actions",
-      enableHiding: false,
-      size: 80,
-      cell: ({ row }) => (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="h-8 w-8 p-0">
-              <MoreHorizontal />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuLabel>Actions</DropdownMenuLabel>
-            <DropdownMenuItem
-              onClick={() => {
-                setEditingUser(row.original);
-                setIsDialogOpen(true);
-              }}
-            >
-              Edit
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={async () => {
-                const { data: referenceData } = await supabase
-                  .from("users")
-                  .select("*")
-                  .eq("user_estim", row.original.user_estim)
-                  .not("nama", "is", null)
-                  .limit(1)
-                  .single();
-
-                if (referenceData) {
-                  const { error } = await supabase
-                    .from("users")
-                    .update({
-                      nama: referenceData.nama,
-                      nip: referenceData.nip,
-                      jabatan: referenceData.jabatan,
-                      unit_kerja: referenceData.unit_kerja,
-                      cab: referenceData.cab,
-                      status_user: referenceData.status_user
-                    })
-                    .eq("id", row.original.id);
-
-                  if (!error) {
-                    fetchUsers();
-                    alert("Data berhasil diupdate");
+      cell: ({ row }) => {
+        const user = row.original;
+        return (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="h-8 w-8 p-0">
+                <span className="sr-only">Open menu</span>
+                <MoreHorizontal className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => handleEdit(user)}>
+                Edit
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                className="text-red-600"
+                onClick={() => {
+                  if (confirm("Apakah Anda yakin ingin menghapus data ini?")) {
+                    handleDeleteUser(user.id);
                   }
-                }
-              }}
-            >
-              Update from Reference
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={() => handleDeleteUser(row.original.id)}>
-              Delete
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      ),
+                }}
+              >
+                Delete
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        );
+      },
     },
   ];
 
@@ -531,255 +605,71 @@ async function fetchUsers() {
 
   return (
     <div className="w-full">
-      <div className="flex items-center justify-end py-4 gap-2">
-        <Input
-          placeholder="User/NIP/Nama untuk Filter data..."
-          value={globalFilter}
-          onChange={(e) => setGlobalFilter(e.target.value)}
-          className="max-w-sm"
-        />
-        <Button 
-          variant="secondary" 
-          size="default" 
-          onClick={updateEmptyUsers}
-          className="bg-yellow-500 hover:bg-yellow-600 text-white"
-        >
-          Update Empty Data
-        </Button>
-        <Button variant="outline" size="default" onClick={exportToExcel}>
-          Export Excel
-        </Button>
-        <Button variant="outline" size="default" onClick={printTable}>
-          Print
-        </Button>
-        <Button
-          variant="default"
-          size="default"
-          onClick={() => {
-            resetForm();
-            setIsDialogOpen(true);
-          }}
-        >
-          Add New User
-        </Button>
-      </div>
-      <Dialog 
-        open={isDialogOpen} 
-        onOpenChange={(open) => {
-          if (!open) {
-            resetForm(); // Reset form saat dialog ditutup
-          }
-          setIsDialogOpen(open);
-        }}
-      >
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>
-              {editingUser ? "Edit User" : "Add New User"}
-            </DialogTitle>
-          </DialogHeader>
-          <div className="grid gap-4 py-4">
-            {Object.keys(newUser).map((key) => {
-              if (key === "user_estim") {
-                return (
-                  <div key={key} className="space-y-2">
-                    <Label>User ESTIM</Label>
-                    {editingUser ? (
-                      // Dropdown untuk edit user
-                      <Select
-                        value={editingUser.user_estim || undefined}
-                        onValueChange={(value) =>
-                          setEditingUser({ ...editingUser, user_estim: value })
-                        }
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Pilih User ESTIM" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {userEstimOptions
-                            .filter(estim => estim && estim.trim() !== '')
-                            .map((estim) => (
-                              <SelectItem key={estim} value={estim}>
-                                {estim}
-                              </SelectItem>
-                            ))}
-                        </SelectContent>
-                      </Select>
-                    ) : (
-                      // Input manual untuk new user
-                      <Input
-                        placeholder="Masukkan User ESTIM"
-                        value={newUser.user_estim}
-                        onChange={(e) =>
-                          setNewUser({ ...newUser, user_estim: e.target.value })
-                        }
-                      />
-                    )}
-                  </div>
-                );
-              }
-              
-              if (key === "ip_address") {
-                return (
-                  <div key={key} className="space-y-2">
-                    <Label>IP Address</Label>
-                    {editingUser ? (
-                      // Dropdown untuk edit user
-                      <Select
-                        value={editingUser.ip_address || undefined}
-                        onValueChange={(value) =>
-                          setEditingUser({ ...editingUser, ip_address: value })
-                        }
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Pilih IP Address" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {ipAddressOptions
-                            .filter(ip => ip && ip.trim() !== '')
-                            .map((ip) => (
-                              <SelectItem key={ip} value={ip}>
-                                {ip}
-                              </SelectItem>
-                            ))}
-                        </SelectContent>
-                      </Select>
-                    ) : (
-                      // Input manual untuk new user
-                      <Input
-                        placeholder="Masukkan IP Address"
-                        value={newUser.ip_address}
-                        onChange={(e) =>
-                          setNewUser({ ...newUser, ip_address: e.target.value })
-                        }
-                      />
-                    )}
-                  </div>
-                );
-              }
+      {error && (
+        <Alert variant="destructive" className="mb-4">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>Error</AlertTitle>
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
 
-              // Untuk field lainnya...
-              return key === "unit_kerja" ? (
-                <div key={key} className="space-y-2">
-                  <Label>Unit Kerja</Label>
-                  <Select
-                    value={editingUser?.unit_kerja || newUser.unit_kerja || undefined}
-                    onValueChange={(value) =>
-                      editingUser
-                        ? setEditingUser({ ...editingUser, unit_kerja: value })
-                        : setNewUser({ ...newUser, unit_kerja: value })
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Pilih Unit Kerja" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Umum">Umum</SelectItem>
-                      <SelectItem value="Pelayanan Nasabah">Pelayanan Nasabah</SelectItem>
-                      <SelectItem value="Teller">Teller</SelectItem>
-                      <SelectItem value="Service Assistant">Service Assistant</SelectItem>
-                      <SelectItem value="Kredit">Kredit</SelectItem>
-                      <SelectItem value="RPK">RPK</SelectItem>
-                      <SelectItem value="QA">QA</SelectItem>
-                    </SelectContent>
-                  </Select>
+      <div className="flex items-center justify-between py-4">
+        <div className="flex items-center gap-4">
+          <Input
+            placeholder="Filter data..."
+            value={globalFilter}
+            onChange={(e) => setGlobalFilter(e.target.value)}
+            className="max-w-sm"
+            disabled={isLoading}
+          />
+          <Button 
+            variant="secondary"
+            onClick={updateEmptyUsers}
+            disabled={isLoading}
+            className="bg-yellow-500 hover:bg-yellow-600 text-white"
+          >
+            {isLoading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Memproses...
+              </>
+            ) : (
+              "Update Empty Data"
+            )}
+          </Button>
+        </div>
+        
+        <div className="flex items-center gap-2">
+          <Button 
+            variant="outline"
+            onClick={exportToExcel}
+            disabled={isLoading}
+          >
+            Export Excel
+          </Button>
+          <Button
+            variant="default"
+            onClick={handleAddNew}
+            disabled={isLoading}
+          >
+            Add New User
+          </Button>
+        </div>
+      </div>
+
+      <Card>
+        <CardContent className="p-0">
+          <div className="relative">
+            {isLoading && (
+              <div className="absolute inset-0 bg-background/50 backdrop-blur-sm flex items-center justify-center z-50">
+                <div className="flex items-center gap-2">
+                  <Loader2 className="h-6 w-6 animate-spin" />
+                  <span>Memuat data...</span>
                 </div>
-              ) : key === "status_user" ? (
-                <div key={key} className="space-y-2">
-                  <Label>Status User</Label>
-                  <Select
-                    value={editingUser?.status_user || newUser.status_user || undefined}
-                    onValueChange={(value) =>
-                      editingUser
-                        ? setEditingUser({ ...editingUser, status_user: value })
-                        : setNewUser({ ...newUser, status_user: value })
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Pilih Status" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Aktif">Aktif</SelectItem>
-                      <SelectItem value="Tidak Aktif">Tidak Aktif</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              ) : key === "cab" ? (
-                <div key={key} className="space-y-2">
-                  <Label>Cabang</Label>
-                  <Select
-                    value={editingUser?.cab || newUser.cab || undefined}
-                    onValueChange={(value) =>
-                      editingUser
-                        ? setEditingUser({ ...editingUser, cab: value })
-                        : setNewUser({ ...newUser, cab: value })
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Pilih Cabang" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Cabang Ponorogo">Cabang Ponorogo</SelectItem>
-                      <SelectItem value="Capem Sumoroto">Capem Sumoroto</SelectItem>
-                      <SelectItem value="Capem Jetis">Capem Jetis</SelectItem>
-                      <SelectItem value="Capem Pulung">Capem Pulung</SelectItem>
-                      <SelectItem value="Capem Balong">Capem Balong</SelectItem>
-                      <SelectItem value="KFF Pemda Ponorogo">KFF Pemda Ponorogo</SelectItem>
-                      <SelectItem value="KFF Sukorejo">KFF Sukorejo</SelectItem>
-                      <SelectItem value="KFF Jenangan">KFF Jenangan</SelectItem>
-                      <SelectItem value="KFF RSUD Harjono">KFF RSUD Harjono</SelectItem>
-                      <SelectItem value="KFF Slahung">KFF Slahung</SelectItem>
-                      <SelectItem value="KFF Sawoo">KFF Sawoo</SelectItem>
-                      <SelectItem value="Payment Point Samsat">Payment Point Samsat</SelectItem>
-                      <SelectItem value="Mall Pelayanan Publik Ponorogo">Mall Pelayanan Publik Ponorogo</SelectItem>
-                      <SelectItem value="Payment Point PBB Ponorogo">Payment Point PBB Ponorogo</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              ) : (
-                <div key={key} className="space-y-2">
-                  <Label>{key.charAt(0).toUpperCase() + key.slice(1).replace(/_/g, ' ')}</Label>
-                  <Input
-                    placeholder={key.charAt(0).toUpperCase() + key.slice(1).replace(/_/g, ' ')}
-                    value={
-                      editingUser
-                        ? editingUser[key as keyof User] || ""
-                        : newUser[key as keyof Omit<User, "id">]
-                    }
-                    onChange={(e) =>
-                      editingUser
-                        ? setEditingUser({
-                            ...editingUser,
-                            [key]: e.target.value,
-                          })
-                        : setNewUser({
-                            ...newUser,
-                            [key]: e.target.value,
-                          })
-                    }
-                  />
-                </div>
-              );
-            })}
-          </div>
-          <DialogFooter>
-            <Button onClick={handleCreateOrUpdateUser}>
-              {editingUser ? "Update User" : "Create User"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-      <div className="rounded-md border">
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <h2 className="text-lg font-bold">
-                Daftar User ESTIM & IP Address
-              </h2>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <Table className="border-collapse table-fixed w-full">
+              </div>
+            )}
+            
+            <Table>
               <TableHeader>
                 {table.getHeaderGroups().map((headerGroup) => (
                   <TableRow key={headerGroup.id}>
@@ -825,74 +715,247 @@ async function fetchUsers() {
                 )}
               </TableBody>
             </Table>
-          </CardContent>
-          <CardFooter className="italic text-xs text-muted-foreground">
-            Last updated pada {lastUpdated}
-          </CardFooter>
-        </Card>
-      </div>
-      <div className="flex items-center justify-between py-4">
-        <div className="flex items-center gap-2">
-          <p className="text-sm text-muted-foreground">
-            Rows per page:
-          </p>
-          <Select
-            value={`${pageSize}`}
-            onValueChange={(value) => {
-              table.setPageSize(Number(value));
-            }}
-          >
-            <SelectTrigger className="h-8 w-[70px]">
-              <SelectValue placeholder={pageSize} />
-            </SelectTrigger>
-            <SelectContent>
-              {[5, 10, 20, 30, 40, 50].map((size) => (
-                <SelectItem key={size} value={`${size}`}>
-                  {size}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <div className="flex w-[100px] items-center justify-center text-sm text-muted-foreground">
-            Page {table.getState().pagination.pageIndex + 1} of{" "}
-            {table.getPageCount()}
           </div>
-        </div>
-        <div className="flex items-center space-x-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => table.setPageIndex(0)}
-            disabled={!table.getCanPreviousPage()}
-          >
-            {"First Page"}
+        </CardContent>
+        <CardFooter className="flex items-center justify-between py-4">
+          <div className="flex-1 text-sm text-muted-foreground">
+            {`Total ${table.getFilteredRowModel().rows.length} data`}
+          </div>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => table.previousPage()}
+              disabled={!table.getCanPreviousPage() || isLoading}
+            >
+              Previous
+            </Button>
+            <div className="flex items-center gap-1">
+              <span className="text-sm font-medium">
+                Page {table.getState().pagination.pageIndex + 1} of{" "}
+                {table.getPageCount()}
+              </span>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => table.nextPage()}
+              disabled={!table.getCanNextPage() || isLoading}
+            >
+              Next
+            </Button>
+          </div>
+        </CardFooter>
+      </Card>
+
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle>
+              {editingUser ? "Edit User" : "Tambah User Baru"}
+            </DialogTitle>
+            <DialogDescription>
+              {editingUser 
+                ? "Edit informasi user ESTIM dan IP Address" 
+                : "Tambahkan user ESTIM dan IP Address baru"}
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="grid grid-cols-2 gap-4">
+              {/* Kolom Kiri */}
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="nama">Nama Pemegang</Label>
+                  <Input
+                    id="nama"
+                    value={formData.nama}
+                    onChange={(e) => setFormData(prev => ({
+                      ...prev,
+                      nama: e.target.value
+                    }))}
+                    placeholder="Nama lengkap"
+                    required
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="nip">NIP</Label>
+                  <Input
+                    id="nip"
+                    value={formData.nip}
+                    onChange={(e) => setFormData(prev => ({
+                      ...prev,
+                      nip: e.target.value
+                    }))}
+                    placeholder="Nomor Induk Pegawai"
+                    required
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="jabatan">Jabatan</Label>
+                  <Input
+                    id="jabatan"
+                    value={formData.jabatan}
+                    onChange={(e) => setFormData(prev => ({
+                      ...prev,
+                      jabatan: e.target.value
+                    }))}
+                    placeholder="Jabatan"
+                    required
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="unit_kerja">Unit Kerja</Label>
+                  <Input
+                    id="unit_kerja"
+                    value={formData.unit_kerja}
+                    onChange={(e) => setFormData(prev => ({
+                      ...prev,
+                      unit_kerja: e.target.value
+                    }))}
+                    placeholder="Unit Kerja"
+                    required
+                  />
+                </div>
+              </div>
+
+              {/* Kolom Kanan */}
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="user_estim">User ESTIM</Label>
+                  <Input
+                    id="user_estim"
+                    value={formData.user_estim}
+                    onChange={(e) => setFormData(prev => ({
+                      ...prev,
+                      user_estim: e.target.value
+                    }))}
+                    placeholder="User ESTIM"
+                    required
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="ip_address">IP Address</Label>
+                  <Input
+                    id="ip_address"
+                    value={formData.ip_address}
+                    onChange={(e) => setFormData(prev => ({
+                      ...prev,
+                      ip_address: e.target.value
+                    }))}
+                    placeholder="IP Address"
+                    required
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="mac_address">MAC Address</Label>
+                  <Input
+                    id="mac_address"
+                    value={formData.mac_address}
+                    onChange={(e) => setFormData(prev => ({
+                      ...prev,
+                      mac_address: e.target.value
+                    }))}
+                    placeholder="MAC Address"
+                    required
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="cab">Cabang/Capem</Label>
+                  <Input
+                    id="cab"
+                    value={formData.cab}
+                    onChange={(e) => setFormData(prev => ({
+                      ...prev,
+                      cab: e.target.value
+                    }))}
+                    placeholder="Cabang/Capem"
+                    required
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="status_user">Status User</Label>
+                  <Select
+                    value={formData.status_user}
+                    onValueChange={(value) => setFormData(prev => ({
+                      ...prev,
+                      status_user: value
+                    }))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Pilih status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Aktif">Aktif</SelectItem>
+                      <SelectItem value="Tidak Aktif">Tidak Aktif</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </div>
+
+            <DialogFooter>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setIsDialogOpen(false)}
+              >
+                Batal
+              </Button>
+              <Button type="submit" disabled={isLoading}>
+                {isLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    {editingUser ? "Menyimpan..." : "Menambahkan..."}
+                  </>
+                ) : (
+                  editingUser ? "Simpan Perubahan" : "Tambah User"
+                )}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="outline" className="ml-auto">
+            Columns <ChevronDown className="ml-2 h-4 w-4" />
           </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => table.previousPage()}
-            disabled={!table.getCanPreviousPage()}
-          >
-            Previous
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => table.nextPage()}
-            disabled={!table.getCanNextPage()}
-          >
-            Next
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => table.setPageIndex(table.getPageCount() - 1)}
-            disabled={!table.getCanNextPage()}
-          >
-            {"Last Page"}
-          </Button>
-        </div>
-      </div>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          {table
+            .getAllColumns()
+            .filter((column) => column.getCanHide())
+            .map((column) => {
+              return (
+                <DropdownMenuCheckboxItem
+                  key={column.id}
+                  className="capitalize"
+                  checked={column.getIsVisible()}
+                  onCheckedChange={(value) => column.toggleVisibility(!!value)}
+                >
+                  {column.id === "user_estim" ? "User ESTIM" :
+                   column.id === "ip_address" ? "IP Address" :
+                   column.id === "mac_address" ? "MAC Address" :
+                   column.id === "nama" ? "Nama Pemegang" :
+                   column.id === "nip" ? "NIP" :
+                   column.id === "jabatan" ? "Jabatan" :
+                   column.id === "unit_kerja" ? "Unit Kerja" :
+                   column.id === "cab" ? "Cabang/Capem" :
+                   column.id === "status_user" ? "Status" :
+                   column.id}
+                </DropdownMenuCheckboxItem>
+              );
+            })}
+        </DropdownMenuContent>
+      </DropdownMenu>
     </div>
   );
 }

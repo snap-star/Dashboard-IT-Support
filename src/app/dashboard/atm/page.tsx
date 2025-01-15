@@ -53,6 +53,7 @@ import { format } from "date-fns";
 import { id } from "date-fns/locale";
 import { toast } from "sonner";
 import supabase from "@/lib/supabase";
+import * as XLSX from 'xlsx';
 
 // Types
 interface ATMComplaint {
@@ -118,6 +119,8 @@ export default function ATMComplaints() {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
 
   // Effects
   useEffect(() => {
@@ -228,35 +231,88 @@ export default function ATMComplaints() {
     setSelectedId(null);
   };
 
+  const handleExportData = async () => {
+    try {
+      // Fetch semua data untuk di-export
+      const { data, error } = await supabase
+        .from("atm_complaints")
+        .select("*")
+        .order("date_reported", { ascending: false });
+
+      if (error) throw error;
+
+      // Format data untuk excel
+      const exportData = data.map(item => ({
+        'ATM ID': item.atm_id,
+        'Komplain': item.complaint,
+        'Pelapor': item.reported_by,
+        'No. Rekening': item.account_number,
+        'Nominal': formatToRupiah(item.nominal),
+        'Tanggal Kejadian': format(new Date(item.date_complaint), "dd MMM yyyy", { locale: id }),
+        'Tanggal Lapor': format(new Date(item.date_reported), "dd MMM yyyy", { locale: id }),
+        'Status': item.status,
+        'Resolusi': item.resolution || '-'
+      }));
+
+      // Buat workbook dan worksheet
+      const wb = XLSX.utils.book_new();
+      const ws = XLSX.utils.json_to_sheet(exportData);
+
+      // Atur lebar kolom
+      const colWidths = [
+        { wch: 15 }, // ATM ID
+        { wch: 40 }, // Komplain
+        { wch: 20 }, // Pelapor
+        { wch: 20 }, // No. Rekening
+        { wch: 15 }, // Nominal
+        { wch: 15 }, // Tanggal Kejadian
+        { wch: 15 }, // Tanggal Lapor
+        { wch: 12 }, // Status
+        { wch: 40 }, // Resolusi
+      ];
+      ws['!cols'] = colWidths;
+
+      // Tambahkan worksheet ke workbook
+      XLSX.utils.book_append_sheet(wb, ws, 'ATM Complaints');
+
+      // Generate nama file dengan timestamp
+      const fileName = `atm_complaints_${format(new Date(), "yyyyMMdd_HHmmss")}.xlsx`;
+
+      // Download file
+      XLSX.writeFile(wb, fileName);
+      toast.success("Data berhasil di-export");
+    } catch (error) {
+      console.error("Error exporting data:", error);
+      toast.error("Gagal mengexport data");
+    }
+  };
+
   return (
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle className="text-xl font-bold">
-            ATM Complaint Management
-          </CardTitle>
-          <CardDescription>
-            Manajemen dan tracking komplain ATM dari nasabah
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {/* Search and Add Button */}
-            <div className="flex items-center justify-between gap-4">
-              <div className="flex items-center gap-2 flex-1 max-w-sm">
-                <Search className="w-4 h-4 text-muted-foreground" />
-                <Input 
-                  placeholder="Cari komplain..." 
-                  className="flex-1"
-                  onChange={(e) => {
-                    // Implement search functionality
-                  }}
-                />
-              </div>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="text-xl font-bold">
+                ATM Complaint Management
+              </CardTitle>
+              <CardDescription>
+                Manajemen dan tracking komplain ATM dari nasabah
+              </CardDescription>
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                onClick={handleExportData}
+                className="gap-2"
+              >
+                <Download className="h-4 w-4" />
+                Export Data
+              </Button>
               <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                 <DialogTrigger asChild>
-                  <Button>
-                    <Plus className="mr-2 h-4 w-4" />
+                  <Button className="gap-2">
+                    <Plus className="h-4 w-4" />
                     Tambah Komplain
                   </Button>
                 </DialogTrigger>
@@ -448,6 +504,45 @@ export default function ATMComplaints() {
                 </DialogContent>
               </Dialog>
             </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {/* Search and Add Button */}
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex items-center gap-4 flex-1">
+                <div className="flex items-center gap-2 flex-1 max-w-sm">
+                  <Search className="w-4 h-4 text-muted-foreground" />
+                  <Input 
+                    placeholder="Cari komplain..." 
+                    value={searchQuery}
+                    onChange={(e) => {
+                      setSearchQuery(e.target.value);
+                      setCurrentPage(1); // Reset page when searching
+                    }}
+                    className="flex-1"
+                  />
+                </div>
+                <Select
+                  value={statusFilter}
+                  onValueChange={(value) => {
+                    setStatusFilter(value);
+                    setCurrentPage(1); // Reset page when filtering
+                  }}
+                >
+                  <SelectTrigger className="w-[180px]">
+                    <SelectValue placeholder="Filter Status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Semua Status</SelectItem>
+                    <SelectItem value="Open">Open</SelectItem>
+                    <SelectItem value="In Progress">In Progress</SelectItem>
+                    <SelectItem value="Resolved">Resolved</SelectItem>
+                    <SelectItem value="Closed">Closed</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
 
             {/* Table */}
             <div className="rounded-md border shadow-sm">
@@ -610,14 +705,6 @@ export default function ATMComplaints() {
               disabled={currentPage === totalPages || isLoading}
             >
               Next
-            </Button>
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={() => {/* Implement export */}}
-            >
-              <Download className="mr-2 h-4 w-4" />
-              Export Data
             </Button>
           </div>
         </CardFooter>

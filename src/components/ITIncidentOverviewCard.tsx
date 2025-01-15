@@ -89,7 +89,7 @@ export function ITIncidentOverviewCard() {
         initial={{ scale: 0 }}
         animate={{ scale: 1 }}
         transition={{ type: "spring", stiffness: 100 }}
-        className="text-2xl font-bold"
+        className="text-2xl font-bold dark:text-black"
       >
         {value}
       </motion.div>

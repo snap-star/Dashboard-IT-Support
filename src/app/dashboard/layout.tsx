@@ -20,7 +20,8 @@ import {
   Calendar,
   HardDrive,
   Database,
-  LogOut
+  LogOut,
+  Wrench
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -67,11 +68,26 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
   const menuItems = [
     { href: "/dashboard", label: "Dashboard", icon: <LayoutDashboard className="h-4 w-4" /> },
-    { href: "/dashboard/reports", label: "Pengecekan Peralatan", icon: <FileText className="h-4 w-4" /> },
-    { href: "/dashboard/rekon_atm", label: "Rekon ATM", icon: <PenTool className="h-4 w-4" /> },
+    {
+      href: "/dashboard/aktivitas",
+      label: "Aktivitas",
+      icon: <FileText className="h-4 w-4" />,
+      subItems: [
+        { href: "/dashboard/reports", label: "Pengecekan Ruang Server" },
+        { href: "/dashboard/insiden", label: "Laporan Insiden Kantor" },
+        { href: "/dashboard/atm", label: "Laporan Komplain ATM" }
+      ]
+    },
+    {
+      href: "/dashboard/rekon_atm",
+      label: "ATM",
+      icon: <CreditCard className="h-4 w-4" />,
+      subItems: [
+        { href: "/dashboard/rekon_atm", label: "Rekon ATM" },
+        { href: "/dashboard/atm/rekap-transaksi", label: "Report ATM" }
+      ]
+    },
     { href: "/dashboard/ip-address", label: "Manage User ESTIM", icon: <Users className="h-4 w-4" /> },
-    { href: "/dashboard/insiden", label: "Laporan Insiden Kantor", icon: <AlertCircle className="h-4 w-4" /> },
-    { href: "/dashboard/atm", label: "Laporan Komplain ATM", icon: <CreditCard className="h-4 w-4" /> },
     { 
       href: "/dashboard/weekend_banking", 
       label: "Weekend Banking", 
@@ -81,11 +97,25 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         { href: "/dashboard/weekend_banking/pengajuan", label: "Pengajuan Weekend/Perpanjangan" }
       ]
     },
-    { href: "/dashboard/asset/hardware", label: "Asset Hardware", icon: <HardDrive className="h-4 w-4" /> },
-    { href: "/dashboard/asset/software", label: "Asset Software", icon: <Database className="h-4 w-4" /> },
-    { href: "/dashboard/asset/edc", label: "Asset EDC", icon: <Network className="h-4 w-4" /> },
-    { href: "/dashboard/ip-address/catalyst", label: "IP Address Catalyst", icon: <Users className="h-4 w-4" /> },
-    { href: "/dashboard/macro/generator", label: "Macro Generator", icon: <Users className="h-4 w-4" /> },
+    {
+      href: "/dashboard/asset",
+      label: "Asset Management",
+      icon: <HardDrive className="h-4 w-4" />,
+      subItems: [
+        { href: "/dashboard/asset/hardware", label: "Hardware", icon: <HardDrive className="h-4 w-4" /> },
+        { href: "/dashboard/asset/software", label: "Software", icon: <Database className="h-4 w-4" /> },
+        { href: "/dashboard/asset/edc", label: "Asset EDC", icon: <Network className="h-4 w-4" /> },
+      ],
+    },
+    {
+      href: "/dashboard/macro",
+      label: "Tools",
+      icon: <Wrench className="h-4 w-4" />,
+      subItems: [
+        { href: "/dashboard/macro/generator", label: "Macro Generator", icon: <Users className="h-4 w-4" /> },
+        { href: "/dashboard/ip-address/catalyst", label: "IP Address Catalyst", icon: <Users className="h-4 w-4" /> },
+      ],
+    },
   ];
 
   const LoadingSkeleton = () => (

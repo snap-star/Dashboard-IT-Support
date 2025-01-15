@@ -64,6 +64,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import ReportLayout from "./layout";
 import supabase from "@/lib/supabase";
 
 // Schema untuk form checklist
@@ -404,6 +405,7 @@ export default function RoomChecklistPage() {
   };
 
   return (
+    <ReportLayout>
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold">Checklist Ruangan</h2>
@@ -437,7 +439,7 @@ export default function RoomChecklistPage() {
                 selected={date}
                 onSelect={setDate}
                 numberOfMonths={2}
-              />
+                />
             </PopoverContent>
           </Popover>
 
@@ -470,7 +472,7 @@ export default function RoomChecklistPage() {
       </div>
 
       <div className="grid gap-6 md:grid-cols-2">
-        <Card>
+        <Card className="shadow-md">
           <CardHeader>
             <CardTitle>Form Checklist</CardTitle>
             <CardDescription>
@@ -509,7 +511,7 @@ export default function RoomChecklistPage() {
                       <FormMessage />
                     </FormItem>
                   )}
-                />
+                  />
 
                 <FormField
                   control={form.control}
@@ -521,7 +523,7 @@ export default function RoomChecklistPage() {
                         onValueChange={field.onChange}
                         value={field.value}
                         disabled={!form.watch('location_id')}
-                      >
+                        >
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue placeholder="Pilih ruangan" />
@@ -538,7 +540,7 @@ export default function RoomChecklistPage() {
                       <FormMessage />
                     </FormItem>
                   )}
-                />
+                  />
 
                 <FormField
                   control={form.control}
@@ -552,7 +554,7 @@ export default function RoomChecklistPage() {
                       <FormMessage />
                     </FormItem>
                   )}
-                />
+                  />
 
                 <div className="grid grid-cols-2 gap-4">
                   <FormField
@@ -581,7 +583,7 @@ export default function RoomChecklistPage() {
                         <FormMessage />
                       </FormItem>
                     )}
-                  />
+                    />
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
@@ -594,7 +596,7 @@ export default function RoomChecklistPage() {
                           <Checkbox
                             checked={field.value}
                             onCheckedChange={field.onChange}
-                          />
+                            />
                         </FormControl>
                         <div className="space-y-1 leading-none">
                           <FormLabel>Kondisi Bersih</FormLabel>
@@ -612,7 +614,7 @@ export default function RoomChecklistPage() {
                           <Checkbox
                             checked={field.value}
                             onCheckedChange={field.onChange}
-                          />
+                            />
                         </FormControl>
                         <div className="space-y-1 leading-none">
                           <FormLabel>Kondisi Aman</FormLabel>
@@ -631,7 +633,7 @@ export default function RoomChecklistPage() {
                       <Select
                         onValueChange={field.onChange}
                         defaultValue={field.value}
-                      >
+                        >
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue placeholder="Pilih status" />
@@ -658,7 +660,7 @@ export default function RoomChecklistPage() {
                         <Textarea
                           {...field}
                           placeholder="Tambahkan catatan jika ada..."
-                        />
+                          />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -673,7 +675,7 @@ export default function RoomChecklistPage() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="shadow-md">
           <CardHeader>
             <CardTitle>Checklist Hari Ini</CardTitle>
             <CardDescription>
@@ -693,7 +695,7 @@ export default function RoomChecklistPage() {
             ) : (
               <div className="space-y-4">
                 {checks.map((check) => (
-                  <Card key={check.id}>
+                  <Card key={check.id} className="hover:border-red-600 dark:hover:border-white">
                     <CardContent className="pt-6">
                       <div className="grid gap-4">
                         <div className="flex justify-between items-start">
@@ -766,5 +768,6 @@ export default function RoomChecklistPage() {
         </Card>
       </div>
     </div>
+            </ReportLayout>
   );
 }

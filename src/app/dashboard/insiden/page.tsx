@@ -30,7 +30,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { CalendarIcon } from "lucide-react";
+import { CalendarIcon, Download } from "lucide-react";
 import { format } from "date-fns";
 import { DatePicker } from "@/components/ui/date-picker"; // Assume we have a custom date picker component
 import {
@@ -53,6 +53,16 @@ import supabase from "@/lib/supabase";
 import ReportLayout from "@/app/dashboard/reports/layout";
 import { Pencil, Trash, Plus } from "lucide-react";
 import { id } from "date-fns/locale/id";
+import { cn } from "@/lib/utils";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import * as XLSX from 'xlsx';
+import { toast } from "sonner";
+import { DateRange } from "react-day-picker";
 
 type Incident = {
   id: number;
@@ -87,6 +97,8 @@ export default function ITIncidentManagement() {
   );
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({});
+  const [dateRange, setDateRange] = React.useState<DateRange | undefined>();
+  const [isExporting, setIsExporting] = React.useState(false);
 
   React.useEffect(() => {
     fetchIncidents();
@@ -179,7 +191,7 @@ export default function ITIncidentManagement() {
   const columns: ColumnDef<Incident>[] = [
     { 
       accessorKey: "title", 
-      header: "Problem/Error",
+      header: "Problem/Error/Kegiatan",
       cell: ({ row }) => (
         <div className="font-medium">{row.getValue("title")}</div>
       )
@@ -254,8 +266,8 @@ export default function ITIncidentManagement() {
             }}
             className="h-8 px-2 lg:px-3"
           >
-            <Pencil className="h-4 w-4 lg:mr-2" />
-            <span className="hidden lg:inline">Edit</span>
+            <Pencil className="h-4 w-4" />
+            {/* <span className="hidden lg:inline"></span> */}
           </Button>
           <Button
             variant="destructive"
@@ -263,8 +275,8 @@ export default function ITIncidentManagement() {
             onClick={() => handleDelete(row.original.id)}
             className="h-8 px-2 lg:px-3"
           >
-            <Trash className="h-4 w-4 lg:mr-2" />
-            <span className="hidden lg:inline">Hapus</span>
+            <Trash className="h-4 w-4" />
+            {/* <span className="hidden lg:inline"></span> */}
           </Button>
         </div>
       ),
@@ -289,18 +301,63 @@ export default function ITIncidentManagement() {
     getPaginationRowModel: getPaginationRowModel(),
   });
 
+  const downloadExcel = async (filtered = false) => {
+    setIsExporting(true);
+    try {
+      let dataToExport;
+      
+      if (filtered && dateRange?.from && dateRange?.to) {
+        const { data, error } = await supabase
+          .from("it_incidents")
+          .select("*")
+          .gte('date_reported', format(dateRange.from, 'yyyy-MM-dd'))
+          .lte('date_reported', format(dateRange.to, 'yyyy-MM-dd'))
+          .order('date_reported', { ascending: false });
+          
+        if (error) throw error;
+        dataToExport = data;
+      } else {
+        const { data, error } = await supabase
+          .from("it_incidents")
+          .select("*")
+          .order('date_reported', { ascending: false });
+          
+        if (error) throw error;
+        dataToExport = data;
+      }
+
+      // Format data untuk Excel
+      const formattedData = dataToExport.map(item => ({
+        "Judul": item.title,
+        "Deskripsi": item.description,
+        "Pelapor": item.reported_by,
+        "Tanggal Kejadian": format(new Date(item.date_reported), "dd MMM yyyy"),
+        "Status": item.status,
+        "Prioritas": item.priority,
+        "Resolusi": item.resolution || '-'
+      }));
+
+      const ws = XLSX.utils.json_to_sheet(formattedData);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "Insiden");
+      
+      // Generate filename dengan timestamp
+      const fileName = filtered 
+        ? `insiden_${format(dateRange!.from!, 'yyyyMMdd')}_${format(dateRange!.to!, 'yyyyMMdd')}.xlsx`
+        : `insiden_all_${format(new Date(), 'yyyyMMdd_HHmmss')}.xlsx`;
+      
+      XLSX.writeFile(wb, fileName);
+      toast.success("Data berhasil diexport");
+    } catch (error) {
+      console.error("Error exporting data:", error);
+      toast.error("Gagal mengexport data");
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
   return (
     <ReportLayout>
-      <h1 className="text-2xl font-bold mb-4">IT Incident Management</h1>
-      <div className="flex justify-between mb-4">
-        <Input
-          placeholder="Filter incidents..."
-          value={globalFilter}
-          onChange={(e) => setGlobalFilter(e.target.value)}
-          className="max-w-sm"
-        />
-        <Button onClick={() => setIsDialogOpen(true)}>Add New Incident</Button>
-      </div>
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent>
           <DialogHeader>
@@ -451,17 +508,82 @@ export default function ITIncidentManagement() {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-4 mb-4">
               <Input
                 placeholder="Cari insiden..."
                 value={globalFilter}
                 onChange={(e) => setGlobalFilter(e.target.value)}
                 className="max-w-sm"
               />
-              <Button onClick={() => setIsDialogOpen(true)}>
-                <Plus className="mr-2 h-4 w-4" />
-                Tambah Insiden
-              </Button>
+              
+              <div className="flex items-center gap-2 ml-auto">
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className={cn(
+                        "justify-start text-left font-normal",
+                        !dateRange && "text-muted-foreground"
+                      )}
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {dateRange?.from ? (
+                        dateRange.to ? (
+                          <>
+                            {format(dateRange.from, "dd MMM yyyy")} -{" "}
+                            {format(dateRange.to, "dd MMM yyyy")}
+                          </>
+                        ) : (
+                          format(dateRange.from, "dd MMM yyyy")
+                        )
+                      ) : (
+                        <span>Pilih tanggal</span>
+                      )}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="end">
+                    <Calendar
+                      initialFocus
+                      mode="range"
+                      defaultMonth={dateRange?.from}
+                      selected={dateRange}
+                      onSelect={setDateRange}
+                      numberOfMonths={2}
+                    />
+                  </PopoverContent>
+                </Popover>
+
+                <Button
+                  variant="outline"
+                  onClick={() => downloadExcel(true)}
+                  disabled={isExporting || !dateRange?.from || !dateRange?.to}
+                >
+                  {isExporting ? (
+                    <span className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+                  ) : (
+                    <Download className="mr-2 h-4 w-4" />
+                  )}
+                  Export Range
+                </Button>
+
+                <Button
+                  variant="outline"
+                  onClick={() => downloadExcel(false)}
+                  disabled={isExporting}
+                >
+                  {isExporting ? (
+                    <span className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+                  ) : (
+                    <Download className="mr-2 h-4 w-4" />
+                  )}
+                  Export All
+                </Button>
+
+                <Button onClick={() => setIsDialogOpen(true)}>
+                  <Plus className="mr-2 h-4 w-4" />
+                  Tambah Insiden
+                </Button>
+              </div>
             </div>
             
             <div className="rounded-md border">

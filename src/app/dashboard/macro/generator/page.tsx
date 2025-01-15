@@ -243,7 +243,7 @@ End Sub`;
       </div>
 
       <div className="grid gap-6 md:grid-cols-2">
-        <Card>
+        <Card className="hover:border-red-600 dark:hover:border-white">
           <CardHeader>
             <CardTitle>Upload Data</CardTitle>
             <CardDescription>
@@ -291,7 +291,7 @@ End Sub`;
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="hover:border-red-600 dark:hover:border-white">
           <CardHeader>
             <CardTitle>Konfigurasi Macro</CardTitle>
             <CardDescription>
@@ -424,7 +424,7 @@ End Sub`;
         </Card>
       )}
 
-      <Card>
+      <Card className="border-yellow-500 dark:border-green-500">
         <CardHeader>
           <CardTitle>Panduan Penggunaan</CardTitle>
         </CardHeader>

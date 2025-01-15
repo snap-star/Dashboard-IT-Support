@@ -56,7 +56,7 @@ export function TotalIncidentsCard() {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
     >
-      <Card className="hover:shadow-lg transition-all duration-300 bg-gradient-to-br from-white to-gray-50">
+      <Card className="hover:shadow-lg transition-all duration-300">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <div className="flex items-center space-x-2">
             <motion.div
