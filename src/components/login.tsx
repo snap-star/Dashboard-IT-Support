@@ -100,7 +100,7 @@ export default function Login() {
       >
         <form
           onSubmit={handleLogin}
-          className="bg-card/50 backdrop-blur-sm rounded-2xl shadow-xl p-8 space-y-6 border"
+          className="bg-card/50 backdrop-blur-sm rounded-2xl shadow-xl p-8 space-y-6 border hover:border-red-500 dark:hover:border-white"
         >
           <motion.div
             initial={{ opacity: 0 }}
