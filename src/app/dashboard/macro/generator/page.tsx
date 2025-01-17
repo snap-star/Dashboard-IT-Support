@@ -45,6 +45,87 @@ const configSchema = z.object({
 
 // Tipe macro yang tersedia
 const macroTypes = [
+{
+value: "kycp",
+label: "KYCP Tanggal",
+template: (data: any, waitTime: number) =>
+`[PCOMM SCRIPT HEADER]
+LANGUAGE=VBSCRIPT
+DESCRIPTION=Macro untuk KYCP Tanggal Update
+[PCOMM SCRIPT SOURCE]
+Sub Main
+    autECLSession.SetConnectionByName(ThisSessionName)
+' Loop through data
+    ${data.map((row: any, index: number) => `
+    ' Record ${index + 1}
+    autECLSession.autECLOIA.WaitForInputReady
+autECLSession.autECLPS.SendKeys "${row.NONAS}"
+autECLSession.autECLPS.SendKeys "[ENTER]"
+autECLSession.autECLPS.SendKeys "[ENTER]"
+autECLSession.autECLPS.SendKeys "[tab]"
+autECLSession.autECLPS.SendKeys "[tab]"
+autECLSession.autECLPS.SendKeys "[tab]"
+autECLSession.autECLPS.SendKeys "[tab]"
+autECLSession.autECLPS.SendKeys "[tab]"
+autECLSession.autECLPS.SendKeys "[tab]"
+autECLSession.autECLPS.SendKeys "[tab]"
+autECLSession.autECLPS.SendKeys "[tab]"
+autECLSession.autECLPS.SendKeys "[tab]"
+autECLSession.autECLPS.SendKeys "[tab]"
+autECLSession.autECLPS.SendKeys "[tab]"
+autECLSession.autECLPS.SendKeys "[tab]"
+autECLSession.autECLPS.SendKeys "[tab]"
+autECLSession.autECLPS.SendKeys "[tab]"
+autECLSession.autECLPS.SendKeys "[tab]"
+autECLSession.autECLPS.SendKeys "[tab]"
+autECLSession.autECLPS.SendKeys "[tab]"
+autECLSession.autECLPS.SendKeys "[tab]"
+autECLSession.autECLPS.SendKeys "[tab]"
+autECLSession.autECLPS.SendKeys "[tab]"
+autECLSession.autECLPS.SendKeys "${row.TGL_UPDATE}"
+autECLSession.autECLPS.SendKeys "[FIELD+]"
+autECLSession.autECLPS.SendKeys "[ENTER]"
+autECLSession.autECLPS.SendKeys "[ENTER]"
+autECLSession.autECLPS.SendKeys "[ENTER]"
+autECLSession.autECLPS.SendKeys "[ENTER]"
+autECLSession.autECLPS.SendKeys "[ENTER]"
+autECLSession.autECLPS.SendKeys "[ENTER]"
+autECLSession.autECLPS.SendKeys "[ENTER]"
+autECLSession.autECLPS.SendKeys "[ENTER]"
+autECLSession.autECLPS.SendKeys "[tab]"
+autECLSession.autECLPS.SendKeys "[tab]"
+autECLSession.autECLPS.SendKeys "[tab]"
+autECLSession.autECLPS.SendKeys "0"
+autECLSession.autECLPS.SendKeys "[tab]"
+autECLSession.autECLPS.SendKeys "[tab]"
+autECLSession.autECLPS.SendKeys "[tab]"
+autECLSession.autECLPS.SendKeys "[tab]"
+autECLSession.autECLPS.SendKeys "[tab]"
+autECLSession.autECLPS.SendKeys "[tab]"
+autECLSession.autECLPS.SendKeys "0"
+autECLSession.autECLPS.SendKeys "[PF10]"
+autECLSession.autECLPS.SendKeys "[ENTER]"
+autECLSession.autECLPS.SendKeys "[ENTER]"
+autECLSession.autECLPS.SendKeys "[ENTER]"
+autECLSession.autECLPS.SendKeys "[ENTER]"
+autECLSession.autECLPS.SendKeys "[ENTER]"
+autECLSession.autECLPS.SendKeys "9900"
+autECLSession.autECLPS.SendKeys "[tab]"
+autECLSession.autECLPS.SendKeys "[tab]"
+autECLSession.autECLPS.SendKeys "[tab]"
+autECLSession.autECLPS.SendKeys "[tab]"
+autECLSession.autECLPS.SendKeys "T"
+autECLSession.autECLPS.SendKeys "[tab]
+autECLSession.autECLPS.SendKeys "T"
+autECLSession.autECLPS.SendKeys "[ENTER]"
+autECLSession.autECLPS.SendKeys "[ENTER]"
+autECLSession.autECLPS.SendKeys "[ENTER]"
+
+autECLSession.autECLOIA.WaitForInputReady
+    WScript.Sleep ${waitTime}
+    `).join('\n')}
+End Sub`
+},
   {
     value: "new-account",
     label: "Pembuatan Rekening Baru",
