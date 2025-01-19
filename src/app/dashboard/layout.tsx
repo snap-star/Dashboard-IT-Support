@@ -74,8 +74,9 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       icon: <FileText className="h-4 w-4" />,
       subItems: [
         { href: "/dashboard/reports", label: "Pengecekan Ruang Server" },
-        { href: "/dashboard/insiden", label: "Laporan Insiden Kantor" },
-        { href: "/dashboard/atm", label: "Laporan Komplain ATM" }
+        { href: "/dashboard/insiden", label: "Input Insiden Kantor" },
+        { href: "/dashboard/atm", label: "Input Komplain ATM" },
+        { href: "/dashboard/lembur", label: "Buat Nota Lembur" }
       ]
     },
     {
@@ -84,7 +85,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       icon: <CreditCard className="h-4 w-4" />,
       subItems: [
         { href: "/dashboard/rekon_atm", label: "Rekon ATM" },
-        { href: "/dashboard/atm/rekap-transaksi", label: "Report ATM" }
+        { href: "/dashboard/atm/rekap-transaksi", label: "Buat Report ATM" }
       ]
     },
     { href: "/dashboard/ip-address", label: "Manage User ESTIM", icon: <Users className="h-4 w-4" /> },

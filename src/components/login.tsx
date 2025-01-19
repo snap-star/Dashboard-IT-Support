@@ -79,7 +79,7 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background">
+    <div className="flex items-center justify-center bg-background">
       <div className="absolute top-4 right-4">
         <Button
           variant="ghost"
