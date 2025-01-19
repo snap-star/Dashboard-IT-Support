@@ -7,90 +7,90 @@
     /* Light mode - Minimalist Red & White Theme */
     --background: 0 0% 100%;
     --foreground: 0 0% 3.9%;
-
+    
     --card: 0 0% 100%;
     --card-foreground: 0 0% 3.9%;
-
+    
     --popover: 0 0% 100%;
     --popover-foreground: 0 0% 3.9%;
-
+    
     /* Soft red as primary */
     --primary: 0 59% 50%;
     --primary-foreground: 0 0% 100%;
-
-    /* Light gray with slight red tint */
+    
+    /* Light gray with slight red tint - Improved contrast */
     --secondary: 0 15% 95%;
     --secondary-foreground: 0 35% 15%;
-
-    /* Muted colors with red undertone */
+    
+    /* Muted colors with red undertone - Improved contrast */
     --muted: 0 15% 95%;
-    --muted-foreground: 0 15% 45%;
-
-    /* Subtle red accent */
+    --muted-foreground: 0 25% 35%;  /* Darkened for better contrast */
+    
+    /* Subtle red accent - Improved contrast */
     --accent: 0 35% 95%;
-    --accent-foreground: 0 59% 35%;
-
+    --accent-foreground: 0 59% 25%;  /* Darkened for better contrast */
+    
     /* Standard alert colors */
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
-
+    
     /* Subtle borders and inputs */
     --border: 0 15% 93%;
     --input: 0 15% 93%;
     --ring: 0 59% 50%;
-
+    
     /* Chart colors */
     --chart-1: 0 59% 50%;
     --chart-2: 0 35% 60%;
     --chart-3: 0 45% 45%;
     --chart-4: 0 25% 65%;
     --chart-5: 0 40% 55%;
-
+    
     --radius: 0.5rem;
   }
-
+  
   .dark {
     /* Discord-inspired Dark Theme - Updated */
-    --background: 225 6% 13%; /* Discord main bg #1E1F22 */
-    --foreground: 220 13% 91%; /* Discord text #E3E5E8 */
-
-    --card: 220 7% 18%; /* Discord darker elements #2B2D31 */
+    --background: 225 6% 13%;
+    --foreground: 220 13% 91%;
+    
+    --card: 220 7% 18%;
     --card-foreground: 220 13% 91%;
-
-    --popover: 223 7% 21%; /* Discord popover #313338 */
+    
+    --popover: 223 7% 21%;
     --popover-foreground: 220 13% 91%;
-
+    
     /* Discord blurple as primary */
-    --primary: 235 86% 65%; /* Discord brand color #5865F2 */
+    --primary: 235 86% 65%;
     --primary-foreground: 220 13% 91%;
-
+    
     /* Discord secondary colors */
-    --secondary: 223 7% 21%; /* #313338 */
+    --secondary: 223 7% 21%;
     --secondary-foreground: 220 13% 91%;
-
-    /* Discord muted elements */
-    --muted: 225 6% 13%; /* #1E1F22 */
-    --muted-foreground: 217 8% 64%; /* #949BA4 */
-
+    
+    /* Discord muted elements - Improved contrast */
+    --muted: 225 6% 13%;
+    --muted-foreground: 217 15% 75%;  /* Lightened for better contrast */
+    
     /* Discord accent colors */
-    --accent: 235 86% 65%; /* Same as primary for consistency */
+    --accent: 235 86% 65%;
     --accent-foreground: 220 13% 91%;
-
+    
     /* Discord red for destructive actions */
-    --destructive: 0 84% 60%; /* Discord red #ED4245 */
+    --destructive: 0 84% 60%;
     --destructive-foreground: 220 13% 91%;
-
+    
     /* Discord borders and inputs */
-    --border: 223 7% 21%; /* #313338 */
+    --border: 223 7% 21%;
     --input: 225 6% 13%;
     --ring: 235 86% 65%;
-
+    
     /* Discord-inspired chart colors */
-    --chart-1: 235 86% 65%; /* Blurple */
-    --chart-2: 235 51% 52%; /* Darker blurple */
-    --chart-3: 197 100% 50%; /* Discord blue */
-    --chart-4: 266 58% 56%; /* Discord purple */
-    --chart-5: 359 87% 59%; /* Discord red */
+    --chart-1: 235 86% 65%;
+    --chart-2: 235 51% 52%;
+    --chart-3: 197 100% 50%;
+    --chart-4: 266 58% 56%;
+    --chart-5: 359 87% 59%;
   }
 }
 
@@ -115,7 +115,7 @@
 }
 
 .dark ::-webkit-scrollbar-thumb {
-  background: hsl(223 7% 25%); /* Slightly lighter than background */
+  background: hsl(223 7% 25%);
   border-radius: 4px;
 }
 
@@ -134,12 +134,12 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  background: hsl(0 59% 85%);
+  background: hsl(0 59% 65%);  /* Darkened for better contrast */
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: hsl(0 59% 80%);
+  background: hsl(0 59% 60%);  /* Darkened for better contrast */
 }
 
 /* Additional utility classes */
