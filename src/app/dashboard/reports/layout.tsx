@@ -6,7 +6,7 @@ type ReportLayoutProps = {
 
 export default function ReportLayout({ children }: ReportLayoutProps) {
   return (
-    <div className="flex flex-col gap-8 row-start-1 items-center sm:items-start">
+    <div className="min-h-screen flex flex-col gap-8 row-start-1 items-center sm:items-start transition-colors duration-200">
       {children}
     </div>
   )

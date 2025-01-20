@@ -15,20 +15,20 @@
     --popover-foreground: 0 0% 3.9%;
     
     /* Soft red as primary */
-    --primary: 0 59% 50%;
+    --primary: 0 60% 50%;
     --primary-foreground: 0 0% 100%;
     
     /* Light gray with slight red tint - Improved contrast */
-    --secondary: 0 15% 95%;
-    --secondary-foreground: 0 35% 15%;
+    --secondary: 0 0% 70%;
+    --secondary-foreground: 0 0% 30%;
     
     /* Muted colors with red undertone - Improved contrast */
     --muted: 0 15% 95%;
-    --muted-foreground: 0 25% 35%;  /* Darkened for better contrast */
+    --muted-foreground: 0 0% 45%;  /* Darkened for better contrast */
     
     /* Subtle red accent - Improved contrast */
     --accent: 0 35% 95%;
-    --accent-foreground: 0 59% 25%;  /* Darkened for better contrast */
+    --accent-foreground: 0 59% 35%;  /* Darkened for better contrast */
     
     /* Standard alert colors */
     --destructive: 0 84% 60%;
@@ -51,11 +51,11 @@
   
   .dark {
     /* Discord-inspired Dark Theme - Updated */
-    --background: 225 6% 13%;
-    --foreground: 220 13% 91%;
+    --background: 220 5% 15%;
+    --foreground: 220 10% 80%;
     
-    --card: 220 7% 18%;
-    --card-foreground: 220 13% 91%;
+    --card: 220 5% 20%;
+    --card-foreground: 220 10% 90%;
     
     --popover: 223 7% 21%;
     --popover-foreground: 220 13% 91%;
@@ -70,7 +70,7 @@
     
     /* Discord muted elements - Improved contrast */
     --muted: 225 6% 13%;
-    --muted-foreground: 217 15% 75%;  /* Lightened for better contrast */
+    --muted-foreground: 217 15% 85%;  /* Lightened for better contrast */
     
     /* Discord accent colors */
     --accent: 235 86% 65%;

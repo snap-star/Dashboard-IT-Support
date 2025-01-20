@@ -32,8 +32,9 @@ import { Label } from "@/components/ui/label";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { Upload, FileSpreadsheet, Download } from "lucide-react";
+import { Upload, FileSpreadsheet, Download, Trash } from "lucide-react";
 import { toast } from "sonner";
+import { Badge } from "@/components/ui/badge";
 
 // Schema untuk form konfigurasi
 const configSchema = z.object({
@@ -120,8 +121,6 @@ autECLSession.autECLPS.SendKeys "T"
 autECLSession.autECLPS.SendKeys "[ENTER]"
 autECLSession.autECLPS.SendKeys "[ENTER]"
 autECLSession.autECLPS.SendKeys "[ENTER]"
-
-autECLSession.autECLOIA.WaitForInputReady
     WScript.Sleep ${waitTime}
     `).join('\n')}
 End Sub`
@@ -177,6 +176,56 @@ Sub Main
 End Sub`
   },
   {
+    value: "Rubah Saldo Minimum",
+    label: "Rubah Saldo Minimum",
+    template: (data: any, waitTime: number) => 
+      `[PCOMM SCRIPT HEADER]
+LANGUAGE=VBSCRIPT
+DESCRIPTION=Macro Rubah saldo minimum
+[PCOMM SCRIPT SOURCE]
+Sub Main
+    autECLSession.SetConnectionByName(ThisSessionName)
+    
+    ' Loop through data
+    ${data.map((row: any, index: number) => `
+    ' Record ${index + 1}
+    autECLSession.autECLOIA.WaitForInputReady
+    autECLSession.autECLPS.SendKeys "${row.NONAS}"
+    autECLSession.autECLPS.SendKeys "[enter]"
+    autECLSession.autECLPS.SendKeys "[tab]"
+    autECLSession.autECLPS.SendKeys "[tab]"
+    autECLSession.autECLPS.SendKeys "[tab]"
+    autECLSession.autECLPS.SendKeys "[tab]"
+    autECLSession.autECLPS.SendKeys "[tab]"
+    autECLSession.autECLPS.SendKeys "[tab]"
+    autECLSession.autECLPS.SendKeys "1"
+    autECLSession.autECLPS.SendKeys "[tab]"
+    autECLSession.autECLPS.SendKeys "[tab]"
+    autECLSession.autECLPS.SendKeys "[tab]"
+    autECLSession.autECLPS.SendKeys "[tab]"
+    autECLSession.autECLPS.SendKeys "[eraseeof]"
+    autECLSession.autECLOIA.WaitForInputReady
+    autECLSession.autECLPS.SendKeys "0"
+    autECLSession.autECLPS.SendKeys "[enter]"
+    autECLSession.autECLPS.SendKeys "[reset]"
+    autECLSession.autECLPS.SendKeys "[tab]"
+    autECLSession.autECLPS.SendKeys "[tab]"
+    autECLSession.autECLPS.SendKeys "[tab]"
+    autECLSession.autECLPS.SendKeys "[tab]"
+    autECLSession.autECLPS.SendKeys "[tab]"
+    autECLSession.autECLPS.SendKeys "[tab]"
+    autECLSession.autECLPS.SendKeys "[tab]"
+    autECLSession.autECLPS.SendKeys "[tab]"
+    autECLSession.autECLPS.SendKeys "[tab]"
+    autECLSession.autECLPS.SendKeys "[enter]"
+    autECLSession.autECLPS.SendKeys "[enter]"
+    autECLSession.autECLPS.SendKeys "[enter]"
+    autECLSession.autECLPS.SendKeys "[enter]"
+    WScript.Sleep ${waitTime}
+    `).join('\n')}
+End Sub`
+  },
+  {
     value: "custom",
     label: "Custom Macro",
   }
@@ -204,7 +253,8 @@ Sub Main
       });
       return `
     ' Record ${index + 1}
-    ${script}
+    autECLSession.autECLOIA.WaitForInputReady
+    autECLSession.autECLPS.SendKeys "${script}"
     WScript.Sleep ${waitTime}`;
     }).join('\n')}
     ' ... dan seterusnya untuk ${data.length - 3} data lainnya
@@ -350,11 +400,25 @@ End Sub`;
                   <Upload className="mr-2 h-4 w-4" />
                   Upload File
                 </Button>
+                <Button
+                  variant="outline"
+                  className="w-full"
+                  onClick={() => {
+                    setExcelData([]);
+                    setFileName("");
+                    setPreviewData([]);
+                    setPreviewMacro("");
+                    form.reset();
+                  }}
+                >
+                  <Trash className="mr-2 h-4 w-4" />
+                  Close File
+                </Button>
               </div>
               {fileName && (
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <FileSpreadsheet className="h-4 w-4" />
-                  {fileName}
+                  {fileName} <Badge variant="default" className="rounded-sm">Opened</Badge>
                 </div>
               )}
             </div>
@@ -362,7 +426,7 @@ End Sub`;
             {previewData.length > 0 && (
               <div>
                 <h4 className="font-semibold mb-2">Preview Data</h4>
-                <div className="max-h-[200px] overflow-auto rounded border p-2">
+                <div className="max-h-[350px] overflow-auto rounded border p-2">
                   <pre className="text-xs">
                     {JSON.stringify(previewData, null, 2)}
                   </pre>
@@ -485,9 +549,9 @@ End Sub`;
           </CardHeader>
           <CardContent>
             <div className="relative">
-              <div className="absolute right-2 top-2">
+              <div className="absolute right-2 top-2 rounded-sm">
                 <Button
-                  variant="ghost"
+                  variant="secondary"
                   size="sm"
                   onClick={() => {
                     navigator.clipboard.writeText(previewMacro);
@@ -505,7 +569,7 @@ End Sub`;
         </Card>
       )}
 
-      <Card className="border-yellow-500 dark:border-green-500">
+      <Card className="border-red-600 dark:border-green-500 hover:shadow-red-600/50 hover:dark:shadow-green-500/50">
         <CardHeader>
           <CardTitle>Panduan Penggunaan</CardTitle>
         </CardHeader>
@@ -516,9 +580,11 @@ End Sub`;
               Pastikan file Excel memiliki kolom yang sesuai dengan tipe macro yang dipilih:
             </p>
             <ul className="list-disc list-inside text-sm text-muted-foreground mt-2 space-y-1">
-              <li>Pembuatan Rekening: accountType, customerName, idNumber</li>
-              <li>Maintenance Data: accountNumber, newData</li>
-              <li>Custom: Sesuaikan dengan kebutuhan, gunakan [nama_kolom] sebagai placeholder</li>
+              <li>Pembuatan Rekening: accountType, customerName, idNumber <Badge variant="default" className="rounded-sm">Tahap Pengembangan</Badge></li>
+              <li>Maintenance Data: accountNumber, newData <Badge variant="default" className="rounded-sm">Tahap Pengembangan</Badge></li>
+              <li>Rubah Saldo Minimum: NONAS <Badge variant="default" className="rounded-sm">Work</Badge></li>
+              <li>KYCP Tanggal: NONAS, TGL_UPDATE <Badge variant="default" className="rounded-sm">Work</Badge></li>
+              <li>Custom: Sesuaikan dengan kebutuhan, gunakan [nama_kolom] sebagai placeholder <Badge variant="default" className="rounded-sm">Work</Badge></li>
             </ul>
           </div>
           <div>
@@ -534,6 +600,20 @@ End Sub`;
               <li>Sesuaikan waktu tunggu dengan kecepatan sistem</li>
               <li>Preview macro akan menampilkan 3 data pertama</li>
               <li>Pastikan format data Excel sesuai dengan kebutuhan macro</li>
+            </ul>
+          </div>
+          <div>
+            <h4 className="font-semibold mb-2">Informasi</h4>
+            <ul className="list-disc list-inside text-sm text-muted-foreground space-y-1">
+              <li>
+              Macro yang masih dalam tahap pengembangan akan ditandai dengan badge <Badge variant="default" className="rounded-sm">Tahap Pengembangan</Badge>
+              </li>
+              <li>
+              Macro yang sudah selesai dan sudah di-test akan ditandai dengan badge <Badge variant="default" className="rounded-sm">Work</Badge>
+              </li>
+              <li>
+                Request template macro dapat dilakukan melalui <a href="https://wa.me/6285236695155" target="_blank" className="text-blue-500 hover:underline" rel="noopener noreferrer">Whatsapp</a>
+              </li>
             </ul>
           </div>
         </CardContent>
