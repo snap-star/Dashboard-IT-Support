@@ -125,6 +125,27 @@ autECLSession.autECLPS.SendKeys "[ENTER]"
     `).join('\n')}
 End Sub`
 },
+{
+  value: "MACRO OTOR",
+  label: "MACRO OTOR",
+  template: (data: any, waitTime: number) => 
+`[PCOMM SCRIPT HEADER]
+LANGUAGE=VBSCRIPT
+DESCRIPTION=Macro untuk OTOR
+[PCOMM SCRIPT SOURCE]
+Sub Main
+' Loop through data
+    ${data.map((row: any, index: number) => `
+' Record ${index + 1}
+    autECLSession.SetConnectionByName(ThisSessionName)
+    autECLSession.autECLPS.SendKeys "${row.id}"
+    autECLSession.autECLPS.SendKeys "[ENTER]"
+    autECLSession.autECLPS.SendKeys "Y"
+    autECLSession.autECLPS.SendKeys "[ENTER]"
+    WScript.Sleep ${waitTime}
+    `).join('\n')}
+End Sub`
+},
   {
     value: "new-account",
     label: "Pembuatan Rekening Baru",
@@ -584,6 +605,7 @@ End Sub`;
               <li>Maintenance Data: accountNumber, newData <Badge variant="default" className="rounded-sm">Tahap Pengembangan</Badge></li>
               <li>Rubah Saldo Minimum: NONAS <Badge variant="default" className="rounded-sm">Work</Badge></li>
               <li>KYCP Tanggal: NONAS, TGL_UPDATE <Badge variant="default" className="rounded-sm">Work</Badge></li>
+              <li>OTOR: id <Badge variant="default" className="rounded-sm">Work</Badge></li>
               <li>Custom: Sesuaikan dengan kebutuhan, gunakan [nama_kolom] sebagai placeholder <Badge variant="default" className="rounded-sm">Work</Badge></li>
             </ul>
           </div>

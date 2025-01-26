@@ -12,6 +12,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import supabase from "@/lib/supabase";
 import WeekendLayout from "@/app/dashboard/weekend_banking/layout";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { DatePicker } from "@/components/ui/date-picker";
 
 type User = {
   user_estim: string;
@@ -301,20 +302,20 @@ export default function Home() {
   </TableHeader>
   <TableBody>
     <TableRow>
-      <TableCell className="border px-4 py-2 text-left font-normal text-xs">Nama</TableCell>
+      <TableCell className="border px-4 py-2 text-left font-bold text-xs bg-gray-200">Nama</TableCell>
       <TableCell className="border px-4 py-2 text-left">
         <Input aria-placeholder="Isi Nama Atasan" placeholder="Isi Nama Atasan" type="text" {...register("supervisor.name")} className="border-0 w-full input-sm"
         style={styles.input} />
       </TableCell>
     </TableRow>
     <TableRow>
-      <TableCell className="border px-4 py-2 text-left font-normal text-xs">NIP/NIK</TableCell>
+      <TableCell className="border px-4 py-2 text-left font-bold text-xs bg-gray-200">NIP/NIK</TableCell>
       <TableCell className="border px-4 py-2 text-left">
         <Input aria-placeholder="NIP Atasan" placeholder="NIP Atasan" type="text" {...register("supervisor.nip")} className="border-0" style={styles.input} />
       </TableCell>
     </TableRow>
     <TableRow>
-      <TableCell className="border px-4 py-2 text-left font-normal text-xs">Jabatan</TableCell>
+      <TableCell className="border px-4 py-2 text-left font-bold text-xs bg-gray-200">Jabatan</TableCell>
       <TableCell className="border px-4 py-2 text-left">
         <Input aria-placeholder="Jabatan" placeholder="Jabatan" type="text" {...register("supervisor.position")} className="border-0" style={styles.input} />
       </TableCell>
@@ -332,8 +333,8 @@ export default function Home() {
     </TableRow>
   </TableHeader>
   <TableBody>
-    <TableRow>
-      <TableCell className="border px-4 py-2 text-left font-normal text-xs">User ESTIM</TableCell>
+    <TableRow className="print:hidden">
+      <TableCell className="border px-4 py-2 text-left font-bold text-xs bg-gray-200">User ESTIM</TableCell>
       <TableCell className="border px-4 py-2 text-left">
         <Select 
           onValueChange={handleUserChange}
@@ -342,7 +343,7 @@ export default function Home() {
           <SelectTrigger className="border-0" style={styles.input}>
             <SelectValue placeholder="Pilih User ESTIM" />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent >
             {users
               .filter(user => user.user_estim && user.user_estim.trim() !== '')
               .map((user) => (
@@ -358,25 +359,25 @@ export default function Home() {
       </TableCell>
     </TableRow>
     <TableRow>
-      <TableCell className="border px-4 py-2 text-left font-normal text-xs">Nama</TableCell>
+      <TableCell className="border px-4 py-2 text-left font-bold text-xs bg-gray-200">Nama</TableCell>
       <TableCell className="border px-4 py-2 text-left">
         <Input {...register("applicant.name")} className="border-0" style={styles.input} readOnly />
       </TableCell>
     </TableRow>
     <TableRow>
-      <TableCell className="border px-4 py-2 text-left font-normal text-xs">NIP/NIK</TableCell>
+      <TableCell className="border px-4 py-2 text-left font-bold text-xs bg-gray-200">NIP/NIK</TableCell>
       <TableCell className="border px-4 py-2 text-left">
         <Input {...register("applicant.nip")} className="border-0" style={styles.input} readOnly />
       </TableCell>
     </TableRow>
     <TableRow>
-      <TableCell className="border px-4 py-2 text-left font-normal text-xs">Unit Kerja</TableCell>
+      <TableCell className="border px-4 py-2 text-left font-bold text-xs bg-gray-200">Unit Kerja</TableCell>
       <TableCell className="border px-4 py-2 text-left">
-        <Input {...register("applicant.unit")} className="border-0" style={styles.input} readOnly />
+          <Input {...register("applicant.unit")} className="border-0" style={styles.input} readOnly />
       </TableCell>
     </TableRow>
     <TableRow>
-      <TableCell className="border px-4 py-2 text-left font-normal text-xs">IP Address</TableCell>
+      <TableCell className="border px-4 py-2 text-left font-bold text-xs bg-gray-200">IP Address</TableCell>
       <TableCell className="border px-4 py-2 text-left">
         <Input {...register("applicant.ip")} className="border-0" style={styles.input} readOnly />
       </TableCell>
@@ -389,15 +390,15 @@ export default function Home() {
           <h2 className="font-bold mb-2 text-sm">Tipe Permohonan</h2>
           <div className="flex-row grid gap-4">
             <Label className="text-sm font-normal" htmlFor="type">
-            <Checkbox id="Normal" {...register("requestType")} />
+            <Checkbox id="Normal" {...register("requestType")} className="border-black" />
               Normal
             </Label>
             <Label className="text-sm font-normal" htmlFor="type">
-            <Checkbox id="Insidentil" {...register("requestType")} />
+            <Checkbox id="Insidentil" {...register("requestType")} className="border-black" />
               Insidentil
             </Label>
             <Label className="text-sm font-normal" htmlFor="type">
-            <Checkbox id="Weekend Banking" {...register("requestType")} />
+            <Checkbox id="Weekend Banking" {...register("requestType")} className="border-black" />
               Weekend Banking
             </Label>
           </div>
@@ -409,13 +410,13 @@ export default function Home() {
   <Table className="w-full border text-center items-center font-normal">
     <TableHeader>
       <TableRow className="w-full">
-        <TableCell className="border px-2 py-2 text-sm" align="center">No</TableCell>
-        <TableCell className="border px-2 py-2 text-sm w-36" align="center">Nama Aplikasi</TableCell>
-        <TableCell className="border px-2 py-2 text-sm w-36" align="center">User  Pengguna</TableCell>
-        <TableCell className="border px-2 py-2 text-sm w-20" align="center">Tanggal Mulai</TableCell>
-        <TableCell className="border px-2 py-2 text-sm w-20" align="center">Tanggal Akhir</TableCell>
-        <TableCell className="border px-2 py-2 text-sm w-24" align="center">Alasan</TableCell>
-        <TableCell className="border px-2 py-2 text-sm w-24" align="center">Risiko</TableCell>
+        <TableCell className="border px-2 py-2 font-bold text-sm bg-gray-200" align="center">No</TableCell>
+        <TableCell className="border px-2 py-2 font-bold text-sm w-36 bg-gray-200" align="center">Nama Aplikasi</TableCell>
+        <TableCell className="border px-2 py-2 font-bold text-sm w-36 bg-gray-200" align="center">User  Pengguna</TableCell>
+        <TableCell className="border px-2 py-2 font-bold text-sm w-20 bg-gray-200" align="center">Tanggal Mulai Akses</TableCell>
+        <TableCell className="border px-2 py-2 font-bold text-sm w-20 bg-gray-200" align="center">Tanggal Akhir Akses</TableCell>
+        <TableCell className="border px-2 py-2 font-bold text-sm w-24 bg-gray-200" align="center">Alasan</TableCell>
+        <TableCell className="border px-2 py-2 font-bold text-sm w-24 bg-gray-200" align="center">Risiko</TableCell>
       </TableRow>
     </TableHeader>
     <TableBody>
@@ -439,20 +440,22 @@ export default function Home() {
             />
           </TableCell>
           <TableCell className="border px-2">
-            <Input
+            {/* <Input
               type="datetime-local"
               {...register(`applications.${index}.startDate`)}
               className="border-0 w-25"
               style={styles.table}
-            />
+            /> */}
+            <DatePicker />
           </TableCell>
           <TableCell className="border px-2">
-            <Input
+            {/* <Input
               type="datetime-local"
               {...register(`applications.${index}.endDate`)}
               className="border-0 w-25"
               style={styles.table}
-            />
+            /> */}
+            <DatePicker />
           </TableCell>
           <TableCell className="border px-2">
             <Textarea
@@ -494,15 +497,17 @@ export default function Home() {
         <TableCell className="border px-1 py-1 text-left text-xs">Tanggal</TableCell>
         <TableCell className="border px-1 py-1 text-left text-xs">Tanggal</TableCell>
         <TableCell className="border px-1 py-1 text-left text-xs">Tanggal: </TableCell>
-        <TableCell className="border px-1 py-1 text-left text-xs">Tanggal: </TableCell>
+        <TableCell className="border px-1 py-1 text-left text-xs">Tanggal: {new Date().toLocaleDateString()}</TableCell>
       </TableRow>
       <TableRow>
         <TableCell className="border px-4 py-2 text-center font-bold text-xs w-34">Senior Officer IT Support & Helpdesk</TableCell>
         <TableCell className="border px-2 py-1 text-center font-bold text-xs w-44">AVP Security TI</TableCell>
-        <TableCell className="border px-2 py-1 text-center font-bold">
-          <Input aria-placeholder="Jabatan Atasan" placeholder="Jabatan Atasan" type="text" {...register("approvedBy.position")} className="border-0 mt-2 text-center" />
+        <TableCell className="border px-2 py-1 text-center font-bold text-xs w-34">
+          <Input aria-placeholder="Jabatan Atasan" placeholder="Jabatan Atasan" type="text" {...register("approvedBy.position")} className="flex justify-center border-0 mt-2 text-center text-xs" />
         </TableCell>
-        <TableCell className="border px-2 py-1 text-center font-bold"><Input aria-placeholder="Jabatan Pemohon" placeholder="Jabatan Pemohon" type="text" {...register("createdBy.position")} className="border-0 mt-2 text-center" /></TableCell>
+        <TableCell className="border px-2 py-1 text-center font-bold text-xs">
+          <Input aria-placeholder="Jabatan Pemohon" placeholder="Jabatan Pemohon" type="text" {...register("createdBy.position")} className="flex justify-center border-0 mt-2 text-center text-xs" />
+          </TableCell>
       </TableRow>
       <TableRow>
         <TableCell className="border px-2 py-9 text-center"></TableCell>
@@ -513,8 +518,12 @@ export default function Home() {
       <TableRow>
         <TableCell className="border px-2 py-2 text-center"></TableCell>
         <TableCell className="border px-2 py-2 text-center"></TableCell>
-        <TableCell className="border px-1 py-1 text-center"><Input aria-placeholder="Nama Atasan" placeholder="Nama Atasan" type="text" {...register("approvedBy.name")} className="border-0 text-center" /></TableCell>
-        <TableCell className="border px-1 py-1 text-center"><Input aria-placeholder="Nama Pemohon" placeholder="Nama Pemohon" type="text" {...register("createdBy.name")} className="border-0 text-center" /></TableCell>
+        <TableCell className="border px-1 py-1 text-center text-xs">
+          <Input aria-placeholder="Nama Atasan" placeholder="Nama Atasan" type="text" {...register("approvedBy.name")} className="flex h-[10px] rounded-sm justify-center border-0 text-center text-xs" />
+          </TableCell>
+        <TableCell className="border px-1 py-1 text-center text-xs">
+          <Input aria-placeholder="Nama Pemohon" placeholder="Nama Pemohon" type="text" {...register("createdBy.name")} className="flex h-[10px] rounded-sm justify-center border-0 text-center text-xs" />
+          </TableCell>
       </TableRow>
     </TableBody>
   </Table>
