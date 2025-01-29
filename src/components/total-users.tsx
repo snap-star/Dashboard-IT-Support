@@ -22,14 +22,14 @@ export default function DashboardOverview() {
       const { data: ipData, error: ipError } = await supabase
         .from("users")
         .select("ip_address");
-      
+
       if (ipError) throw ipError;
 
       // Filter IP address unik
       const uniqueIpAddresses = new Set(
         ipData
-          ?.map(item => item.ip_address)
-          .filter(ip => ip && ip.trim() !== '')
+          ?.map((item) => item.ip_address)
+          .filter((ip) => ip && ip.trim() !== ""),
       );
 
       // Query untuk mendapatkan user ESTIM unik
@@ -42,8 +42,8 @@ export default function DashboardOverview() {
       // Filter user ESTIM unik
       const uniqueUserEstim = new Set(
         userEstimData
-          ?.map(item => item.user_estim)
-          .filter(user => user && user.trim() !== '')
+          ?.map((item) => item.user_estim)
+          .filter((user) => user && user.trim() !== ""),
       );
 
       setTotalIpAddress(uniqueIpAddresses.size);
@@ -79,7 +79,9 @@ export default function DashboardOverview() {
       >
         <Card className="hover:shadow-lg transition-shadow duration-300">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total IP Address</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Total IP Address
+            </CardTitle>
             <Network className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -105,7 +107,9 @@ export default function DashboardOverview() {
       >
         <Card className="hover:shadow-lg transition-shadow duration-300">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total User ESTIM</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Total User ESTIM
+            </CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>

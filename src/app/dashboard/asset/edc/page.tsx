@@ -57,7 +57,13 @@ import {
 import { MoreHorizontal, Pencil, Trash, Plus, Download } from "lucide-react";
 import { toast } from "sonner";
 import supabase from "@/lib/supabase";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
 import { format } from "date-fns";
 import * as XLSX from "xlsx";
 
@@ -91,15 +97,10 @@ const locationOptions = [
   "Capem Sumoroto",
   "Capem Jetis",
   "Capem Pulung",
-  "Capem Balong"
+  "Capem Balong",
 ];
 
-const statusOptions = [
-  "Aktif",
-  "Rusak",
-  "Maintenance",
-  "Stock"
-];
+const statusOptions = ["Aktif", "Rusak", "Maintenance", "Stock"];
 
 export default function EDCAssetPage() {
   const [assets, setAssets] = useState<EDCAsset[]>([]);
@@ -108,7 +109,7 @@ export default function EDCAssetPage() {
   const [isDeleteAlertOpen, setIsDeleteAlertOpen] = useState(false);
   const [selectedAsset, setSelectedAsset] = useState<EDCAsset | null>(null);
   const [isEditing, setIsEditing] = useState(false);
-  
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -126,15 +127,15 @@ export default function EDCAssetPage() {
   const fetchAssets = async () => {
     try {
       const { data, error } = await supabase
-        .from('edc_assets')
-        .select('*')
-        .order('created_at', { ascending: false });
+        .from("edc_assets")
+        .select("*")
+        .order("created_at", { ascending: false });
 
       if (error) throw error;
       setAssets(data || []);
     } catch (error) {
-      console.error('Error fetching EDC assets:', error);
-      toast.error('Gagal memuat data EDC');
+      console.error("Error fetching EDC assets:", error);
+      toast.error("Gagal memuat data EDC");
     } finally {
       setIsLoading(false);
     }
@@ -148,26 +149,24 @@ export default function EDCAssetPage() {
     try {
       if (isEditing && selectedAsset) {
         const { error } = await supabase
-          .from('edc_assets')
+          .from("edc_assets")
           .update(values)
-          .eq('id', selectedAsset.id);
+          .eq("id", selectedAsset.id);
 
         if (error) throw error;
         toast.success("Data EDC berhasil diperbarui");
       } else {
-        const { error } = await supabase
-          .from('edc_assets')
-          .insert([values]);
+        const { error } = await supabase.from("edc_assets").insert([values]);
 
         if (error) throw error;
         toast.success("Data EDC berhasil ditambahkan");
       }
-      
+
       fetchAssets();
       handleCloseDialog();
     } catch (error) {
-      console.error('Error saving EDC asset:', error);
-      toast.error('Gagal menyimpan data EDC');
+      console.error("Error saving EDC asset:", error);
+      toast.error("Gagal menyimpan data EDC");
     }
   };
 
@@ -217,16 +216,16 @@ export default function EDCAssetPage() {
     if (selectedAsset) {
       try {
         const { error } = await supabase
-          .from('edc_assets')
+          .from("edc_assets")
           .delete()
-          .eq('id', selectedAsset.id);
+          .eq("id", selectedAsset.id);
 
         if (error) throw error;
         toast.success("Data EDC berhasil dihapus");
         fetchAssets();
       } catch (error) {
-        console.error('Error deleting EDC asset:', error);
-        toast.error('Gagal menghapus data EDC');
+        console.error("Error deleting EDC asset:", error);
+        toast.error("Gagal menghapus data EDC");
       }
     }
     setIsDeleteAlertOpen(false);
@@ -235,29 +234,32 @@ export default function EDCAssetPage() {
   const downloadExcel = async () => {
     try {
       const { data, error } = await supabase
-        .from('edc_assets')
-        .select('*')
-        .order('created_at', { ascending: false });
+        .from("edc_assets")
+        .select("*")
+        .order("created_at", { ascending: false });
 
       if (error) throw error;
 
-      const formattedData = data.map(item => ({
-        "TID": item.tid,
-        "MID": item.mid,
+      const formattedData = data.map((item) => ({
+        TID: item.tid,
+        MID: item.mid,
         "Nama Merchant": item.merchant_name,
-        "Lokasi": item.location,
+        Lokasi: item.location,
         "Serial Number": item.serial_number,
         "IP Address": item.ip_address,
-        "Status": item.status,
-        "Keterangan": item.description || '-',
-        "Tanggal Dibuat": format(new Date(item.created_at), "dd MMM yyyy HH:mm")
+        Status: item.status,
+        Keterangan: item.description || "-",
+        "Tanggal Dibuat": format(
+          new Date(item.created_at),
+          "dd MMM yyyy HH:mm",
+        ),
       }));
 
       const ws = XLSX.utils.json_to_sheet(formattedData);
       const wb = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(wb, ws, "EDC Assets");
-      
-      const fileName = `edc_assets_${format(new Date(), 'yyyyMMdd_HHmmss')}.xlsx`;
+
+      const fileName = `edc_assets_${format(new Date(), "yyyyMMdd_HHmmss")}.xlsx`;
       XLSX.writeFile(wb, fileName);
       toast.success("Data berhasil diexport");
     } catch (error) {
@@ -280,7 +282,9 @@ export default function EDCAssetPage() {
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle className="text-2xl font-bold">Manajemen Asset EDC</CardTitle>
+              <CardTitle className="text-2xl font-bold">
+                Manajemen Asset EDC
+              </CardTitle>
               <CardDescription>
                 Kelola data EDC Pinpad, Android, Merchant, dan lainnya
               </CardDescription>
@@ -308,16 +312,24 @@ export default function EDCAssetPage() {
                     </DialogTitle>
                   </DialogHeader>
                   <Form {...form}>
-                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                    <form
+                      onSubmit={form.handleSubmit(onSubmit)}
+                      className="space-y-6"
+                    >
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <FormField
                           control={form.control}
                           name="tid"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel className="font-semibold">TID</FormLabel>
+                              <FormLabel className="font-semibold">
+                                TID
+                              </FormLabel>
                               <FormControl>
-                                <Input placeholder="Masukkan TID..." {...field} />
+                                <Input
+                                  placeholder="Masukkan TID..."
+                                  {...field}
+                                />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -328,9 +340,14 @@ export default function EDCAssetPage() {
                           name="mid"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel className="font-semibold">MID</FormLabel>
+                              <FormLabel className="font-semibold">
+                                MID
+                              </FormLabel>
                               <FormControl>
-                                <Input placeholder="Masukkan MID..." {...field} />
+                                <Input
+                                  placeholder="Masukkan MID..."
+                                  {...field}
+                                />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -344,9 +361,14 @@ export default function EDCAssetPage() {
                           name="merchant_name"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel className="font-semibold">Nama Merchant</FormLabel>
+                              <FormLabel className="font-semibold">
+                                Nama Merchant
+                              </FormLabel>
                               <FormControl>
-                                <Input placeholder="Masukkan nama merchant..." {...field} />
+                                <Input
+                                  placeholder="Masukkan nama merchant..."
+                                  {...field}
+                                />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -357,9 +379,11 @@ export default function EDCAssetPage() {
                           name="location"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel className="font-semibold">Lokasi</FormLabel>
-                              <Select 
-                                onValueChange={field.onChange} 
+                              <FormLabel className="font-semibold">
+                                Lokasi
+                              </FormLabel>
+                              <Select
+                                onValueChange={field.onChange}
                                 defaultValue={field.value}
                               >
                                 <FormControl>
@@ -387,9 +411,14 @@ export default function EDCAssetPage() {
                           name="serial_number"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel className="font-semibold">Serial Number</FormLabel>
+                              <FormLabel className="font-semibold">
+                                Serial Number
+                              </FormLabel>
                               <FormControl>
-                                <Input placeholder="Masukkan serial number..." {...field} />
+                                <Input
+                                  placeholder="Masukkan serial number..."
+                                  {...field}
+                                />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -400,9 +429,14 @@ export default function EDCAssetPage() {
                           name="ip_address"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel className="font-semibold">IP Address</FormLabel>
+                              <FormLabel className="font-semibold">
+                                IP Address
+                              </FormLabel>
                               <FormControl>
-                                <Input placeholder="Masukkan IP address..." {...field} />
+                                <Input
+                                  placeholder="Masukkan IP address..."
+                                  {...field}
+                                />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -415,9 +449,11 @@ export default function EDCAssetPage() {
                         name="status"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel className="font-semibold">Status</FormLabel>
-                            <Select 
-                              onValueChange={field.onChange} 
+                            <FormLabel className="font-semibold">
+                              Status
+                            </FormLabel>
+                            <Select
+                              onValueChange={field.onChange}
                               defaultValue={field.value}
                             >
                               <FormControl>
@@ -443,9 +479,14 @@ export default function EDCAssetPage() {
                         name="description"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel className="font-semibold">Keterangan</FormLabel>
+                            <FormLabel className="font-semibold">
+                              Keterangan
+                            </FormLabel>
                             <FormControl>
-                              <Input placeholder="Masukkan keterangan (opsional)..." {...field} />
+                              <Input
+                                placeholder="Masukkan keterangan (opsional)..."
+                                {...field}
+                              />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -453,7 +494,11 @@ export default function EDCAssetPage() {
                       />
 
                       <DialogFooter>
-                        <Button variant="outline" type="button" onClick={handleCloseDialog}>
+                        <Button
+                          variant="outline"
+                          type="button"
+                          onClick={handleCloseDialog}
+                        >
                           Batal
                         </Button>
                         <Button type="submit">
@@ -486,10 +531,10 @@ export default function EDCAssetPage() {
               <TableBody>
                 {assets.length === 0 ? (
                   <TableRow>
-                    <TableCell 
-                      colSpan={8} 
+                    <TableCell
+                      colSpan={8}
                       className="text-center h-32 text-muted-foreground"
-                      >
+                    >
                       Tidak ada data EDC
                     </TableCell>
                   </TableRow>
@@ -503,11 +548,18 @@ export default function EDCAssetPage() {
                       <TableCell>{asset.serial_number}</TableCell>
                       <TableCell>{asset.ip_address}</TableCell>
                       <TableCell>
-                        <div className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
-                          ${asset.status === 'Aktif' ? 'bg-green-100 text-green-800' :
-                          asset.status === 'Rusak' ? 'bg-red-100 text-red-800' :
-                            asset.status === 'Maintenance' ? 'bg-yellow-100 text-yellow-800' :
-                            'bg-gray-100 text-gray-800'}`}>
+                        <div
+                          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                          ${
+                            asset.status === "Aktif"
+                              ? "bg-green-100 text-green-800"
+                              : asset.status === "Rusak"
+                                ? "bg-red-100 text-red-800"
+                                : asset.status === "Maintenance"
+                                  ? "bg-yellow-100 text-yellow-800"
+                                  : "bg-gray-100 text-gray-800"
+                          }`}
+                        >
                           {asset.status}
                         </div>
                       </TableCell>
@@ -523,17 +575,17 @@ export default function EDCAssetPage() {
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
                             <DropdownMenuLabel>Aksi</DropdownMenuLabel>
-                            <DropdownMenuItem 
+                            <DropdownMenuItem
                               onClick={() => handleEdit(asset)}
                               className="cursor-pointer"
-                              >
+                            >
                               <Pencil className="mr-2 h-4 w-4" />
                               Edit
                             </DropdownMenuItem>
-                            <DropdownMenuItem 
+                            <DropdownMenuItem
                               onClick={() => handleDelete(asset)}
                               className="cursor-pointer text-red-600"
-                              >
+                            >
                               <Trash className="mr-2 h-4 w-4" />
                               Hapus
                             </DropdownMenuItem>
@@ -554,8 +606,8 @@ export default function EDCAssetPage() {
           <AlertDialogHeader>
             <AlertDialogTitle>Konfirmasi Hapus</AlertDialogTitle>
             <AlertDialogDescription>
-              Apakah Anda yakin ingin menghapus data EDC ini? 
-              Tindakan ini tidak dapat dibatalkan.
+              Apakah Anda yakin ingin menghapus data EDC ini? Tindakan ini tidak
+              dapat dibatalkan.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

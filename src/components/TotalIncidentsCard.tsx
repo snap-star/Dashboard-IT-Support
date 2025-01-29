@@ -1,8 +1,8 @@
 // components/TotalIncidentsCard.tsx
-"use client"
-import { useEffect, useState } from 'react';
+"use client";
+import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import supabase from '@/lib/supabase';
+import supabase from "@/lib/supabase";
 import { AlertOctagon } from "lucide-react";
 import { motion } from "framer-motion";
 
@@ -19,11 +19,11 @@ export function TotalIncidentsCard() {
     setIsLoading(true);
     try {
       const { count, error } = await supabase
-        .from('atm_complaints')
-        .select('*', { count: 'exact', head: true });
+        .from("atm_complaints")
+        .select("*", { count: "exact", head: true });
 
       if (error) {
-        console.error('Error fetching total incidents:', error);
+        console.error("Error fetching total incidents:", error);
       } else {
         setTotalIncidents(count || 0);
         setLastUpdated(new Date().toLocaleString());
@@ -38,10 +38,10 @@ export function TotalIncidentsCard() {
       <motion.div
         initial={{ scale: 0 }}
         animate={{ scale: 1 }}
-        transition={{ 
+        transition={{
           type: "spring",
           stiffness: 100,
-          delay: 0.2
+          delay: 0.2,
         }}
         className="text-4xl font-bold text-primary"
       >
@@ -66,7 +66,9 @@ export function TotalIncidentsCard() {
             >
               <AlertOctagon className="h-5 w-5 text-red-500" />
             </motion.div>
-            <CardTitle className="text-sm font-medium">Total ATM Incidents</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Total ATM Incidents
+            </CardTitle>
           </div>
           <motion.div
             initial={{ scale: 0 }}
@@ -88,7 +90,7 @@ export function TotalIncidentsCard() {
               <>
                 <AnimatedNumber value={totalIncidents} />
                 <div className="flex flex-col gap-1">
-                  <motion.p 
+                  <motion.p
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: 0.4 }}

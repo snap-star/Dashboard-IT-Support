@@ -6,9 +6,14 @@ import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/button";
 import { useRouter, usePathname } from "next/navigation";
 import supabase from "@/lib/supabase";
-import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet";
+import {
+  Sheet,
+  SheetContent,
+  SheetTrigger,
+  SheetTitle,
+} from "@/components/ui/sheet";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { 
+import {
   Menu,
   Users,
   LayoutDashboard,
@@ -21,7 +26,7 @@ import {
   HardDrive,
   Database,
   LogOut,
-  Wrench
+  Wrench,
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -67,7 +72,11 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   };
 
   const menuItems = [
-    { href: "/dashboard", label: "Dashboard", icon: <LayoutDashboard className="h-4 w-4" /> },
+    {
+      href: "/dashboard",
+      label: "Dashboard",
+      icon: <LayoutDashboard className="h-4 w-4" />,
+    },
     {
       href: "/dashboard/aktivitas",
       label: "Aktivitas",
@@ -76,8 +85,8 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         { href: "/dashboard/reports", label: "Pengecekan Ruang Server" },
         { href: "/dashboard/insiden", label: "Input Insiden Kantor" },
         { href: "/dashboard/atm", label: "Input Komplain ATM" },
-        { href: "/dashboard/lembur", label: "Buat Nota Lembur" }
-      ]
+        { href: "/dashboard/lembur", label: "Buat Nota Lembur" },
+      ],
     },
     {
       href: "/dashboard/rekon_atm",
@@ -85,27 +94,49 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       icon: <CreditCard className="h-4 w-4" />,
       subItems: [
         { href: "/dashboard/rekon_atm", label: "Rekon ATM" },
-        { href: "/dashboard/atm/rekap-transaksi", label: "Buat Report ATM" }
-      ]
+        { href: "/dashboard/atm/rekap-transaksi", label: "Buat Report ATM" },
+      ],
     },
-    { href: "/dashboard/ip-address", label: "Manage User ESTIM", icon: <Users className="h-4 w-4" /> },
-    { 
-      href: "/dashboard/weekend_banking", 
-      label: "Weekend Banking", 
+    {
+      href: "/dashboard/ip-address",
+      label: "Manage User ESTIM",
+      icon: <Users className="h-4 w-4" />,
+    },
+    {
+      href: "/dashboard/weekend_banking",
+      label: "Weekend Banking",
       icon: <Calendar className="h-4 w-4" />,
       subItems: [
-        { href: "/dashboard/weekend_banking", label: "Laporan Weekend Banking" },
-        { href: "/dashboard/weekend_banking/pengajuan", label: "Pengajuan Weekend/Perpanjangan" }
-      ]
+        {
+          href: "/dashboard/weekend_banking",
+          label: "Laporan Weekend Banking",
+        },
+        {
+          href: "/dashboard/weekend_banking/pengajuan",
+          label: "Pengajuan Weekend/Perpanjangan",
+        },
+      ],
     },
     {
       href: "/dashboard/asset",
       label: "Asset Management",
       icon: <HardDrive className="h-4 w-4" />,
       subItems: [
-        { href: "/dashboard/asset/hardware", label: "Hardware", icon: <HardDrive className="h-4 w-4" /> },
-        { href: "/dashboard/asset/software", label: "Software", icon: <Database className="h-4 w-4" /> },
-        { href: "/dashboard/asset/edc", label: "Asset EDC", icon: <Network className="h-4 w-4" /> },
+        {
+          href: "/dashboard/asset/hardware",
+          label: "Hardware",
+          icon: <HardDrive className="h-4 w-4" />,
+        },
+        {
+          href: "/dashboard/asset/software",
+          label: "Software",
+          icon: <Database className="h-4 w-4" />,
+        },
+        {
+          href: "/dashboard/asset/edc",
+          label: "Asset EDC",
+          icon: <Network className="h-4 w-4" />,
+        },
       ],
     },
     {
@@ -113,8 +144,16 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       label: "Tools",
       icon: <Wrench className="h-4 w-4" />,
       subItems: [
-        { href: "/dashboard/macro/generator", label: "Macro Generator", icon: <Users className="h-4 w-4" /> },
-        { href: "/dashboard/ip-address/catalyst", label: "IP Address Catalyst", icon: <Users className="h-4 w-4" /> },
+        {
+          href: "/dashboard/macro/generator",
+          label: "Macro Generator",
+          icon: <Users className="h-4 w-4" />,
+        },
+        {
+          href: "/dashboard/ip-address/catalyst",
+          label: "IP Address Catalyst",
+          icon: <Users className="h-4 w-4" />,
+        },
       ],
     },
   ];
@@ -134,7 +173,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     <div className="flex h-full flex-col gap-4">
       <div className="flex h-[60px] items-center border-b px-6">
         <Link href="/dashboard" className="flex items-center gap-2">
-          <Image 
+          <Image
             src="/logo.png"
             alt="IT Support Logo"
             width={32}
@@ -152,7 +191,10 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                 <div key={item.href}>
                   {item.subItems ? (
                     <Accordion type="single" collapsible>
-                      <AccordionItem value="weekend-banking" className="border-none">
+                      <AccordionItem
+                        value="weekend-banking"
+                        className="border-none"
+                      >
                         <AccordionTrigger className="flex items-center gap-3 rounded-lg px-3 py-2 text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-50 hover:no-underline">
                           <div className="flex items-center gap-3">
                             {item.icon}
@@ -225,9 +267,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           </Button>
         </SheetTrigger>
         <SheetContent side="left" className="w-72 p-0">
-          <SheetTitle className="sr-only">
-            Menu Navigasi
-          </SheetTitle>
+          <SheetTitle className="sr-only">Menu Navigasi</SheetTitle>
           <SidebarContent />
         </SheetContent>
       </Sheet>

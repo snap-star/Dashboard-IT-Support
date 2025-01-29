@@ -69,7 +69,7 @@ export default function ATMReconciliationPage() {
       auth: {
         persistSession: true,
       },
-    }
+    },
   );
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -213,7 +213,7 @@ export default function ATMReconciliationPage() {
 
     XLSX.writeFile(
       wb,
-      `rekonsiliasi_${selectedAtm?.tid}_${form.getValues("date")}.xlsx`
+      `rekonsiliasi_${selectedAtm?.tid}_${form.getValues("date")}.xlsx`,
     );
   };
 
@@ -301,7 +301,7 @@ export default function ATMReconciliationPage() {
                                 </div>
                                 <span
                                   className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${getTypeColor(
-                                    atm.type
+                                    atm.type,
                                   )}`}
                                 >
                                   {atm.type}
@@ -469,7 +469,7 @@ export default function ATMReconciliationPage() {
                   }`}
                 >
                   {(summary.d100k.in - summary.d100k.out).toLocaleString(
-                    "id-ID"
+                    "id-ID",
                   )}
                 </div>
               </div>
@@ -485,7 +485,7 @@ export default function ATMReconciliationPage() {
                   }
                 >
                   {(summary.total.in - summary.total.out).toLocaleString(
-                    "id-ID"
+                    "id-ID",
                   )}
                 </div>
               </div>

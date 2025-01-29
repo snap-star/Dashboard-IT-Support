@@ -1,8 +1,8 @@
 // FILEPATH: e:/work-report/dev/reportapp/src/app/dashboard/page.tsx
 
-import DashboardOverview from "@/components/total-users"
-import { TotalIncidentsCard } from "@/components/TotalIncidentsCard"
-import { ITIncidentOverviewCard } from "@/components/ITIncidentOverviewCard"
+import DashboardOverview from "@/components/total-users";
+import { TotalIncidentsCard } from "@/components/TotalIncidentsCard";
+import { ITIncidentOverviewCard } from "@/components/ITIncidentOverviewCard";
 
 export default function Dashboard() {
   return (
@@ -15,5 +15,5 @@ export default function Dashboard() {
         {/* Add more cards here as needed */}
       </div>
     </div>
-  )
+  );
 }

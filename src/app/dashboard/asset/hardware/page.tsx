@@ -80,10 +80,15 @@ export default function AssetHardware() {
   const [hardware, setHardware] = React.useState<Hardware[]>([]);
   const [globalFilter, setGlobalFilter] = React.useState("");
   const [sorting, setSorting] = React.useState<SortingState>([]);
-  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
-  const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
+  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
+    [],
+  );
+  const [columnVisibility, setColumnVisibility] =
+    React.useState<VisibilityState>({});
   const [isDialogOpen, setIsDialogOpen] = React.useState(false);
-  const [editingHardware, setEditingHardware] = React.useState<Hardware | null>(null);
+  const [editingHardware, setEditingHardware] = React.useState<Hardware | null>(
+    null,
+  );
   const [lastUpdated, setLastUpdated] = React.useState<string>("");
   const [newHardware, setNewHardware] = React.useState<Omit<Hardware, "id">>({
     nama_aset: "",
@@ -117,7 +122,7 @@ export default function AssetHardware() {
     const { data, error } = await supabase
       .from("users")
       .select("id, user_estim, nama, ip_address, nip, jabatan");
-    
+
     if (error) {
       console.error("Error fetching users:", error);
     } else {
@@ -208,7 +213,7 @@ export default function AssetHardware() {
       header: "Pengguna",
     },
     {
-      accessorKey: "lokasi", 
+      accessorKey: "lokasi",
       header: "Lokasi",
     },
     {
@@ -239,7 +244,9 @@ export default function AssetHardware() {
               Edit
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={() => handleDeleteHardware(row.original.id)}>
+            <DropdownMenuItem
+              onClick={() => handleDeleteHardware(row.original.id)}
+            >
               Delete
             </DropdownMenuItem>
           </DropdownMenuContent>
@@ -295,19 +302,34 @@ export default function AssetHardware() {
           <div className="grid gap-4 py-4">
             <Input
               placeholder="Nama Aset"
-              value={editingHardware ? editingHardware.nama_aset : newHardware.nama_aset}
+              value={
+                editingHardware
+                  ? editingHardware.nama_aset
+                  : newHardware.nama_aset
+              }
               onChange={(e) =>
                 editingHardware
-                  ? setEditingHardware({ ...editingHardware, nama_aset: e.target.value })
-                  : setNewHardware({ ...newHardware, nama_aset: e.target.value })
+                  ? setEditingHardware({
+                      ...editingHardware,
+                      nama_aset: e.target.value,
+                    })
+                  : setNewHardware({
+                      ...newHardware,
+                      nama_aset: e.target.value,
+                    })
               }
             />
             <Input
               placeholder="Jenis"
-              value={editingHardware ? editingHardware.jenis : newHardware.jenis}
+              value={
+                editingHardware ? editingHardware.jenis : newHardware.jenis
+              }
               onChange={(e) =>
                 editingHardware
-                  ? setEditingHardware({ ...editingHardware, jenis: e.target.value })
+                  ? setEditingHardware({
+                      ...editingHardware,
+                      jenis: e.target.value,
+                    })
                   : setNewHardware({ ...newHardware, jenis: e.target.value })
               }
             />
@@ -316,30 +338,52 @@ export default function AssetHardware() {
               value={editingHardware ? editingHardware.merk : newHardware.merk}
               onChange={(e) =>
                 editingHardware
-                  ? setEditingHardware({ ...editingHardware, merk: e.target.value })
+                  ? setEditingHardware({
+                      ...editingHardware,
+                      merk: e.target.value,
+                    })
                   : setNewHardware({ ...newHardware, merk: e.target.value })
               }
             />
             <Input
               placeholder="Serial Number"
-              value={editingHardware ? editingHardware.serial_number : newHardware.serial_number}
+              value={
+                editingHardware
+                  ? editingHardware.serial_number
+                  : newHardware.serial_number
+              }
               onChange={(e) =>
                 editingHardware
-                  ? setEditingHardware({ ...editingHardware, serial_number: e.target.value })
-                  : setNewHardware({ ...newHardware, serial_number: e.target.value })
+                  ? setEditingHardware({
+                      ...editingHardware,
+                      serial_number: e.target.value,
+                    })
+                  : setNewHardware({
+                      ...newHardware,
+                      serial_number: e.target.value,
+                    })
               }
             />
             <Input
               placeholder="Tahun"
-              value={editingHardware ? editingHardware.tahun : newHardware.tahun}
+              value={
+                editingHardware ? editingHardware.tahun : newHardware.tahun
+              }
               onChange={(e) =>
                 editingHardware
-                  ? setEditingHardware({ ...editingHardware, tahun: e.target.value })
+                  ? setEditingHardware({
+                      ...editingHardware,
+                      tahun: e.target.value,
+                    })
                   : setNewHardware({ ...newHardware, tahun: e.target.value })
               }
             />
             <Select
-              value={editingHardware ? editingHardware.pengguna : newHardware.pengguna}
+              value={
+                editingHardware
+                  ? editingHardware.pengguna
+                  : newHardware.pengguna
+              }
               onValueChange={(value) =>
                 editingHardware
                   ? setEditingHardware({ ...editingHardware, pengguna: value })
@@ -351,8 +395,8 @@ export default function AssetHardware() {
               </SelectTrigger>
               <SelectContent>
                 {users.map((user) => (
-                  <SelectItem 
-                    key={user.id} 
+                  <SelectItem
+                    key={user.id}
                     value={user.user_estim || `user-${user.id}`}
                   >
                     {user.nama} - {user.user_estim} ({user.jabatan})
@@ -361,7 +405,9 @@ export default function AssetHardware() {
               </SelectContent>
             </Select>
             <Select
-              value={editingHardware ? editingHardware.lokasi : newHardware.lokasi}
+              value={
+                editingHardware ? editingHardware.lokasi : newHardware.lokasi
+              }
               onValueChange={(value) =>
                 editingHardware
                   ? setEditingHardware({ ...editingHardware, lokasi: value })
@@ -380,7 +426,9 @@ export default function AssetHardware() {
               </SelectContent>
             </Select>
             <Select
-              value={editingHardware ? editingHardware.status : newHardware.status}
+              value={
+                editingHardware ? editingHardware.status : newHardware.status
+              }
               onValueChange={(value) =>
                 editingHardware
                   ? setEditingHardware({ ...editingHardware, status: value })
@@ -399,11 +447,21 @@ export default function AssetHardware() {
             </Select>
             <Input
               placeholder="Keterangan"
-              value={editingHardware ? editingHardware.keterangan : newHardware.keterangan}
+              value={
+                editingHardware
+                  ? editingHardware.keterangan
+                  : newHardware.keterangan
+              }
               onChange={(e) =>
                 editingHardware
-                  ? setEditingHardware({ ...editingHardware, keterangan: e.target.value })
-                  : setNewHardware({ ...newHardware, keterangan: e.target.value })
+                  ? setEditingHardware({
+                      ...editingHardware,
+                      keterangan: e.target.value,
+                    })
+                  : setNewHardware({
+                      ...newHardware,
+                      keterangan: e.target.value,
+                    })
               }
             />
           </div>
@@ -426,7 +484,7 @@ export default function AssetHardware() {
                     <TableHead key={header.id}>
                       {flexRender(
                         header.column.columnDef.header,
-                        header.getContext()
+                        header.getContext(),
                       )}
                     </TableHead>
                   ))}
@@ -441,7 +499,7 @@ export default function AssetHardware() {
                       <TableCell key={cell.id}>
                         {flexRender(
                           cell.column.columnDef.cell,
-                          cell.getContext()
+                          cell.getContext(),
                         )}
                       </TableCell>
                     ))}

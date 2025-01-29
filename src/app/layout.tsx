@@ -29,12 +29,17 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-          <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
-            <div className="min-h-screen bg-white dark:bg-gray-900">
-              {children}
-            </div>
-          </ThemeProvider>
-          <Toaster closeButton richColors />
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <div className="min-h-screen bg-white dark:bg-gray-900">
+            {children}
+          </div>
+        </ThemeProvider>
+        <Toaster closeButton richColors />
       </body>
     </html>
   );

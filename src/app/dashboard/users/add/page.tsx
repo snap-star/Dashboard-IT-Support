@@ -1,12 +1,12 @@
-'use client'
-import UserForm from '@/components/UserForm';
-import { useRouter } from 'next/navigation';
+"use client";
+import UserForm from "@/components/UserForm";
+import { useRouter } from "next/navigation";
 
 export default function AddUserPage() {
   const router = useRouter();
 
   const handleSuccess = () => {
-    router.push('/users');
+    router.push("/users");
   };
 
   return (

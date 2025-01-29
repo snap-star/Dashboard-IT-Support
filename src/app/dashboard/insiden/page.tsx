@@ -60,7 +60,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
-import * as XLSX from 'xlsx';
+import * as XLSX from "xlsx";
 import { toast } from "sonner";
 import { DateRange } from "react-day-picker";
 
@@ -87,13 +87,13 @@ export default function ITIncidentManagement() {
     resolution: "",
   });
   const [editingIncident, setEditingIncident] = React.useState<Incident | null>(
-    null
+    null,
   );
   const [isDialogOpen, setIsDialogOpen] = React.useState(false);
   const [globalFilter, setGlobalFilter] = React.useState("");
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
-    []
+    [],
   );
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({});
@@ -160,53 +160,56 @@ export default function ITIncidentManagement() {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'Open':
-        return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300';
-      case 'In Progress':
-        return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300';
-      case 'Resolved':
-        return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300';
-      case 'Closed':
-        return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300';
+      case "Open":
+        return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300";
+      case "In Progress":
+        return "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300";
+      case "Resolved":
+        return "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300";
+      case "Closed":
+        return "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300";
       default:
-        return 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300';
+        return "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300";
     }
   };
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
-      case 'Critical':
-        return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300';
-      case 'High':
-        return 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300';
-      case 'Medium':
-        return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300';
-      case 'Low':
-        return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300';
+      case "Critical":
+        return "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300";
+      case "High":
+        return "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300";
+      case "Medium":
+        return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300";
+      case "Low":
+        return "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300";
       default:
-        return 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300';
+        return "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300";
     }
   };
 
   const columns: ColumnDef<Incident>[] = [
-    { 
-      accessorKey: "title", 
+    {
+      accessorKey: "title",
       header: "Problem/Error/Kegiatan",
       cell: ({ row }) => (
         <div className="font-medium">{row.getValue("title")}</div>
-      )
+      ),
     },
-    { 
-      accessorKey: "description", 
+    {
+      accessorKey: "description",
       header: "Deskripsi",
       cell: ({ row }) => (
-        <div className="max-w-[300px] truncate" title={row.getValue("description")}>
+        <div
+          className="max-w-[300px] truncate"
+          title={row.getValue("description")}
+        >
           {row.getValue("description")}
         </div>
-      )
+      ),
     },
-    { 
-      accessorKey: "reported_by", 
+    {
+      accessorKey: "reported_by",
       header: "Pelapor",
       cell: ({ row }) => (
         <div className="flex items-center gap-2">
@@ -217,40 +220,46 @@ export default function ITIncidentManagement() {
           </div>
           <span>{row.getValue("reported_by")}</span>
         </div>
-      )
+      ),
     },
-    { 
-      accessorKey: "date_reported", 
+    {
+      accessorKey: "date_reported",
       header: "Tanggal Kejadian",
       cell: ({ row }) => (
         <div className="font-medium">
-          {format(new Date(row.getValue("date_reported")), "dd MMM yyyy", { locale: id })}
+          {format(new Date(row.getValue("date_reported")), "dd MMM yyyy", {
+            locale: id,
+          })}
         </div>
-      )
+      ),
     },
-    { 
-      accessorKey: "status", 
+    {
+      accessorKey: "status",
       header: "Status",
       cell: ({ row }) => {
         const status = row.getValue("status") as string;
         return (
-          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(status)}`}>
+          <span
+            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(status)}`}
+          >
             {status}
           </span>
         );
-      }
+      },
     },
-    { 
-      accessorKey: "priority", 
+    {
+      accessorKey: "priority",
       header: "Priority",
       cell: ({ row }) => {
         const priority = row.getValue("priority") as string;
         return (
-          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getPriorityColor(priority)}`}>
+          <span
+            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getPriorityColor(priority)}`}
+          >
             {priority}
           </span>
         );
-      }
+      },
     },
     {
       id: "actions",
@@ -305,47 +314,47 @@ export default function ITIncidentManagement() {
     setIsExporting(true);
     try {
       let dataToExport;
-      
+
       if (filtered && dateRange?.from && dateRange?.to) {
         const { data, error } = await supabase
           .from("it_incidents")
           .select("*")
-          .gte('date_reported', format(dateRange.from, 'yyyy-MM-dd'))
-          .lte('date_reported', format(dateRange.to, 'yyyy-MM-dd'))
-          .order('date_reported', { ascending: false });
-          
+          .gte("date_reported", format(dateRange.from, "yyyy-MM-dd"))
+          .lte("date_reported", format(dateRange.to, "yyyy-MM-dd"))
+          .order("date_reported", { ascending: false });
+
         if (error) throw error;
         dataToExport = data;
       } else {
         const { data, error } = await supabase
           .from("it_incidents")
           .select("*")
-          .order('date_reported', { ascending: false });
-          
+          .order("date_reported", { ascending: false });
+
         if (error) throw error;
         dataToExport = data;
       }
 
       // Format data untuk Excel
-      const formattedData = dataToExport.map(item => ({
-        "Judul": item.title,
-        "Deskripsi": item.description,
-        "Pelapor": item.reported_by,
+      const formattedData = dataToExport.map((item) => ({
+        Judul: item.title,
+        Deskripsi: item.description,
+        Pelapor: item.reported_by,
         "Tanggal Kejadian": format(new Date(item.date_reported), "dd MMM yyyy"),
-        "Status": item.status,
-        "Prioritas": item.priority,
-        "Resolusi": item.resolution || '-'
+        Status: item.status,
+        Prioritas: item.priority,
+        Resolusi: item.resolution || "-",
       }));
 
       const ws = XLSX.utils.json_to_sheet(formattedData);
       const wb = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(wb, ws, "Insiden");
-      
+
       // Generate filename dengan timestamp
-      const fileName = filtered 
-        ? `insiden_${format(dateRange!.from!, 'yyyyMMdd')}_${format(dateRange!.to!, 'yyyyMMdd')}.xlsx`
-        : `insiden_all_${format(new Date(), 'yyyyMMdd_HHmmss')}.xlsx`;
-      
+      const fileName = filtered
+        ? `insiden_${format(dateRange!.from!, "yyyyMMdd")}_${format(dateRange!.to!, "yyyyMMdd")}.xlsx`
+        : `insiden_all_${format(new Date(), "yyyyMMdd_HHmmss")}.xlsx`;
+
       XLSX.writeFile(wb, fileName);
       toast.success("Data berhasil diexport");
     } catch (error) {
@@ -421,7 +430,7 @@ export default function ITIncidentManagement() {
             <DatePicker
               value={
                 new Date(
-                  editingIncident?.date_reported || newIncident.date_reported
+                  editingIncident?.date_reported || newIncident.date_reported,
                 )
               }
               onChange={(date: Date | undefined) => {
@@ -499,7 +508,7 @@ export default function ITIncidentManagement() {
           </Button>
         </DialogContent>
       </Dialog>
-      <Card>
+<Card className="w-full overflow-hidden mx-auto max-w-[100vw] h-full">
         <CardHeader className="pb-3">
           <CardTitle className="text-lg font-semibold">List Insiden</CardTitle>
           <CardDescription>
@@ -507,23 +516,23 @@ export default function ITIncidentManagement() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
-            <div className="flex items-center gap-4 mb-4">
+          <div className="space-y-6">
+<div className="flex flex-col sm:flex-row items-center gap-3 mb-4">
               <Input
                 placeholder="Cari insiden..."
                 value={globalFilter}
                 onChange={(e) => setGlobalFilter(e.target.value)}
                 className="max-w-sm"
               />
-              
-              <div className="flex items-center gap-2 ml-auto">
+
+<div className="flex flex-wrap items-center gap-2 w-full sm:w-auto sm:ml-auto">
                 <Popover>
                   <PopoverTrigger asChild>
                     <Button
                       variant="outline"
                       className={cn(
                         "justify-start text-left font-normal",
-                        !dateRange && "text-muted-foreground"
+                        !dateRange && "text-muted-foreground",
                       )}
                     >
                       <CalendarIcon className="mr-2 h-4 w-4" />
@@ -585,8 +594,8 @@ export default function ITIncidentManagement() {
                 </Button>
               </div>
             </div>
-            
-            <div className="rounded-md border">
+
+            <div className="flex rounded-md border">
               <Table>
                 <TableHeader>
                   {table.getHeaderGroups().map((headerGroup) => (
@@ -595,7 +604,7 @@ export default function ITIncidentManagement() {
                         <TableHead key={header.id} className="font-semibold">
                           {flexRender(
                             header.column.columnDef.header,
-                            header.getContext()
+                            header.getContext(),
                           )}
                         </TableHead>
                       ))}
@@ -619,7 +628,7 @@ export default function ITIncidentManagement() {
                           <TableCell key={cell.id}>
                             {flexRender(
                               cell.column.columnDef.cell,
-                              cell.getContext()
+                              cell.getContext(),
                             )}
                           </TableCell>
                         ))}

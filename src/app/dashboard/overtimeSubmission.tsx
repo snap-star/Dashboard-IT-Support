@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
-import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable';
+import React, { useState } from "react";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 
 interface OvertimeDate {
   tanggal: string;
@@ -22,23 +22,23 @@ interface FormEntry {
 const OvertimeSubmission: React.FC = () => {
   const [entries, setEntries] = useState<FormEntry[]>([
     {
-      nip: '',
-      nama: '',
-      jabatan: '',
-      rekening: '',
-      keterangan: '',
-      alasan: '',
-      unitBagian: '',
-      tanggals: [{ tanggal: '' }],
-      penyelia: '',
-      jabatanPenyelia: '',
+      nip: "",
+      nama: "",
+      jabatan: "",
+      rekening: "",
+      keterangan: "",
+      alasan: "",
+      unitBagian: "",
+      tanggals: [{ tanggal: "" }],
+      penyelia: "",
+      jabatanPenyelia: "",
     },
   ]);
 
   const handleChange = (
     entryIndex: number,
     field: keyof FormEntry,
-    value: string
+    value: string,
   ) => {
     const newEntries = [...entries];
     // @ts-ignore
@@ -49,7 +49,7 @@ const OvertimeSubmission: React.FC = () => {
   const handleDateChange = (
     entryIndex: number,
     dateIndex: number,
-    value: string
+    value: string,
   ) => {
     const newEntries = [...entries];
     newEntries[entryIndex].tanggals[dateIndex].tanggal = value;
@@ -60,16 +60,16 @@ const OvertimeSubmission: React.FC = () => {
     setEntries([
       ...entries,
       {
-        nip: '',
-        nama: '',
-        jabatan: '',
-        rekening: '',
-        keterangan: '',
-        alasan: '',
-        unitBagian: '',
-        tanggals: [{ tanggal: '' }],
-        penyelia: '',
-        jabatanPenyelia: '',
+        nip: "",
+        nama: "",
+        jabatan: "",
+        rekening: "",
+        keterangan: "",
+        alasan: "",
+        unitBagian: "",
+        tanggals: [{ tanggal: "" }],
+        penyelia: "",
+        jabatanPenyelia: "",
       },
     ]);
   };
@@ -82,7 +82,7 @@ const OvertimeSubmission: React.FC = () => {
 
   const addDate = (entryIndex: number) => {
     const newEntries = [...entries];
-    newEntries[entryIndex].tanggals.push({ tanggal: '' });
+    newEntries[entryIndex].tanggals.push({ tanggal: "" });
     setEntries(newEntries);
   };
 
@@ -96,33 +96,33 @@ const OvertimeSubmission: React.FC = () => {
     e.preventDefault();
     // Simpan data ke backend atau state global
     console.log(entries);
-    alert('Pengajuan lembur berhasil dikirim!');
+    alert("Pengajuan lembur berhasil dikirim!");
   };
 
   const formatDate = (dateString: string) => {
     const options: Intl.DateTimeFormatOptions = {
-      day: 'numeric',
-      month: 'long',
-      year: 'numeric',
+      day: "numeric",
+      month: "long",
+      year: "numeric",
     };
-    return new Date(dateString).toLocaleDateString('id-ID', options);
+    return new Date(dateString).toLocaleDateString("id-ID", options);
   };
 
   // Fungsi untuk mengelompokkan entri berdasarkan data yang sama
-const groupEntries = () => {
+  const groupEntries = () => {
     const grouped: {
       key: string;
       dates: string[];
       data: FormEntry;
     }[] = [];
-  
+
     entries.forEach((entry) => {
       const key = `${entry.nama}|${entry.nip}|${entry.jabatan}|${entry.rekening}|${entry.keterangan}|${entry.alasan}|${entry.unitBagian}`;
       const existingGroup = grouped.find((group) => group.key === key);
-      
+
       if (existingGroup) {
         // Tambahkan tanggal baru ke grup yang ada
-        entry.tanggals.forEach(date => {
+        entry.tanggals.forEach((date) => {
           if (!existingGroup.dates.includes(date.tanggal)) {
             existingGroup.dates.push(date.tanggal);
           }
@@ -131,129 +131,129 @@ const groupEntries = () => {
         // Buat grup baru
         grouped.push({
           key,
-          dates: entry.tanggals.map(date => date.tanggal),
+          dates: entry.tanggals.map((date) => date.tanggal),
           data: entry,
         });
       }
     });
-  
+
     // Urutkan tanggal dalam setiap grup
-    grouped.forEach(group => {
+    grouped.forEach((group) => {
       group.dates.sort((a, b) => new Date(a).getTime() - new Date(b).getTime());
     });
-  
+
     return grouped;
   };
 
   const saveAsPDF = () => {
     const doc = new jsPDF();
-    doc.text('Nota Lembur', 14, 20);
-    
+    doc.text("Nota Lembur", 14, 20);
+
     // Header data untuk tabel
     const headers = [
-      'Tanggal',
-      'Nama',
-      'NIP',
-      'Jabatan',
-      'Rekening',
-      'Keterangan',
+      "Tanggal",
+      "Nama",
+      "NIP",
+      "Jabatan",
+      "Rekening",
+      "Keterangan",
     ];
 
     // Persiapkan data untuk tabel
-  const tableData: any[] = [];
-  const groupedEntries = groupEntries();
+    const tableData: any[] = [];
+    const groupedEntries = groupEntries();
 
-  groupedEntries.forEach((group) => {
-    const { dates, data } = group;
-    
-    dates.forEach((date, index) => {
-      const row = [
-        formatDate(date),
-        index === 0 ? data.nama : '',
-        index === 0 ? data.nip : '',
-        index === 0 ? data.jabatan : '',
-        index === 0 ? data.rekening : '',
-        index === 0 ? data.keterangan : '',
-      ];
-      tableData.push(row);
+    groupedEntries.forEach((group) => {
+      const { dates, data } = group;
+
+      dates.forEach((date, index) => {
+        const row = [
+          formatDate(date),
+          index === 0 ? data.nama : "",
+          index === 0 ? data.nip : "",
+          index === 0 ? data.jabatan : "",
+          index === 0 ? data.rekening : "",
+          index === 0 ? data.keterangan : "",
+        ];
+        tableData.push(row);
+      });
     });
-  });
 
-  // Konfigurasi untuk merge cells
-  const didParseCell = function(data: any) {
-    const row = data.row.index;
-    const col = data.column.index;
-    
-    if (col > 0 && tableData[row][col] === '') {
-      data.cell.styles.fillColor = [255, 255, 255];
-    }
-  };
+    // Konfigurasi untuk merge cells
+    const didParseCell = function (data: any) {
+      const row = data.row.index;
+      const col = data.column.index;
+
+      if (col > 0 && tableData[row][col] === "") {
+        data.cell.styles.fillColor = [255, 255, 255];
+      }
+    };
 
     // Buat tabel dengan autoTable
-  autoTable(doc, {
-    startY: 30,
-    head: [headers],
-    body: tableData,
-    didParseCell,
-    // Tambahkan opsi untuk menggabungkan sel yang kosong
-    columnStyles: {
-      0: { cellWidth: 30 }, // Tanggal
-      1: { cellWidth: 30 }, // Nama
-      2: { cellWidth: 25 }, // NIP
-      3: { cellWidth: 25 }, // Jabatan
-      4: { cellWidth: 25 }, // Rekening
-      5: { cellWidth: 25 }, // Keterangan
-    },
-  });
+    autoTable(doc, {
+      startY: 30,
+      head: [headers],
+      body: tableData,
+      didParseCell,
+      // Tambahkan opsi untuk menggabungkan sel yang kosong
+      columnStyles: {
+        0: { cellWidth: 30 }, // Tanggal
+        1: { cellWidth: 30 }, // Nama
+        2: { cellWidth: 25 }, // NIP
+        3: { cellWidth: 25 }, // Jabatan
+        4: { cellWidth: 25 }, // Rekening
+        5: { cellWidth: 25 }, // Keterangan
+      },
+    });
 
-  // Tambahkan tanda tangan dan disposisi
-  const finalY = (doc as any).lastAutoTable.finalY || 150;
-  const currentDate = new Date().toLocaleDateString('id-ID', {
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric'
-  });
+    // Tambahkan tanda tangan dan disposisi
+    const finalY = (doc as any).lastAutoTable.finalY || 150;
+    const currentDate = new Date().toLocaleDateString("id-ID", {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    });
 
- // Tanda tangan penyelia
- doc.text(`Ponorogo, ${currentDate}`, 120, finalY + 20);
- doc.text(`${entries[0].penyelia}`, 140, finalY + 65);
- doc.text(`Penyelia ${entries[0].unitBagian}`, 130, finalY + 70);
+    // Tanda tangan penyelia
+    doc.text(`Ponorogo, ${currentDate}`, 120, finalY + 20);
+    doc.text(`${entries[0].penyelia}`, 140, finalY + 65);
+    doc.text(`Penyelia ${entries[0].unitBagian}`, 130, finalY + 70);
 
     // Disposisi
-  doc.text('Disposisi Pimpinan:', 14, finalY + 90);
-  doc.rect(14, finalY + 95, 180, 40); // Kotak disposisi
+    doc.text("Disposisi Pimpinan:", 14, finalY + 90);
+    doc.rect(14, finalY + 95, 180, 40); // Kotak disposisi
 
-  doc.save('nota_lembur.pdf');
-};
+    doc.save("nota_lembur.pdf");
+  };
 
   const printNota = () => {
     const groupedEntries = groupEntries();
-    let tableRows = '';
-  
+    let tableRows = "";
+
     groupedEntries.forEach((group) => {
       const { dates, data } = group;
       const rowCount = dates.length;
-  
+
       dates.forEach((date, index) => {
         tableRows += `<tr>
           <td>${formatDate(date)}</td>
-          ${index === 0 ? `<td rowspan="${rowCount}">${data.nama}</td>` : ''}
-          ${index === 0 ? `<td rowspan="${rowCount}">${data.nip}</td>` : ''}
-          ${index === 0 ? `<td rowspan="${rowCount}">${data.jabatan}</td>` : ''}
-          ${index === 0 ? `<td rowspan="${rowCount}">${data.rekening}</td>` : ''}
-          ${index === 0 ? `<td rowspan="${rowCount}">${data.keterangan}</td>` : ''}
+          ${index === 0 ? `<td rowspan="${rowCount}">${data.nama}</td>` : ""}
+          ${index === 0 ? `<td rowspan="${rowCount}">${data.nip}</td>` : ""}
+          ${index === 0 ? `<td rowspan="${rowCount}">${data.jabatan}</td>` : ""}
+          ${index === 0 ? `<td rowspan="${rowCount}">${data.rekening}</td>` : ""}
+          ${index === 0 ? `<td rowspan="${rowCount}">${data.keterangan}</td>` : ""}
         </tr>`;
       });
     });
 
     const currentDate = new Date();
-    const formattedDate = currentDate.toLocaleDateString('id-ID', {
-      day: 'numeric',
-      month: 'long',
-      year: 'numeric'
+    const formattedDate = currentDate.toLocaleDateString("id-ID", {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
     });
-  
-    const printWindow = window.open('', 'PRINT', 'height=842,width=595');
+
+    const printWindow = window.open("", "PRINT", "height=842,width=595");
     printWindow?.document.write(`
       <html>
         <head>
@@ -398,7 +398,7 @@ const groupEntries = () => {
                   placeholder="Nama"
                   value={entry.nama}
                   onChange={(e) =>
-                    handleChange(entryIndex, 'nama', e.target.value)
+                    handleChange(entryIndex, "nama", e.target.value)
                   }
                   required
                   className="w-full border px-3 py-2"
@@ -412,7 +412,7 @@ const groupEntries = () => {
                   placeholder="NIP"
                   value={entry.nip}
                   onChange={(e) =>
-                    handleChange(entryIndex, 'nip', e.target.value)
+                    handleChange(entryIndex, "nip", e.target.value)
                   }
                   required
                   className="w-full border px-3 py-2"
@@ -426,7 +426,7 @@ const groupEntries = () => {
                   placeholder="Jabatan"
                   value={entry.jabatan}
                   onChange={(e) =>
-                    handleChange(entryIndex, 'jabatan', e.target.value)
+                    handleChange(entryIndex, "jabatan", e.target.value)
                   }
                   required
                   className="w-full border px-3 py-2"
@@ -440,7 +440,7 @@ const groupEntries = () => {
                   placeholder="Nomor Rekening"
                   value={entry.rekening}
                   onChange={(e) =>
-                    handleChange(entryIndex, 'rekening', e.target.value)
+                    handleChange(entryIndex, "rekening", e.target.value)
                   }
                   required
                   className="w-full border px-3 py-2"
@@ -453,7 +453,7 @@ const groupEntries = () => {
                   placeholder="Keterangan"
                   value={entry.keterangan}
                   onChange={(e) =>
-                    handleChange(entryIndex, 'keterangan', e.target.value)
+                    handleChange(entryIndex, "keterangan", e.target.value)
                   }
                   required
                   className="w-full border px-3 py-2"
@@ -467,7 +467,7 @@ const groupEntries = () => {
                   placeholder="Alasan"
                   value={entry.alasan}
                   onChange={(e) =>
-                    handleChange(entryIndex, 'alasan', e.target.value)
+                    handleChange(entryIndex, "alasan", e.target.value)
                   }
                   required
                   className="w-full border px-3 py-2"
@@ -481,7 +481,7 @@ const groupEntries = () => {
                   placeholder="Unit Bagian"
                   value={entry.unitBagian}
                   onChange={(e) =>
-                    handleChange(entryIndex, 'unitBagian', e.target.value)
+                    handleChange(entryIndex, "unitBagian", e.target.value)
                   }
                   required
                   className="w-full border px-3 py-2"
@@ -495,7 +495,7 @@ const groupEntries = () => {
                   placeholder="Penyelia"
                   value={entry.penyelia}
                   onChange={(e) =>
-                    handleChange(entryIndex, 'penyelia', e.target.value)
+                    handleChange(entryIndex, "penyelia", e.target.value)
                   }
                   required
                   className="w-full border px-3 py-2"
@@ -509,7 +509,7 @@ const groupEntries = () => {
                   placeholder="Jabatan Penyelia"
                   value={entry.jabatanPenyelia}
                   onChange={(e) =>
-                    handleChange(entryIndex, 'jabatanPenyelia', e.target.value)
+                    handleChange(entryIndex, "jabatanPenyelia", e.target.value)
                   }
                   required
                   className="w-full border px-3 py-2"
@@ -594,4 +594,4 @@ const groupEntries = () => {
   );
 };
 
-export default OvertimeSubmission; 
+export default OvertimeSubmission;

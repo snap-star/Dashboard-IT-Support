@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { CalendarIcon } from "@radix-ui/react-icons"
+import { CalendarIcon } from "@radix-ui/react-icons";
 import { format } from "date-fns";
 
 import { cn } from "@/lib/utils";
@@ -25,10 +25,7 @@ export function DatePicker() {
     }
   };
 
-  const handleTimeChange = (
-    type: "hour" | "minute",
-    value: string
-  ) => {
+  const handleTimeChange = (type: "hour" | "minute", value: string) => {
     if (date) {
       const newDate = new Date(date);
       if (type === "hour") {
@@ -47,7 +44,7 @@ export function DatePicker() {
           variant="outline"
           className={cn(
             "w-full justify-start text-left font-normal text-xs border-0",
-            !date && "text-muted-foreground"
+            !date && "text-muted-foreground",
           )}
         >
           {/* <CalendarIcon className="mr-2 h-4 w-4" /> */}
@@ -73,7 +70,9 @@ export function DatePicker() {
                   <Button
                     key={hour}
                     size="icon"
-                    variant={date && date.getHours() === hour ? "default" : "ghost"}
+                    variant={
+                      date && date.getHours() === hour ? "default" : "ghost"
+                    }
                     className="sm:w-full shrink-0 aspect-square"
                     onClick={() => handleTimeChange("hour", hour.toString())}
                   >
@@ -89,11 +88,15 @@ export function DatePicker() {
                   <Button
                     key={minute}
                     size="icon"
-                    variant={date && date.getMinutes() === minute ? "default" : "ghost"}
+                    variant={
+                      date && date.getMinutes() === minute ? "default" : "ghost"
+                    }
                     className="sm:w-full shrink-0 aspect-square"
-                    onClick={() => handleTimeChange("minute", minute.toString())}
+                    onClick={() =>
+                      handleTimeChange("minute", minute.toString())
+                    }
                   >
-                    {minute.toString().padStart(2, '0')}
+                    {minute.toString().padStart(2, "0")}
                   </Button>
                 ))}
               </div>

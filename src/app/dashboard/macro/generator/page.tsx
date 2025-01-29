@@ -46,18 +46,20 @@ const configSchema = z.object({
 
 // Tipe macro yang tersedia
 const macroTypes = [
-{
-value: "kycp",
-label: "KYCP Tanggal",
-template: (data: any, waitTime: number) =>
-`[PCOMM SCRIPT HEADER]
+  {
+    value: "kycp",
+    label: "KYCP Tanggal",
+    template: (data: any, waitTime: number) =>
+      `[PCOMM SCRIPT HEADER]
 LANGUAGE=VBSCRIPT
 DESCRIPTION=Macro untuk KYCP Tanggal Update
 [PCOMM SCRIPT SOURCE]
 Sub Main
     autECLSession.SetConnectionByName(ThisSessionName)
 ' Loop through data
-    ${data.map((row: any, index: number) => `
+    ${data
+      .map(
+        (row: any, index: number) => `
     ' Record ${index + 1}
     autECLSession.autECLOIA.WaitForInputReady
 autECLSession.autECLPS.SendKeys "${row.NONAS}"
@@ -122,20 +124,24 @@ autECLSession.autECLPS.SendKeys "[ENTER]"
 autECLSession.autECLPS.SendKeys "[ENTER]"
 autECLSession.autECLPS.SendKeys "[ENTER]"
     WScript.Sleep ${waitTime}
-    `).join('\n')}
-End Sub`
-},
-{
-  value: "MACRO OTOR",
-  label: "MACRO OTOR",
-  template: (data: any, waitTime: number) => 
-`[PCOMM SCRIPT HEADER]
+    `,
+      )
+      .join("\n")}
+End Sub`,
+  },
+  {
+    value: "MACRO OTOR",
+    label: "MACRO OTOR",
+    template: (data: any, waitTime: number) =>
+      `[PCOMM SCRIPT HEADER]
 LANGUAGE=VBSCRIPT
 DESCRIPTION=Macro untuk OTOR
 [PCOMM SCRIPT SOURCE]
 Sub Main
 ' Loop through data
-    ${data.map((row: any, index: number) => `
+    ${data
+      .map(
+        (row: any, index: number) => `
 ' Record ${index + 1}
     autECLSession.SetConnectionByName(ThisSessionName)
     autECLSession.autECLPS.SendKeys "${row.id}"
@@ -143,14 +149,16 @@ Sub Main
     autECLSession.autECLPS.SendKeys "Y"
     autECLSession.autECLPS.SendKeys "[ENTER]"
     WScript.Sleep ${waitTime}
-    `).join('\n')}
-End Sub`
-},
+    `,
+      )
+      .join("\n")}
+End Sub`,
+  },
   {
     value: "new-account",
     label: "Pembuatan Rekening Baru",
-    template: (data: any, waitTime: number) => 
-`[PCOMM SCRIPT HEADER]
+    template: (data: any, waitTime: number) =>
+      `[PCOMM SCRIPT HEADER]
 LANGUAGE=VBSCRIPT
 DESCRIPTION=Macro untuk pembuatan rekening baru
 [PCOMM SCRIPT SOURCE]
@@ -158,7 +166,9 @@ Sub Main
     autECLSession.SetConnectionByName(ThisSessionName)
     
     ' Loop through data
-    ${data.map((row: any, index: number) => `
+    ${data
+      .map(
+        (row: any, index: number) => `
     ' Record ${index + 1}
     autECLSession.autECLOIA.WaitForInputReady
     autECLSession.autECLPS.SendKeys "${row.accountType}"
@@ -169,14 +179,16 @@ Sub Main
     autECLSession.autECLPS.SendKeys "[enter]"
     autECLSession.autECLOIA.WaitForInputReady
     WScript.Sleep ${waitTime}
-    `).join('\n')}
-End Sub`
+    `,
+      )
+      .join("\n")}
+End Sub`,
   },
   {
     value: "maintenance",
     label: "Maintenance Data Nasabah",
-    template: (data: any, waitTime: number) => 
-`[PCOMM SCRIPT HEADER]
+    template: (data: any, waitTime: number) =>
+      `[PCOMM SCRIPT HEADER]
 LANGUAGE=VBSCRIPT
 DESCRIPTION=Macro untuk maintenance data nasabah
 [PCOMM SCRIPT SOURCE]
@@ -184,7 +196,9 @@ Sub Main
     autECLSession.SetConnectionByName(ThisSessionName)
     
     ' Loop through data
-    ${data.map((row: any, index: number) => `
+    ${data
+      .map(
+        (row: any, index: number) => `
     ' Record ${index + 1}
     autECLSession.autECLOIA.WaitForInputReady
     autECLSession.autECLPS.SendKeys "${row.accountNumber}"
@@ -193,13 +207,15 @@ Sub Main
     autECLSession.autECLPS.SendKeys "${row.newData}"
     autECLSession.autECLPS.SendKeys "[enter]"
     WScript.Sleep ${waitTime}
-    `).join('\n')}
-End Sub`
+    `,
+      )
+      .join("\n")}
+End Sub`,
   },
   {
     value: "Rubah Saldo Minimum",
     label: "Rubah Saldo Minimum",
-    template: (data: any, waitTime: number) => 
+    template: (data: any, waitTime: number) =>
       `[PCOMM SCRIPT HEADER]
 LANGUAGE=VBSCRIPT
 DESCRIPTION=Macro Rubah saldo minimum
@@ -208,7 +224,9 @@ Sub Main
     autECLSession.SetConnectionByName(ThisSessionName)
     
     ' Loop through data
-    ${data.map((row: any, index: number) => `
+    ${data
+      .map(
+        (row: any, index: number) => `
     ' Record ${index + 1}
     autECLSession.autECLOIA.WaitForInputReady
     autECLSession.autECLPS.SendKeys "${row.NONAS}"
@@ -243,22 +261,29 @@ Sub Main
     autECLSession.autECLPS.SendKeys "[enter]"
     autECLSession.autECLPS.SendKeys "[enter]"
     WScript.Sleep ${waitTime}
-    `).join('\n')}
-End Sub`
+    `,
+      )
+      .join("\n")}
+End Sub`,
   },
   {
     value: "custom",
     label: "Custom Macro",
-  }
+  },
 ];
 
 // Tambahkan fungsi untuk generate preview macro
-const generatePreviewMacro = (values: z.infer<typeof configSchema>, data: any[]) => {
+const generatePreviewMacro = (
+  values: z.infer<typeof configSchema>,
+  data: any[],
+) => {
   if (data.length === 0) return "";
 
   const waitTime = parseInt(values.waitTime);
   const previewData = data.slice(0, 3); // Preview 3 data pertama
-  const selectedType = macroTypes.find(type => type.value === values.macroType);
+  const selectedType = macroTypes.find(
+    (type) => type.value === values.macroType,
+  );
 
   if (values.macroType === "custom" && values.customScript) {
     return `[PCOMM SCRIPT HEADER]
@@ -267,22 +292,28 @@ DESCRIPTION=Custom Macro
 [PCOMM SCRIPT SOURCE]
 Sub Main
     autECLSession.SetConnectionByName(ThisSessionName)
-    ${previewData.map((row, index) => {
-      let script = values.customScript;
-      Object.keys(row).forEach(key => {
-        script = script?.replace(new RegExp(`\\[${key}\\]`, 'g'), row[key]);
-      });
-      return `
+    ${previewData
+      .map((row, index) => {
+        let script = values.customScript;
+        Object.keys(row).forEach((key) => {
+          script = script?.replace(new RegExp(`\\[${key}\\]`, "g"), row[key]);
+        });
+        return `
     ' Record ${index + 1}
     autECLSession.autECLOIA.WaitForInputReady
     autECLSession.autECLPS.SendKeys "${script}"
     WScript.Sleep ${waitTime}`;
-    }).join('\n')}
+      })
+      .join("\n")}
     ' ... dan seterusnya untuk ${data.length - 3} data lainnya
 End Sub`;
   } else if (selectedType?.template) {
-    return selectedType.template(previewData, waitTime)
-      .replace('End Sub', `    ' ... dan seterusnya untuk ${data.length - 3} data lainnya\nEnd Sub`);
+    return selectedType
+      .template(previewData, waitTime)
+      .replace(
+        "End Sub",
+        `    ' ... dan seterusnya untuk ${data.length - 3} data lainnya\nEnd Sub`,
+      );
   }
 
   return "";
@@ -321,7 +352,7 @@ export default function MacroGeneratorPage() {
       reader.onload = (e) => {
         try {
           const data = new Uint8Array(e.target?.result as ArrayBuffer);
-          const workbook = XLSX.read(data, { type: 'array' });
+          const workbook = XLSX.read(data, { type: "array" });
           const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
           const jsonData = XLSX.utils.sheet_to_json(firstSheet);
           setExcelData(jsonData);
@@ -348,7 +379,9 @@ export default function MacroGeneratorPage() {
       const data = excelData.slice(startRow);
 
       let macroContent = "";
-      const selectedType = macroTypes.find(type => type.value === values.macroType);
+      const selectedType = macroTypes.find(
+        (type) => type.value === values.macroType,
+      );
 
       if (values.macroType === "custom" && values.customScript) {
         // Generate custom macro
@@ -358,17 +391,19 @@ DESCRIPTION=Custom Macro
 [PCOMM SCRIPT SOURCE]
 Sub Main
     autECLSession.SetConnectionByName(ThisSessionName)
-    ${data.map((row, index) => {
-          let script = values.customScript;
-          // Replace placeholders with actual data
-          Object.keys(row).forEach(key => {
-            script = script?.replace(new RegExp(`\\[${key}\\]`, 'g'), row[key]);
-          });
-          return `
+    ${data
+      .map((row, index) => {
+        let script = values.customScript;
+        // Replace placeholders with actual data
+        Object.keys(row).forEach((key) => {
+          script = script?.replace(new RegExp(`\\[${key}\\]`, "g"), row[key]);
+        });
+        return `
     ' Record ${index + 1}
     ${script}
     WScript.Sleep ${waitTime}`;
-        }).join('\n')}
+      })
+      .join("\n")}
 End Sub`;
       } else if (selectedType?.template) {
         // Generate macro using predefined template
@@ -376,8 +411,10 @@ End Sub`;
       }
 
       // Create and download .mac file
-      const blob = new Blob([macroContent], { type: "text/plain;charset=utf-8" });
-      FileSaver.saveAs(blob, `${fileName.split('.')[0]}_macro.mac`);
+      const blob = new Blob([macroContent], {
+        type: "text/plain;charset=utf-8",
+      });
+      FileSaver.saveAs(blob, `${fileName.split(".")[0]}_macro.mac`);
       toast.success("Macro berhasil digenerate");
     } catch (error) {
       toast.error("Gagal generate macro");
@@ -416,7 +453,7 @@ End Sub`;
                 <Button
                   variant="outline"
                   className="w-full"
-                  onClick={() => document.getElementById('excel')?.click()}
+                  onClick={() => document.getElementById("excel")?.click()}
                 >
                   <Upload className="mr-2 h-4 w-4" />
                   Upload File
@@ -439,7 +476,10 @@ End Sub`;
               {fileName && (
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <FileSpreadsheet className="h-4 w-4" />
-                  {fileName} <Badge variant="default" className="rounded-sm">Opened</Badge>
+                  {fileName}{" "}
+                  <Badge variant="default" className="rounded-sm">
+                    Opened
+                  </Badge>
                 </div>
               )}
             </div>
@@ -466,7 +506,10 @@ End Sub`;
           </CardHeader>
           <CardContent>
             <Form {...form}>
-              <form onSubmit={form.handleSubmit(generateMacro)} className="space-y-4">
+              <form
+                onSubmit={form.handleSubmit(generateMacro)}
+                className="space-y-4"
+              >
                 <FormField
                   control={form.control}
                   name="macroType"
@@ -546,8 +589,8 @@ End Sub`;
                   />
                 )}
 
-                <Button 
-                  type="submit" 
+                <Button
+                  type="submit"
                   className="w-full"
                   disabled={excelData.length === 0}
                 >
@@ -598,22 +641,55 @@ End Sub`;
           <div>
             <h4 className="font-semibold mb-2">Format Excel</h4>
             <p className="text-sm text-muted-foreground">
-              Pastikan file Excel memiliki kolom yang sesuai dengan tipe macro yang dipilih:
+              Pastikan file Excel memiliki kolom yang sesuai dengan tipe macro
+              yang dipilih:
             </p>
             <ul className="list-disc list-inside text-sm text-muted-foreground mt-2 space-y-1">
-              <li>Pembuatan Rekening: accountType, customerName, idNumber <Badge variant="default" className="rounded-sm">Tahap Pengembangan</Badge></li>
-              <li>Maintenance Data: accountNumber, newData <Badge variant="default" className="rounded-sm">Tahap Pengembangan</Badge></li>
-              <li>Rubah Saldo Minimum: NONAS <Badge variant="default" className="rounded-sm">Work</Badge></li>
-              <li>KYCP Tanggal: NONAS, TGL_UPDATE <Badge variant="default" className="rounded-sm">Work</Badge></li>
-              <li>OTOR: id <Badge variant="default" className="rounded-sm">Work</Badge></li>
-              <li>Custom: Sesuaikan dengan kebutuhan, gunakan [nama_kolom] sebagai placeholder <Badge variant="default" className="rounded-sm">Work</Badge></li>
+              <li>
+                Pembuatan Rekening: accountType, customerName, idNumber{" "}
+                <Badge variant="default" className="rounded-sm">
+                  Tahap Pengembangan
+                </Badge>
+              </li>
+              <li>
+                Maintenance Data: accountNumber, newData{" "}
+                <Badge variant="default" className="rounded-sm">
+                  Tahap Pengembangan
+                </Badge>
+              </li>
+              <li>
+                Rubah Saldo Minimum: NONAS{" "}
+                <Badge variant="default" className="rounded-sm">
+                  Work
+                </Badge>
+              </li>
+              <li>
+                KYCP Tanggal: NONAS, TGL_UPDATE{" "}
+                <Badge variant="default" className="rounded-sm">
+                  Work
+                </Badge>
+              </li>
+              <li>
+                OTOR: id{" "}
+                <Badge variant="default" className="rounded-sm">
+                  Work
+                </Badge>
+              </li>
+              <li>
+                Custom: Sesuaikan dengan kebutuhan, gunakan [nama_kolom] sebagai
+                placeholder{" "}
+                <Badge variant="default" className="rounded-sm">
+                  Work
+                </Badge>
+              </li>
             </ul>
           </div>
           <div>
             <h4 className="font-semibold mb-2">Custom Script</h4>
             <p className="text-sm text-muted-foreground">
-              Untuk custom macro, gunakan placeholder [nama_kolom] yang akan diganti dengan data dari Excel.
-              Contoh: <code>autECLSession.autECLPS.SendKeys "[nama_kolom]"</code>
+              Untuk custom macro, gunakan placeholder [nama_kolom] yang akan
+              diganti dengan data dari Excel. Contoh:{" "}
+              <code>autECLSession.autECLPS.SendKeys "[nama_kolom]"</code>
             </p>
           </div>
           <div>
@@ -628,13 +704,29 @@ End Sub`;
             <h4 className="font-semibold mb-2">Informasi</h4>
             <ul className="list-disc list-inside text-sm text-muted-foreground space-y-1">
               <li>
-              Macro yang masih dalam tahap pengembangan akan ditandai dengan badge <Badge variant="default" className="rounded-sm">Tahap Pengembangan</Badge>
+                Macro yang masih dalam tahap pengembangan akan ditandai dengan
+                badge{" "}
+                <Badge variant="default" className="rounded-sm">
+                  Tahap Pengembangan
+                </Badge>
               </li>
               <li>
-              Macro yang sudah selesai dan sudah di-test akan ditandai dengan badge <Badge variant="default" className="rounded-sm">Work</Badge>
+                Macro yang sudah selesai dan sudah di-test akan ditandai dengan
+                badge{" "}
+                <Badge variant="default" className="rounded-sm">
+                  Work
+                </Badge>
               </li>
               <li>
-                Request template macro dapat dilakukan melalui <a href="https://wa.me/6285236695155" target="_blank" className="text-blue-500 hover:underline" rel="noopener noreferrer">Whatsapp</a>
+                Request template macro dapat dilakukan melalui{" "}
+                <a
+                  href="https://wa.me/6285236695155"
+                  target="_blank"
+                  className="text-blue-500 hover:underline"
+                  rel="noopener noreferrer"
+                >
+                  Whatsapp
+                </a>
               </li>
             </ul>
           </div>
@@ -642,4 +734,4 @@ End Sub`;
       </Card>
     </div>
   );
-} 
+}

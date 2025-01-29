@@ -13,7 +13,12 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import { Card, CardContent, CardHeader, CardFooter } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardFooter,
+} from "@/components/ui/card";
 import { ArrowUpDown, MoreHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -76,10 +81,15 @@ export default function AssetSoftware() {
   const [software, setSoftware] = React.useState<Software[]>([]);
   const [globalFilter, setGlobalFilter] = React.useState("");
   const [sorting, setSorting] = React.useState<SortingState>([]);
-  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
-  const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
+  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
+    [],
+  );
+  const [columnVisibility, setColumnVisibility] =
+    React.useState<VisibilityState>({});
   const [isDialogOpen, setIsDialogOpen] = React.useState(false);
-  const [editingSoftware, setEditingSoftware] = React.useState<Software | null>(null);
+  const [editingSoftware, setEditingSoftware] = React.useState<Software | null>(
+    null,
+  );
   const [lastUpdated, setLastUpdated] = React.useState<string>("");
   const [users, setUsers] = React.useState<User[]>([]);
   const [newSoftware, setNewSoftware] = React.useState<Omit<Software, "id">>({
@@ -270,15 +280,27 @@ export default function AssetSoftware() {
           <div className="grid gap-4 py-4">
             <Input
               placeholder="Nama Software"
-              value={editingSoftware ? editingSoftware.nama_software : newSoftware.nama_software}
+              value={
+                editingSoftware
+                  ? editingSoftware.nama_software
+                  : newSoftware.nama_software
+              }
               onChange={(e) =>
                 editingSoftware
-                  ? setEditingSoftware({ ...editingSoftware, nama_software: e.target.value })
-                  : setNewSoftware({ ...newSoftware, nama_software: e.target.value })
+                  ? setEditingSoftware({
+                      ...editingSoftware,
+                      nama_software: e.target.value,
+                    })
+                  : setNewSoftware({
+                      ...newSoftware,
+                      nama_software: e.target.value,
+                    })
               }
             />
             <Select
-              value={editingSoftware ? editingSoftware.jenis : newSoftware.jenis}
+              value={
+                editingSoftware ? editingSoftware.jenis : newSoftware.jenis
+              }
               onValueChange={(value) =>
                 editingSoftware
                   ? setEditingSoftware({ ...editingSoftware, jenis: value })
@@ -289,26 +311,37 @@ export default function AssetSoftware() {
                 <SelectValue placeholder="Pilih Jenis Software" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="operating-system">Operating System</SelectItem>
+                <SelectItem value="operating-system">
+                  Operating System
+                </SelectItem>
                 <SelectItem value="office-suite">Office Suite</SelectItem>
                 <SelectItem value="antivirus">Antivirus</SelectItem>
                 <SelectItem value="design-software">Design Software</SelectItem>
-                <SelectItem value="development-tools">Development Tools</SelectItem>
+                <SelectItem value="development-tools">
+                  Development Tools
+                </SelectItem>
                 <SelectItem value="utility">Utility</SelectItem>
                 <SelectItem value="lainnya">Lainnya</SelectItem>
               </SelectContent>
             </Select>
             <Input
               placeholder="Versi"
-              value={editingSoftware ? editingSoftware.versi : newSoftware.versi}
+              value={
+                editingSoftware ? editingSoftware.versi : newSoftware.versi
+              }
               onChange={(e) =>
                 editingSoftware
-                  ? setEditingSoftware({ ...editingSoftware, versi: e.target.value })
+                  ? setEditingSoftware({
+                      ...editingSoftware,
+                      versi: e.target.value,
+                    })
                   : setNewSoftware({ ...newSoftware, versi: e.target.value })
               }
             />
             <Select
-              value={editingSoftware ? editingSoftware.lisensi : newSoftware.lisensi}
+              value={
+                editingSoftware ? editingSoftware.lisensi : newSoftware.lisensi
+              }
               onValueChange={(value) =>
                 editingSoftware
                   ? setEditingSoftware({ ...editingSoftware, lisensi: value })
@@ -328,25 +361,49 @@ export default function AssetSoftware() {
             <Input
               type="date"
               placeholder="Tanggal Aktivasi"
-              value={editingSoftware ? editingSoftware.tanggal_aktivasi : newSoftware.tanggal_aktivasi}
+              value={
+                editingSoftware
+                  ? editingSoftware.tanggal_aktivasi
+                  : newSoftware.tanggal_aktivasi
+              }
               onChange={(e) =>
                 editingSoftware
-                  ? setEditingSoftware({ ...editingSoftware, tanggal_aktivasi: e.target.value })
-                  : setNewSoftware({ ...newSoftware, tanggal_aktivasi: e.target.value })
+                  ? setEditingSoftware({
+                      ...editingSoftware,
+                      tanggal_aktivasi: e.target.value,
+                    })
+                  : setNewSoftware({
+                      ...newSoftware,
+                      tanggal_aktivasi: e.target.value,
+                    })
               }
             />
             <Input
               type="date"
               placeholder="Tanggal Expired"
-              value={editingSoftware ? editingSoftware.tanggal_expired : newSoftware.tanggal_expired}
+              value={
+                editingSoftware
+                  ? editingSoftware.tanggal_expired
+                  : newSoftware.tanggal_expired
+              }
               onChange={(e) =>
                 editingSoftware
-                  ? setEditingSoftware({ ...editingSoftware, tanggal_expired: e.target.value })
-                  : setNewSoftware({ ...newSoftware, tanggal_expired: e.target.value })
+                  ? setEditingSoftware({
+                      ...editingSoftware,
+                      tanggal_expired: e.target.value,
+                    })
+                  : setNewSoftware({
+                      ...newSoftware,
+                      tanggal_expired: e.target.value,
+                    })
               }
             />
             <Select
-              value={editingSoftware ? editingSoftware.pengguna : newSoftware.pengguna}
+              value={
+                editingSoftware
+                  ? editingSoftware.pengguna
+                  : newSoftware.pengguna
+              }
               onValueChange={(value) =>
                 editingSoftware
                   ? setEditingSoftware({ ...editingSoftware, pengguna: value })
@@ -358,8 +415,8 @@ export default function AssetSoftware() {
               </SelectTrigger>
               <SelectContent>
                 {users.map((user) => (
-                  <SelectItem 
-                    key={user.id} 
+                  <SelectItem
+                    key={user.id}
                     value={user.user_estim || `user-${user.id}`}
                   >
                     {user.nama} - {user.user_estim} ({user.jabatan})
@@ -368,7 +425,9 @@ export default function AssetSoftware() {
               </SelectContent>
             </Select>
             <Select
-              value={editingSoftware ? editingSoftware.lokasi : newSoftware.lokasi}
+              value={
+                editingSoftware ? editingSoftware.lokasi : newSoftware.lokasi
+              }
               onValueChange={(value) =>
                 editingSoftware
                   ? setEditingSoftware({ ...editingSoftware, lokasi: value })
@@ -387,7 +446,9 @@ export default function AssetSoftware() {
               </SelectContent>
             </Select>
             <Select
-              value={editingSoftware ? editingSoftware.status : newSoftware.status}
+              value={
+                editingSoftware ? editingSoftware.status : newSoftware.status
+              }
               onValueChange={(value) =>
                 editingSoftware
                   ? setEditingSoftware({ ...editingSoftware, status: value })
@@ -406,11 +467,21 @@ export default function AssetSoftware() {
             </Select>
             <Input
               placeholder="Keterangan"
-              value={editingSoftware ? editingSoftware.keterangan : newSoftware.keterangan}
+              value={
+                editingSoftware
+                  ? editingSoftware.keterangan
+                  : newSoftware.keterangan
+              }
               onChange={(e) =>
                 editingSoftware
-                  ? setEditingSoftware({ ...editingSoftware, keterangan: e.target.value })
-                  : setNewSoftware({ ...newSoftware, keterangan: e.target.value })
+                  ? setEditingSoftware({
+                      ...editingSoftware,
+                      keterangan: e.target.value,
+                    })
+                  : setNewSoftware({
+                      ...newSoftware,
+                      keterangan: e.target.value,
+                    })
               }
             />
           </div>
@@ -433,7 +504,7 @@ export default function AssetSoftware() {
                     <TableHead key={header.id}>
                       {flexRender(
                         header.column.columnDef.header,
-                        header.getContext()
+                        header.getContext(),
                       )}
                     </TableHead>
                   ))}
@@ -448,7 +519,7 @@ export default function AssetSoftware() {
                       <TableCell key={cell.id}>
                         {flexRender(
                           cell.column.columnDef.cell,
-                          cell.getContext()
+                          cell.getContext(),
                         )}
                       </TableCell>
                     ))}

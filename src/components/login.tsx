@@ -54,15 +54,15 @@ export default function Login() {
     e.preventDefault();
     setLoading(true);
     setErrorMessage(null);
-    
+
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({ 
-        email, 
-        password 
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
       });
-      
+
       if (error) throw error;
-      
+
       setSession(data.session);
       localStorage.setItem("lastActivity", new Date().getTime().toString());
       router.push("/dashboard");
@@ -181,7 +181,10 @@ export default function Login() {
 
           <p className="text-sm text-center text-muted-foreground">
             Tidak punya akun?{" "}
-            <a href="/register" className="text-primary hover:underline font-medium">
+            <a
+              href="/register"
+              className="text-primary hover:underline font-medium"
+            >
               Daftar Akun
             </a>
           </p>

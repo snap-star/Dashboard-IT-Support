@@ -53,7 +53,7 @@ import { format } from "date-fns";
 import { id } from "date-fns/locale";
 import { toast } from "sonner";
 import supabase from "@/lib/supabase";
-import * as XLSX from 'xlsx';
+import * as XLSX from "xlsx";
 
 // Types
 interface ATMComplaint {
@@ -113,7 +113,7 @@ export default function ATMComplaints() {
     resolution: "",
   });
   const [editingComplaint, setEditingComplaint] = useState<ATMComplaint | null>(
-    null
+    null,
   );
   // Tambahkan state untuk pagination
   const [currentPage, setCurrentPage] = useState(1);
@@ -163,13 +163,13 @@ export default function ATMComplaints() {
   // Fungsi untuk navigasi halaman
   const nextPage = () => {
     if (currentPage < totalPages) {
-      setCurrentPage(prev => prev + 1);
+      setCurrentPage((prev) => prev + 1);
     }
   };
 
   const previousPage = () => {
     if (currentPage > 1) {
-      setCurrentPage(prev => prev - 1);
+      setCurrentPage((prev) => prev - 1);
     }
   };
 
@@ -242,16 +242,22 @@ export default function ATMComplaints() {
       if (error) throw error;
 
       // Format data untuk excel
-      const exportData = data.map(item => ({
-        'ATM ID': item.atm_id,
-        'Komplain': item.complaint,
-        'Pelapor': item.reported_by,
-        'No. Rekening': item.account_number,
-        'Nominal': formatToRupiah(item.nominal),
-        'Tanggal Kejadian': format(new Date(item.date_complaint), "dd MMM yyyy", { locale: id }),
-        'Tanggal Lapor': format(new Date(item.date_reported), "dd MMM yyyy", { locale: id }),
-        'Status': item.status,
-        'Resolusi': item.resolution || '-'
+      const exportData = data.map((item) => ({
+        "ATM ID": item.atm_id,
+        Komplain: item.complaint,
+        Pelapor: item.reported_by,
+        "No. Rekening": item.account_number,
+        Nominal: formatToRupiah(item.nominal),
+        "Tanggal Kejadian": format(
+          new Date(item.date_complaint),
+          "dd MMM yyyy",
+          { locale: id },
+        ),
+        "Tanggal Lapor": format(new Date(item.date_reported), "dd MMM yyyy", {
+          locale: id,
+        }),
+        Status: item.status,
+        Resolusi: item.resolution || "-",
       }));
 
       // Buat workbook dan worksheet
@@ -270,10 +276,10 @@ export default function ATMComplaints() {
         { wch: 12 }, // Status
         { wch: 40 }, // Resolusi
       ];
-      ws['!cols'] = colWidths;
+      ws["!cols"] = colWidths;
 
       // Tambahkan worksheet ke workbook
-      XLSX.utils.book_append_sheet(wb, ws, 'ATM Complaints');
+      XLSX.utils.book_append_sheet(wb, ws, "ATM Complaints");
 
       // Generate nama file dengan timestamp
       const fileName = `atm_complaints_${format(new Date(), "yyyyMMdd_HHmmss")}.xlsx`;
@@ -288,7 +294,7 @@ export default function ATMComplaints() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 w-full min-h-screen overflow-hidden">
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
@@ -311,19 +317,21 @@ export default function ATMComplaints() {
               </Button>
               <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                 <DialogTrigger asChild>
-                  <Button className="gap-2">
+                  <Button className="gap-2 flex">
                     <Plus className="h-4 w-4" />
                     Tambah Komplain
                   </Button>
                 </DialogTrigger>
                 <DialogContent className="max-w-[500px]">
-                  <DialogHeader className="space-y-3">
+                  <DialogHeader className="space-y-3 flex">
                     <DialogTitle>
-                      {editingComplaint ? "Edit Komplain" : "Tambah Komplain Baru"}
+                      {editingComplaint
+                        ? "Edit Komplain"
+                        : "Tambah Komplain Baru"}
                     </DialogTitle>
                     <DialogDescription>
-                      {editingComplaint 
-                        ? "Edit detail komplain ATM yang sudah ada" 
+                      {editingComplaint
+                        ? "Edit detail komplain ATM yang sudah ada"
                         : "Tambahkan komplain ATM baru dari nasabah"}
                     </DialogDescription>
                   </DialogHeader>
@@ -336,14 +344,21 @@ export default function ATMComplaints() {
                           <Input
                             id="atm_id"
                             placeholder="Masukkan ID ATM"
-                            value={editingComplaint ? editingComplaint.atm_id : newComplaint.atm_id}
+                            value={
+                              editingComplaint
+                                ? editingComplaint.atm_id
+                                : newComplaint.atm_id
+                            }
                             onChange={(e) =>
                               editingComplaint
                                 ? setEditingComplaint({
                                     ...editingComplaint,
                                     atm_id: e.target.value,
                                   })
-                                : setNewComplaint({ ...newComplaint, atm_id: e.target.value })
+                                : setNewComplaint({
+                                    ...newComplaint,
+                                    atm_id: e.target.value,
+                                  })
                             }
                           />
                         </div>
@@ -352,14 +367,21 @@ export default function ATMComplaints() {
                           <Input
                             id="reported_by"
                             placeholder="Masukkan nama pelapor"
-                            value={editingComplaint ? editingComplaint.reported_by : newComplaint.reported_by}
+                            value={
+                              editingComplaint
+                                ? editingComplaint.reported_by
+                                : newComplaint.reported_by
+                            }
                             onChange={(e) =>
                               editingComplaint
                                 ? setEditingComplaint({
                                     ...editingComplaint,
                                     reported_by: e.target.value,
                                   })
-                                : setNewComplaint({ ...newComplaint, reported_by: e.target.value })
+                                : setNewComplaint({
+                                    ...newComplaint,
+                                    reported_by: e.target.value,
+                                  })
                             }
                           />
                         </div>
@@ -372,14 +394,21 @@ export default function ATMComplaints() {
                           <Input
                             id="account_number"
                             placeholder="Masukkan nomor rekening"
-                            value={editingComplaint ? editingComplaint.account_number : newComplaint.account_number}
+                            value={
+                              editingComplaint
+                                ? editingComplaint.account_number
+                                : newComplaint.account_number
+                            }
                             onChange={(e) =>
                               editingComplaint
                                 ? setEditingComplaint({
                                     ...editingComplaint,
                                     account_number: e.target.value,
                                   })
-                                : setNewComplaint({ ...newComplaint, account_number: e.target.value })
+                                : setNewComplaint({
+                                    ...newComplaint,
+                                    account_number: e.target.value,
+                                  })
                             }
                           />
                         </div>
@@ -389,14 +418,21 @@ export default function ATMComplaints() {
                             id="nominal"
                             type="number"
                             placeholder="Masukkan nominal"
-                            value={editingComplaint ? editingComplaint.nominal : newComplaint.nominal}
+                            value={
+                              editingComplaint
+                                ? editingComplaint.nominal
+                                : newComplaint.nominal
+                            }
                             onChange={(e) =>
                               editingComplaint
                                 ? setEditingComplaint({
                                     ...editingComplaint,
                                     nominal: Number(e.target.value),
                                   })
-                                : setNewComplaint({ ...newComplaint, nominal: Number(e.target.value) })
+                                : setNewComplaint({
+                                    ...newComplaint,
+                                    nominal: Number(e.target.value),
+                                  })
                             }
                           />
                         </div>
@@ -405,32 +441,48 @@ export default function ATMComplaints() {
                       {/* Tanggal dan Status */}
                       <div className="grid grid-cols-2 gap-3">
                         <div className="space-y-1.5">
-                          <Label htmlFor="date_complaint">Tanggal Kejadian</Label>
+                          <Label htmlFor="date_complaint">
+                            Tanggal Kejadian
+                          </Label>
                           <Input
                             id="date_complaint"
                             type="date"
-                            value={editingComplaint ? editingComplaint.date_complaint : newComplaint.date_complaint}
+                            value={
+                              editingComplaint
+                                ? editingComplaint.date_complaint
+                                : newComplaint.date_complaint
+                            }
                             onChange={(e) =>
                               editingComplaint
                                 ? setEditingComplaint({
                                     ...editingComplaint,
                                     date_complaint: e.target.value,
                                   })
-                                : setNewComplaint({ ...newComplaint, date_complaint: e.target.value })
+                                : setNewComplaint({
+                                    ...newComplaint,
+                                    date_complaint: e.target.value,
+                                  })
                             }
                           />
                         </div>
                         <div className="space-y-1.5">
                           <Label htmlFor="status">Status</Label>
                           <Select
-                            value={editingComplaint ? editingComplaint.status : newComplaint.status}
+                            value={
+                              editingComplaint
+                                ? editingComplaint.status
+                                : newComplaint.status
+                            }
                             onValueChange={(value) =>
                               editingComplaint
                                 ? setEditingComplaint({
                                     ...editingComplaint,
                                     status: value,
                                   })
-                                : setNewComplaint({ ...newComplaint, status: value })
+                                : setNewComplaint({
+                                    ...newComplaint,
+                                    status: value,
+                                  })
                             }
                           >
                             <SelectTrigger>
@@ -438,7 +490,9 @@ export default function ATMComplaints() {
                             </SelectTrigger>
                             <SelectContent>
                               <SelectItem value="Open">Open</SelectItem>
-                              <SelectItem value="In Progress">In Progress</SelectItem>
+                              <SelectItem value="In Progress">
+                                In Progress
+                              </SelectItem>
                               <SelectItem value="Resolved">Resolved</SelectItem>
                               <SelectItem value="Closed">Closed</SelectItem>
                             </SelectContent>
@@ -453,14 +507,21 @@ export default function ATMComplaints() {
                           id="complaint"
                           placeholder="Masukkan deskripsi komplain"
                           className="min-h-[80px] resize-none"
-                          value={editingComplaint ? editingComplaint.complaint : newComplaint.complaint}
+                          value={
+                            editingComplaint
+                              ? editingComplaint.complaint
+                              : newComplaint.complaint
+                          }
                           onChange={(e) =>
                             editingComplaint
                               ? setEditingComplaint({
                                   ...editingComplaint,
                                   complaint: e.target.value,
                                 })
-                              : setNewComplaint({ ...newComplaint, complaint: e.target.value })
+                              : setNewComplaint({
+                                  ...newComplaint,
+                                  complaint: e.target.value,
+                                })
                           }
                         />
                       </div>
@@ -472,33 +533,45 @@ export default function ATMComplaints() {
                           id="resolution"
                           placeholder="Masukkan resolusi komplain"
                           className="min-h-[80px] resize-none"
-                          value={editingComplaint ? editingComplaint.resolution : newComplaint.resolution}
+                          value={
+                            editingComplaint
+                              ? editingComplaint.resolution
+                              : newComplaint.resolution
+                          }
                           onChange={(e) =>
                             editingComplaint
                               ? setEditingComplaint({
                                   ...editingComplaint,
                                   resolution: e.target.value,
                                 })
-                              : setNewComplaint({ ...newComplaint, resolution: e.target.value })
+                              : setNewComplaint({
+                                  ...newComplaint,
+                                  resolution: e.target.value,
+                                })
                           }
                         />
                       </div>
                     </div>
                   </div>
                   <DialogFooter>
-                    <Button variant="outline" onClick={() => {
-                      setIsDialogOpen(false);
-                      setEditingComplaint(null);
-                    }}>
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        setIsDialogOpen(false);
+                        setEditingComplaint(null);
+                      }}
+                    >
                       Batal
                     </Button>
-                    <Button 
+                    <Button
                       onClick={() => {
                         if (editingComplaint) handleUpdate();
                         else handleCreate();
                       }}
                     >
-                      {editingComplaint ? "Simpan Perubahan" : "Tambah Komplain"}
+                      {editingComplaint
+                        ? "Simpan Perubahan"
+                        : "Tambah Komplain"}
                     </Button>
                   </DialogFooter>
                 </DialogContent>
@@ -513,8 +586,8 @@ export default function ATMComplaints() {
               <div className="flex items-center gap-4 flex-1">
                 <div className="flex items-center gap-2 flex-1 max-w-sm">
                   <Search className="w-4 h-4 text-muted-foreground" />
-                  <Input 
-                    placeholder="Cari komplain..." 
+                  <Input
+                    placeholder="Cari komplain..."
                     value={searchQuery}
                     onChange={(e) => {
                       setSearchQuery(e.target.value);
@@ -552,21 +625,22 @@ export default function ATMComplaints() {
                     <TableHead className="font-semibold">ATM ID</TableHead>
                     <TableHead className="font-semibold">Komplain</TableHead>
                     <TableHead className="font-semibold">Pelapor</TableHead>
-                    <TableHead className="font-semibold">No. Rekening</TableHead>
+                    <TableHead className="font-semibold">
+                      No. Rekening
+                    </TableHead>
                     <TableHead className="font-semibold">Nominal</TableHead>
                     <TableHead className="font-semibold">Tanggal</TableHead>
                     <TableHead className="font-semibold">Status</TableHead>
                     <TableHead className="font-semibold">Resolusi</TableHead>
-                    <TableHead className="font-semibold w-[100px]">Aksi</TableHead>
+                    <TableHead className="font-semibold w-[100px]">
+                      Aksi
+                    </TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {isLoading ? (
                     <TableRow>
-                      <TableCell 
-                        colSpan={9} 
-                        className="h-32 text-center"
-                      >
+                      <TableCell colSpan={9} className="h-32 text-center">
                         <div className="flex items-center justify-center">
                           <svg
                             className="animate-spin h-6 w-6 text-primary"
@@ -594,8 +668,8 @@ export default function ATMComplaints() {
                     </TableRow>
                   ) : complaints.length === 0 ? (
                     <TableRow>
-                      <TableCell 
-                        colSpan={9} 
+                      <TableCell
+                        colSpan={9}
                         className="h-32 text-center text-muted-foreground"
                       >
                         Tidak ada data komplain
@@ -603,12 +677,18 @@ export default function ATMComplaints() {
                     </TableRow>
                   ) : (
                     complaints.map((complaint) => (
-                      <TableRow key={complaint.id} className="hover:bg-muted/50">
+                      <TableRow
+                        key={complaint.id}
+                        className="hover:bg-muted/50"
+                      >
                         <TableCell className="font-medium">
                           {complaint.atm_id}
                         </TableCell>
                         <TableCell>
-                          <div className="max-w-[200px] truncate" title={complaint.complaint}>
+                          <div
+                            className="max-w-[200px] truncate"
+                            title={complaint.complaint}
+                          >
                             {complaint.complaint}
                           </div>
                         </TableCell>
@@ -627,19 +707,26 @@ export default function ATMComplaints() {
                           {formatToRupiah(complaint.nominal)}
                         </TableCell>
                         <TableCell>
-                          {format(new Date(complaint.date_complaint), "dd MMM yyyy", { locale: id })}
+                          {format(
+                            new Date(complaint.date_complaint),
+                            "dd MMM yyyy",
+                            { locale: id },
+                          )}
                         </TableCell>
                         <TableCell>
-                          <Badge 
-                            variant="outline" 
+                          <Badge
+                            variant="outline"
                             className={`${getStatusColor(complaint.status)}`}
                           >
                             {complaint.status}
                           </Badge>
                         </TableCell>
                         <TableCell>
-                          <div className="max-w-[200px] truncate" title={complaint.resolution || '-'}>
-                            {complaint.resolution || '-'}
+                          <div
+                            className="max-w-[200px] truncate"
+                            title={complaint.resolution || "-"}
+                          >
+                            {complaint.resolution || "-"}
                           </div>
                         </TableCell>
                         <TableCell>
@@ -688,7 +775,7 @@ export default function ATMComplaints() {
               <span className="font-medium">{totalPages}</span>
             </div>
           </div>
-          
+
           <div className="flex items-center gap-2">
             <Button
               variant="outline"
@@ -721,7 +808,7 @@ export default function ATMComplaints() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Batal</AlertDialogCancel>
-            <AlertDialogAction 
+            <AlertDialogAction
               onClick={() => confirmDelete()}
               className="bg-red-600"
             >

@@ -1,11 +1,23 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import  supabase  from '@/lib/supabase';
-import { ColumnDef, useReactTable, getCoreRowModel, getPaginationRowModel } from '@tanstack/react-table';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { toast } from 'sonner';
-import * as XLSX from 'xlsx';
+import { useEffect, useState } from "react";
+import supabase from "@/lib/supabase";
+import {
+  ColumnDef,
+  useReactTable,
+  getCoreRowModel,
+  getPaginationRowModel,
+} from "@tanstack/react-table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { toast } from "sonner";
+import * as XLSX from "xlsx";
 
 type User = {
   id: number;
@@ -30,14 +42,14 @@ export default function DataTable() {
 
   useEffect(() => {
     const fetchData = async () => {
-      const { data: users, error } = await supabase.from('users').select('*');
+      const { data: users, error } = await supabase.from("users").select("*");
       if (error) {
         console.error(error);
-        toast.error('Gagal memuat data!');
+        toast.error("Gagal memuat data!");
       } else {
         const uniqueData = removeDuplicates(users); // Filter duplikasi
         setData(uniqueData);
-        toast.success('Data berhasil dimuat!');
+        toast.success("Data berhasil dimuat!");
       }
       setLoading(false);
     };
@@ -59,26 +71,26 @@ export default function DataTable() {
   const exportToExcel = () => {
     const worksheet = XLSX.utils.json_to_sheet(data);
     const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, 'Users');
-    XLSX.writeFile(workbook, 'users.xlsx');
-    toast.success('Data berhasil diekspor ke Excel!');
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Users");
+    XLSX.writeFile(workbook, "users.xlsx");
+    toast.success("Data berhasil diekspor ke Excel!");
   };
 
   const columns: ColumnDef<User>[] = [
-    { accessorKey: 'id', header: 'ID' },
-    { accessorKey: 'user_estim', header: 'User ESTIM' },
+    { accessorKey: "id", header: "ID" },
+    { accessorKey: "user_estim", header: "User ESTIM" },
     {
-      accessorKey: 'nama',
-      header: 'Pemegang',
+      accessorKey: "nama",
+      header: "Pemegang",
       cell: ({ row }) => (
-        <TableCell colSpan={2}>{row.original.nama || 'Tidak Ada'}</TableCell>
+        <TableCell colSpan={2}>{row.original.nama || "Tidak Ada"}</TableCell>
       ),
     },
-    { accessorKey: 'jabatan', header: 'Jabatan' },
-    { accessorKey: 'unit_kerja', header: 'Unit Kerja' },
-    { accessorKey: 'cab', header: 'Cabang' },
-    { accessorKey: 'status_user', header: 'Status' },
-    { accessorKey: 'updated_at', header: 'Last Updated' },
+    { accessorKey: "jabatan", header: "Jabatan" },
+    { accessorKey: "unit_kerja", header: "Unit Kerja" },
+    { accessorKey: "cab", header: "Cabang" },
+    { accessorKey: "status_user", header: "Status" },
+    { accessorKey: "updated_at", header: "Last Updated" },
   ];
 
   const table = useReactTable({
@@ -107,11 +119,10 @@ export default function DataTable() {
             <TableRow key={headerGroup.id}>
               {headerGroup.headers.map((header) => (
                 <TableHead key={header.id}>
-                {typeof header.column.columnDef.header === 'function'
-                  ? header.column.columnDef.header(header.getContext()) // Panggil fungsi header
-                  : header.column.columnDef.header || null}
-              </TableHead>
-              
+                  {typeof header.column.columnDef.header === "function"
+                    ? header.column.columnDef.header(header.getContext()) // Panggil fungsi header
+                    : header.column.columnDef.header || null}
+                </TableHead>
               ))}
             </TableRow>
           ))}
@@ -135,7 +146,8 @@ export default function DataTable() {
           Previous
         </button>
         <span>
-          Halaman {table.getState().pagination.pageIndex + 1} dari {table.getPageCount()}
+          Halaman {table.getState().pagination.pageIndex + 1} dari{" "}
+          {table.getPageCount()}
         </span>
         <button
           onClick={() => table.nextPage()}

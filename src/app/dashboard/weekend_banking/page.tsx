@@ -17,7 +17,13 @@ import { ArrowUpDown, ChevronDown } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -33,8 +39,19 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import supabase from "@/lib/supabase";
-import { Card, CardHeader, CardContent, CardFooter } from "@/components/ui/card";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import {
+  Card,
+  CardHeader,
+  CardContent,
+  CardFooter,
+} from "@/components/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 type AccessLog = {
   id: number;
@@ -50,10 +67,15 @@ export default function WeekendBankingTable() {
   const [accessLogs, setAccessLogs] = React.useState<AccessLog[]>([]);
   const [globalFilter, setGlobalFilter] = React.useState("");
   const [sorting, setSorting] = React.useState<SortingState>([]);
-  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
-  const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
+  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
+    [],
+  );
+  const [columnVisibility, setColumnVisibility] =
+    React.useState<VisibilityState>({});
   const [isDialogOpen, setIsDialogOpen] = React.useState(false);
-  const [newLog, setNewLog] = React.useState<Omit<AccessLog, "id" | "akses_count" | "last_access">>({
+  const [newLog, setNewLog] = React.useState<
+    Omit<AccessLog, "id" | "akses_count" | "last_access">
+  >({
     user_estim: "",
     ip_address: "",
     nama: "",
@@ -61,29 +83,39 @@ export default function WeekendBankingTable() {
     tanggal_akhir: new Date(),
     jenis_permohonan: "",
   });
-  const [users, setUsers] = React.useState<Array<{
-    user_estim: string;
-    ip_address: string;
-    nama: string;
-  }>>([]);
+  const [users, setUsers] = React.useState<
+    Array<{
+      user_estim: string;
+      ip_address: string;
+      nama: string;
+    }>
+  >([]);
 
   React.useEffect(() => {
     fetchUsers();
     fetchAccessLogs();
   }, []);
 
-  const groupUsersByEstim = (users: Array<{
-    user_estim: string;
-    ip_address: string;
-    nama: string;
-  }>) => {
-    const grouped = users.reduce((acc, user) => {
-      if (!acc[user.user_estim]) {
-        acc[user.user_estim] = user;
-      }
-      return acc;
-    }, {} as Record<string, { user_estim: string; ip_address: string; nama: string; }>);
-    
+  const groupUsersByEstim = (
+    users: Array<{
+      user_estim: string;
+      ip_address: string;
+      nama: string;
+    }>,
+  ) => {
+    const grouped = users.reduce(
+      (acc, user) => {
+        if (!acc[user.user_estim]) {
+          acc[user.user_estim] = user;
+        }
+        return acc;
+      },
+      {} as Record<
+        string,
+        { user_estim: string; ip_address: string; nama: string }
+      >,
+    );
+
     return Object.values(grouped);
   };
 
@@ -92,7 +124,7 @@ export default function WeekendBankingTable() {
       .from("users")
       .select("user_estim, ip_address, nama")
       .not("user_estim", "is", null);
-    
+
     if (error) {
       console.error("Error fetching users:", error);
       return;
@@ -106,7 +138,7 @@ export default function WeekendBankingTable() {
     const { data: userData, error: userError } = await supabase
       .from("users")
       .select("user_estim, ip_address, nama");
-    
+
     if (userError) {
       console.error("Error fetching users:", userError);
       return;
@@ -121,12 +153,12 @@ export default function WeekendBankingTable() {
       return;
     }
 
-    const combinedData = logsData?.map(log => {
-      const user = userData?.find(u => u.user_estim === log.user_estim);
+    const combinedData = logsData?.map((log) => {
+      const user = userData?.find((u) => u.user_estim === log.user_estim);
       return {
         ...log,
-        ip_address: user?.ip_address || '',
-        nama: user?.nama || '',
+        ip_address: user?.ip_address || "",
+        nama: user?.nama || "",
       };
     });
 
@@ -134,20 +166,25 @@ export default function WeekendBankingTable() {
   }
 
   async function handleAddLog() {
-    const { error } = await supabase
-      .from("access_logs")
-      .insert({
-        ...newLog,
-        akses_count: 0,
-        last_access: new Date().toISOString(),
-      });
+    const { error } = await supabase.from("access_logs").insert({
+      ...newLog,
+      akses_count: 0,
+      last_access: new Date().toISOString(),
+    });
     if (error) {
       console.error("Error adding log:", error);
       return;
     }
     fetchAccessLogs();
     setIsDialogOpen(false);
-    setNewLog({ user_estim: "", ip_address: "", nama: "" , tanggal_awal: new Date(), tanggal_akhir: new Date(), jenis_permohonan: ""});
+    setNewLog({
+      user_estim: "",
+      ip_address: "",
+      nama: "",
+      tanggal_awal: new Date(),
+      tanggal_akhir: new Date(),
+      jenis_permohonan: "",
+    });
   }
 
   const columns: ColumnDef<AccessLog>[] = [
@@ -222,7 +259,9 @@ export default function WeekendBankingTable() {
                     key={column.id}
                     className="capitalize"
                     checked={column.getIsVisible()}
-                    onCheckedChange={(value) => column.toggleVisibility(!!value)}
+                    onCheckedChange={(value) =>
+                      column.toggleVisibility(!!value)
+                    }
                   >
                     {column.id}
                   </DropdownMenuCheckboxItem>
@@ -230,7 +269,7 @@ export default function WeekendBankingTable() {
             </DropdownMenuContent>
           </DropdownMenu>
           {/* <DialogTrigger asChild> */}
-            <Button onClick={() => setIsDialogOpen(true)}>Add New Data</Button>
+          <Button onClick={() => setIsDialogOpen(true)}>Add New Data</Button>
           {/* </DialogTrigger> */}
         </div>
       </div>
@@ -243,12 +282,12 @@ export default function WeekendBankingTable() {
             <Select
               value={newLog.user_estim || undefined}
               onValueChange={(value) => {
-                const selectedUser = users.find(u => u.user_estim === value);
+                const selectedUser = users.find((u) => u.user_estim === value);
                 setNewLog({
                   ...newLog,
                   user_estim: value,
-                  ip_address: selectedUser?.ip_address || '',
-                  nama: selectedUser?.nama || ''
+                  ip_address: selectedUser?.ip_address || "",
+                  nama: selectedUser?.nama || "",
                 });
               }}
             >
@@ -257,15 +296,14 @@ export default function WeekendBankingTable() {
               </SelectTrigger>
               <SelectContent>
                 {users
-                  .filter(user => user.user_estim && user.user_estim.trim() !== '')
+                  .filter(
+                    (user) => user.user_estim && user.user_estim.trim() !== "",
+                  )
                   .map((user) => (
-                    <SelectItem 
-                      key={user.user_estim} 
-                      value={user.user_estim}
-                    >
+                    <SelectItem key={user.user_estim} value={user.user_estim}>
                       {user.user_estim} - {user.nama}
                     </SelectItem>
-                ))}
+                  ))}
               </SelectContent>
             </Select>
 
@@ -274,11 +312,7 @@ export default function WeekendBankingTable() {
               value={newLog.ip_address}
               disabled
             />
-            <Input
-              placeholder="Nama"
-              value={newLog.nama}
-              disabled
-            />
+            <Input placeholder="Nama" value={newLog.nama} disabled />
             <Input
               type="date"
               placeholder="Tanggal Awal"
@@ -292,22 +326,23 @@ export default function WeekendBankingTable() {
               placeholder="Tanggal Akhir"
               value={newLog.tanggal_akhir.toISOString().substring(0, 10)}
               onChange={(e) =>
-                setNewLog({ ...newLog, tanggal_akhir: new Date(e.target.value) })
+                setNewLog({
+                  ...newLog,
+                  tanggal_akhir: new Date(e.target.value),
+                })
               }
             />
             <Select
               value={newLog.jenis_permohonan || undefined}
               onValueChange={(value) =>
-                setNewLog({ ...newLog, jenis_permohonan: value})
+                setNewLog({ ...newLog, jenis_permohonan: value })
               }
             >
               <SelectTrigger>
                 <SelectValue placeholder="Jenis Permohonan" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="Weekend Banking">
-                  Weekend Banking
-                </SelectItem>
+                <SelectItem value="Weekend Banking">Weekend Banking</SelectItem>
                 <SelectItem value="Perpanjangan Akses">
                   Perpanjangan Akses
                 </SelectItem>
@@ -322,47 +357,47 @@ export default function WeekendBankingTable() {
           <CardHeader className="font-bold text-lg">
             Weekend Banking dan Perpanjangan Akses
           </CardHeader>
-            <CardContent>
-        <Table>
-          <TableHeader>
-            {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => (
-                  <TableHead key={header.id}>
-                    {flexRender(
-                      header.column.columnDef.header,
-                      header.getContext()
-                    )}
-                  </TableHead>
+          <CardContent>
+            <Table>
+              <TableHeader>
+                {table.getHeaderGroups().map((headerGroup) => (
+                  <TableRow key={headerGroup.id}>
+                    {headerGroup.headers.map((header) => (
+                      <TableHead key={header.id}>
+                        {flexRender(
+                          header.column.columnDef.header,
+                          header.getContext(),
+                        )}
+                      </TableHead>
+                    ))}
+                  </TableRow>
                 ))}
-              </TableRow>
-            ))}
-          </TableHeader>
-          <TableBody>
-            {table.getRowModel().rows.length ? (
-              table.getRowModel().rows.map((row) => (
-                <TableRow key={row.id}>
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext()
-                      )}
+              </TableHeader>
+              <TableBody>
+                {table.getRowModel().rows.length ? (
+                  table.getRowModel().rows.map((row) => (
+                    <TableRow key={row.id}>
+                      {row.getVisibleCells().map((cell) => (
+                        <TableCell key={cell.id}>
+                          {flexRender(
+                            cell.column.columnDef.cell,
+                            cell.getContext(),
+                          )}
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={columns.length} className="text-center">
+                      No data found.
                     </TableCell>
-                  ))}
-                </TableRow>
-              ))
-            ) : (
-              <TableRow>
-                <TableCell colSpan={columns.length} className="text-center">
-                  No data found.
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
-        </CardContent>
-            </Card>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
       </div>
       <div className="flex justify-between items-center py-4">
         <span className="text-sm text-muted-foreground">

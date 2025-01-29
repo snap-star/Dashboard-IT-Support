@@ -19,7 +19,13 @@ import {
   CardHeader,
   CardFooter,
 } from "@/components/ui/card";
-import { ArrowUpDown, ChevronDown, MoreHorizontal, Loader2, AlertCircle } from "lucide-react";
+import {
+  ArrowUpDown,
+  ChevronDown,
+  MoreHorizontal,
+  Loader2,
+  AlertCircle,
+} from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { toast } from "sonner";
 
@@ -82,7 +88,7 @@ export default function IPAddressManagement() {
   const [globalFilter, setGlobalFilter] = React.useState("");
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
-    []
+    [],
   );
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({});
@@ -98,7 +104,7 @@ export default function IPAddressManagement() {
     jabatan: "",
     unit_kerja: "",
     cab: "",
-    status_user: "Aktif"
+    status_user: "Aktif",
   });
   const [pageIndex, setPageIndex] = React.useState(0);
   const [pageSize, setPageSize] = React.useState(10);
@@ -106,97 +112,103 @@ export default function IPAddressManagement() {
   const [ipAddressOptions, setIpAddressOptions] = React.useState<string[]>([]);
   const [isLoading, setIsLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
-  
+
   React.useEffect(() => {
     fetchUsers();
   }, []);
   const [lastUpdated, setLastUpdated] = React.useState<string>("");
 
   // Tambahkan fungsi ini sebelum useEffect
-const groupUsersByNIP = (users: User[]) => {
-  const grouped = users.reduce((acc, user) => {
-    const key = `${user.nip}-${user.nama}`;
-    if (!acc[key]) {
-      acc[key] = user;
-    } else {
-      // Jika user dengan NIP yang sama sudah ada, gabungkan informasi user
-      acc[key].user_estim += `, ${user.user_estim}`;
-      acc[key].ip_address += `, ${user.ip_address}`;
-      acc[key].mac_address += `, ${user.mac_address}`;
-    }
-    return acc;
-  }, {} as Record<string, User>);
+  const groupUsersByNIP = (users: User[]) => {
+    const grouped = users.reduce(
+      (acc, user) => {
+        const key = `${user.nip}-${user.nama}`;
+        if (!acc[key]) {
+          acc[key] = user;
+        } else {
+          // Jika user dengan NIP yang sama sudah ada, gabungkan informasi user
+          acc[key].user_estim += `, ${user.user_estim}`;
+          acc[key].ip_address += `, ${user.ip_address}`;
+          acc[key].mac_address += `, ${user.mac_address}`;
+        }
+        return acc;
+      },
+      {} as Record<string, User>,
+    );
 
-  return Object.values(grouped);
-};
+    return Object.values(grouped);
+  };
 
-// Fungsi untuk cek duplikasi
-const checkDuplicateUser = async (userEstim: string, nip: string, id?: number) => {
-  try {
-    let query = supabase
-      .from("users")
-      .select("id")
-      .or(`user_estim.ilike.%${userEstim}%,nip.eq.${nip}`);
-    
-    if (id) {
-      query = query.neq('id', id);
-    }
+  // Fungsi untuk cek duplikasi
+  const checkDuplicateUser = async (
+    userEstim: string,
+    nip: string,
+    id?: number,
+  ) => {
+    try {
+      let query = supabase
+        .from("users")
+        .select("id")
+        .or(`user_estim.ilike.%${userEstim}%,nip.eq.${nip}`);
 
-    const { data, error } = await query;
-    
-    if (error) throw error;
-    
-    return data.length > 0;
-  } catch (error) {
-    console.error('Error checking duplicate:', error);
-    throw new Error('Gagal memeriksa duplikasi data');
-  }
-};
-
-// Update fungsi fetchUsers dengan loading dan error handling
-const fetchUsers = async () => {
-  try {
-    setIsLoading(true);
-    setError(null);
-
-    const { data, error } = await supabase
-      .from("users")
-      .select("*")
-      .order('created_at', { ascending: false });
-
-    if (error) throw error;
-
-    const groupedUsers = groupUsersByNIP(data || []);
-    setUsers(groupedUsers);
-    
-    // Update options untuk dropdowns
-    const allUserEstims = new Set<string>();
-    const allIpAddresses = new Set<string>();
-    
-    data?.forEach(user => {
-      if (user.user_estim) {
-        user.user_estim.split(', ').forEach((estim: string) => {
-          allUserEstims.add(estim.trim());
-        });
+      if (id) {
+        query = query.neq("id", id);
       }
-      if (user.ip_address) {
-        user.ip_address.split(', ').forEach((ip: string) => {
-          allIpAddresses.add(ip.trim());
-        });
-      }
-    });
-    
-    setUserEstimOptions(Array.from(allUserEstims));
-    setIpAddressOptions(Array.from(allIpAddresses));
-    setLastUpdated(new Date().toLocaleString());
 
-  } catch (error: any) {
-    console.error('Error fetching users:', error);
-    setError(error.message || 'Gagal memuat data');
-  } finally {
-    setIsLoading(false);
-  }
-};
+      const { data, error } = await query;
+
+      if (error) throw error;
+
+      return data.length > 0;
+    } catch (error) {
+      console.error("Error checking duplicate:", error);
+      throw new Error("Gagal memeriksa duplikasi data");
+    }
+  };
+
+  // Update fungsi fetchUsers dengan loading dan error handling
+  const fetchUsers = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+
+      const { data, error } = await supabase
+        .from("users")
+        .select("*")
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+
+      const groupedUsers = groupUsersByNIP(data || []);
+      setUsers(groupedUsers);
+
+      // Update options untuk dropdowns
+      const allUserEstims = new Set<string>();
+      const allIpAddresses = new Set<string>();
+
+      data?.forEach((user) => {
+        if (user.user_estim) {
+          user.user_estim.split(", ").forEach((estim: string) => {
+            allUserEstims.add(estim.trim());
+          });
+        }
+        if (user.ip_address) {
+          user.ip_address.split(", ").forEach((ip: string) => {
+            allIpAddresses.add(ip.trim());
+          });
+        }
+      });
+
+      setUserEstimOptions(Array.from(allUserEstims));
+      setIpAddressOptions(Array.from(allIpAddresses));
+      setLastUpdated(new Date().toLocaleString());
+    } catch (error: any) {
+      console.error("Error fetching users:", error);
+      setError(error.message || "Gagal memuat data");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   // Tambahkan fungsi untuk mereset form
   const resetForm = () => {
@@ -209,7 +221,7 @@ const fetchUsers = async () => {
       jabatan: "",
       unit_kerja: "",
       cab: "",
-      status_user: "Aktif"
+      status_user: "Aktif",
     });
     setEditingUser(null);
   };
@@ -226,7 +238,7 @@ const fetchUsers = async () => {
       jabatan: user.jabatan,
       unit_kerja: user.unit_kerja,
       cab: user.cab,
-      status_user: user.status_user
+      status_user: user.status_user,
     });
     setIsDialogOpen(true);
   };
@@ -243,7 +255,7 @@ const fetchUsers = async () => {
       jabatan: "",
       unit_kerja: "",
       cab: "",
-      status_user: "Aktif"
+      status_user: "Aktif",
     });
     setIsDialogOpen(true);
   };
@@ -258,11 +270,11 @@ const fetchUsers = async () => {
       const isDuplicate = await checkDuplicateUser(
         formData.user_estim,
         formData.nip,
-        editingUser?.id
+        editingUser?.id,
       );
 
       if (isDuplicate) {
-        toast.error('User ESTIM atau NIP sudah terdaftar');
+        toast.error("User ESTIM atau NIP sudah terdaftar");
         return;
       }
 
@@ -277,9 +289,7 @@ const fetchUsers = async () => {
         toast.success("Data berhasil diperbarui");
       } else {
         // Create new user
-        const { error } = await supabase
-          .from("users")
-          .insert([formData]);
+        const { error } = await supabase.from("users").insert([formData]);
 
         if (error) throw error;
         toast.success("Data berhasil ditambahkan");
@@ -288,8 +298,8 @@ const fetchUsers = async () => {
       setIsDialogOpen(false);
       fetchUsers();
     } catch (error: any) {
-      console.error('Error saving user:', error);
-      toast.error(error.message || 'Gagal menyimpan data');
+      console.error("Error saving user:", error);
+      toast.error(error.message || "Gagal menyimpan data");
     } finally {
       setIsLoading(false);
     }
@@ -324,7 +334,7 @@ const fetchUsers = async () => {
       const { data: allUsers, error: fetchError } = await supabase
         .from("users")
         .select("*")
-        .order('user_estim');  // Menambahkan pengurutan untuk konsistensi
+        .order("user_estim"); // Menambahkan pengurutan untuk konsistensi
 
       if (fetchError) throw fetchError;
 
@@ -332,21 +342,23 @@ const fetchUsers = async () => {
       const userEstimMap = new Map();
 
       // Isi map dengan data yang memiliki informasi lengkap
-      allUsers?.forEach(user => {
+      allUsers?.forEach((user) => {
         if (user.user_estim) {
           // Split multiple user_estim jika ada
-          const userEstims = user.user_estim.split(',').map((e: string) => e.trim());
-          
+          const userEstims = user.user_estim
+            .split(",")
+            .map((e: string) => e.trim());
+
           if (user.nama && user.nip) {
             userEstims.forEach((estim: string) => {
               if (estim) {
                 userEstimMap.set(estim, {
                   nama: user.nama,
                   nip: user.nip,
-                  jabatan: user.jabatan || '',
-                  unit_kerja: user.unit_kerja || '',
-                  cab: user.cab || '',
-                  status_user: user.status_user || 'Aktif'
+                  jabatan: user.jabatan || "",
+                  unit_kerja: user.unit_kerja || "",
+                  cab: user.cab || "",
+                  status_user: user.status_user || "Aktif",
                 });
               }
             });
@@ -359,8 +371,10 @@ const fetchUsers = async () => {
       for (const user of allUsers || []) {
         if (user.user_estim && (!user.nama || !user.nip)) {
           // Split multiple user_estim jika ada
-          const userEstims = user.user_estim.split(',').map((e: string) => e.trim());
-          
+          const userEstims = user.user_estim
+            .split(",")
+            .map((e: string) => e.trim());
+
           for (const estim of userEstims) {
             const referenceData = userEstimMap.get(estim);
             if (referenceData) {
@@ -369,7 +383,7 @@ const fetchUsers = async () => {
                 ...referenceData,
                 user_estim: user.user_estim, // Pertahankan user_estim asli
                 ip_address: user.ip_address, // Pertahankan ip_address asli
-                mac_address: user.mac_address // Pertahankan mac_address asli
+                mac_address: user.mac_address, // Pertahankan mac_address asli
               });
               break; // Gunakan data referensi pertama yang ditemukan
             }
@@ -390,10 +404,10 @@ const fetchUsers = async () => {
                 jabatan: update.jabatan,
                 unit_kerja: update.unit_kerja,
                 cab: update.cab,
-                status_user: update.status_user
+                status_user: update.status_user,
               })
               .eq("id", update.id);
-            
+
             if (!updateError) {
               successCount++;
             } else {
@@ -406,7 +420,9 @@ const fetchUsers = async () => {
 
         // Refresh data dan tampilkan hasil
         await fetchUsers();
-        alert(`Berhasil mengupdate ${successCount} dari ${updates.length} data`);
+        alert(
+          `Berhasil mengupdate ${successCount} dari ${updates.length} data`,
+        );
       } else {
         alert("Tidak ada data yang perlu diupdate");
       }
@@ -526,9 +542,7 @@ const fetchUsers = async () => {
       cell: ({ row }) => {
         const status = row.getValue("status_user") as string;
         return (
-          <Badge
-            variant={status === "Aktif" ? "default" : "secondary"}
-          >
+          <Badge variant={status === "Aktif" ? "default" : "secondary"}>
             {status}
           </Badge>
         );
@@ -582,7 +596,7 @@ const fetchUsers = async () => {
       },
     },
     onPaginationChange: (updater) => {
-      if (typeof updater === 'function') {
+      if (typeof updater === "function") {
         const newState = updater({
           pageIndex,
           pageSize,
@@ -622,7 +636,7 @@ const fetchUsers = async () => {
             className="max-w-sm"
             disabled={isLoading}
           />
-          <Button 
+          <Button
             variant="secondary"
             onClick={updateEmptyUsers}
             disabled={isLoading}
@@ -638,20 +652,16 @@ const fetchUsers = async () => {
             )}
           </Button>
         </div>
-        
+
         <div className="flex items-center gap-2">
-          <Button 
+          <Button
             variant="outline"
             onClick={exportToExcel}
             disabled={isLoading}
           >
             Export Excel
           </Button>
-          <Button
-            variant="default"
-            onClick={handleAddNew}
-            disabled={isLoading}
-          >
+          <Button variant="default" onClick={handleAddNew} disabled={isLoading}>
             Add New User
           </Button>
         </div>
@@ -668,20 +678,20 @@ const fetchUsers = async () => {
                 </div>
               </div>
             )}
-            
+
             <Table>
               <TableHeader>
                 {table.getHeaderGroups().map((headerGroup) => (
                   <TableRow key={headerGroup.id}>
                     {headerGroup.headers.map((header) => (
-                      <TableHead 
+                      <TableHead
                         key={header.id}
                         style={{ width: header.getSize() }}
                         className="overflow-hidden"
                       >
                         {flexRender(
                           header.column.columnDef.header,
-                          header.getContext()
+                          header.getContext(),
                         )}
                       </TableHead>
                     ))}
@@ -693,14 +703,14 @@ const fetchUsers = async () => {
                   table.getRowModel().rows.map((row) => (
                     <TableRow key={row.id}>
                       {row.getVisibleCells().map((cell) => (
-                        <TableCell 
+                        <TableCell
                           key={cell.id}
                           style={{ width: cell.column.getSize() }}
                           className="overflow-hidden"
                         >
                           {flexRender(
                             cell.column.columnDef.cell,
-                            cell.getContext()
+                            cell.getContext(),
                           )}
                         </TableCell>
                       ))}
@@ -755,8 +765,8 @@ const fetchUsers = async () => {
               {editingUser ? "Edit User" : "Tambah User Baru"}
             </DialogTitle>
             <DialogDescription>
-              {editingUser 
-                ? "Edit informasi user ESTIM dan IP Address" 
+              {editingUser
+                ? "Edit informasi user ESTIM dan IP Address"
                 : "Tambahkan user ESTIM dan IP Address baru"}
             </DialogDescription>
           </DialogHeader>
@@ -769,10 +779,12 @@ const fetchUsers = async () => {
                   <Input
                     id="nama"
                     value={formData.nama}
-                    onChange={(e) => setFormData(prev => ({
-                      ...prev,
-                      nama: e.target.value
-                    }))}
+                    onChange={(e) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        nama: e.target.value,
+                      }))
+                    }
                     placeholder="Nama lengkap"
                     required
                   />
@@ -783,10 +795,12 @@ const fetchUsers = async () => {
                   <Input
                     id="nip"
                     value={formData.nip}
-                    onChange={(e) => setFormData(prev => ({
-                      ...prev,
-                      nip: e.target.value
-                    }))}
+                    onChange={(e) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        nip: e.target.value,
+                      }))
+                    }
                     placeholder="Nomor Induk Pegawai"
                     required
                   />
@@ -797,10 +811,12 @@ const fetchUsers = async () => {
                   <Input
                     id="jabatan"
                     value={formData.jabatan}
-                    onChange={(e) => setFormData(prev => ({
-                      ...prev,
-                      jabatan: e.target.value
-                    }))}
+                    onChange={(e) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        jabatan: e.target.value,
+                      }))
+                    }
                     placeholder="Jabatan"
                     required
                   />
@@ -811,10 +827,12 @@ const fetchUsers = async () => {
                   <Input
                     id="unit_kerja"
                     value={formData.unit_kerja}
-                    onChange={(e) => setFormData(prev => ({
-                      ...prev,
-                      unit_kerja: e.target.value
-                    }))}
+                    onChange={(e) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        unit_kerja: e.target.value,
+                      }))
+                    }
                     placeholder="Unit Kerja"
                     required
                   />
@@ -828,10 +846,12 @@ const fetchUsers = async () => {
                   <Input
                     id="user_estim"
                     value={formData.user_estim}
-                    onChange={(e) => setFormData(prev => ({
-                      ...prev,
-                      user_estim: e.target.value
-                    }))}
+                    onChange={(e) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        user_estim: e.target.value,
+                      }))
+                    }
                     placeholder="User ESTIM"
                     required
                   />
@@ -842,10 +862,12 @@ const fetchUsers = async () => {
                   <Input
                     id="ip_address"
                     value={formData.ip_address}
-                    onChange={(e) => setFormData(prev => ({
-                      ...prev,
-                      ip_address: e.target.value
-                    }))}
+                    onChange={(e) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        ip_address: e.target.value,
+                      }))
+                    }
                     placeholder="IP Address"
                     required
                   />
@@ -856,10 +878,12 @@ const fetchUsers = async () => {
                   <Input
                     id="mac_address"
                     value={formData.mac_address}
-                    onChange={(e) => setFormData(prev => ({
-                      ...prev,
-                      mac_address: e.target.value
-                    }))}
+                    onChange={(e) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        mac_address: e.target.value,
+                      }))
+                    }
                     placeholder="MAC Address"
                     required
                   />
@@ -870,10 +894,12 @@ const fetchUsers = async () => {
                   <Input
                     id="cab"
                     value={formData.cab}
-                    onChange={(e) => setFormData(prev => ({
-                      ...prev,
-                      cab: e.target.value
-                    }))}
+                    onChange={(e) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        cab: e.target.value,
+                      }))
+                    }
                     placeholder="Cabang/Capem"
                     required
                   />
@@ -883,10 +909,12 @@ const fetchUsers = async () => {
                   <Label htmlFor="status_user">Status User</Label>
                   <Select
                     value={formData.status_user}
-                    onValueChange={(value) => setFormData(prev => ({
-                      ...prev,
-                      status_user: value
-                    }))}
+                    onValueChange={(value) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        status_user: value,
+                      }))
+                    }
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Pilih status" />
@@ -914,8 +942,10 @@ const fetchUsers = async () => {
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     {editingUser ? "Menyimpan..." : "Menambahkan..."}
                   </>
+                ) : editingUser ? (
+                  "Simpan Perubahan"
                 ) : (
-                  editingUser ? "Simpan Perubahan" : "Tambah User"
+                  "Tambah User"
                 )}
               </Button>
             </DialogFooter>
@@ -941,16 +971,25 @@ const fetchUsers = async () => {
                   checked={column.getIsVisible()}
                   onCheckedChange={(value) => column.toggleVisibility(!!value)}
                 >
-                  {column.id === "user_estim" ? "User ESTIM" :
-                   column.id === "ip_address" ? "IP Address" :
-                   column.id === "mac_address" ? "MAC Address" :
-                   column.id === "nama" ? "Nama Pemegang" :
-                   column.id === "nip" ? "NIP" :
-                   column.id === "jabatan" ? "Jabatan" :
-                   column.id === "unit_kerja" ? "Unit Kerja" :
-                   column.id === "cab" ? "Cabang/Capem" :
-                   column.id === "status_user" ? "Status" :
-                   column.id}
+                  {column.id === "user_estim"
+                    ? "User ESTIM"
+                    : column.id === "ip_address"
+                      ? "IP Address"
+                      : column.id === "mac_address"
+                        ? "MAC Address"
+                        : column.id === "nama"
+                          ? "Nama Pemegang"
+                          : column.id === "nip"
+                            ? "NIP"
+                            : column.id === "jabatan"
+                              ? "Jabatan"
+                              : column.id === "unit_kerja"
+                                ? "Unit Kerja"
+                                : column.id === "cab"
+                                  ? "Cabang/Capem"
+                                  : column.id === "status_user"
+                                    ? "Status"
+                                    : column.id}
                 </DropdownMenuCheckboxItem>
               );
             })}

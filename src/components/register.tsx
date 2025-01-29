@@ -29,20 +29,20 @@ export default function Register() {
       setLoading(false);
       return;
     }
-    
+
     try {
-      const { data, error } = await supabase.auth.signUp({ 
+      const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
           data: {
             name: name,
-          }
-        }
+          },
+        },
       });
-      
+
       if (error) throw error;
-      
+
       router.push("/login");
     } catch (error: any) {
       setErrorMessage(error.message);
@@ -70,7 +70,9 @@ export default function Register() {
             transition={{ delay: 0.2 }}
             className="text-center space-y-2"
           >
-            <h1 className="text-3xl font-bold text-foreground">Create Account</h1>
+            <h1 className="text-3xl font-bold text-foreground">
+              Create Account
+            </h1>
             <p className="text-muted-foreground text-sm">
               Silahkan isi data diri anda untuk membuat akun
             </p>
