@@ -13,6 +13,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
+import { id } from "date-fns/locale";
 
 export function DatePicker() {
   const [date, setDate] = React.useState<Date>();
@@ -61,6 +62,7 @@ export function DatePicker() {
             mode="single"
             selected={date}
             onSelect={handleDateSelect}
+            locale={id}
             initialFocus
           />
           <div className="flex flex-col sm:flex-row sm:h-[300px] divide-y sm:divide-y-0 sm:divide-x">

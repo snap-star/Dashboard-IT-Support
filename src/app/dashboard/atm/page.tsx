@@ -54,6 +54,7 @@ import { id } from "date-fns/locale";
 import { toast } from "sonner";
 import supabase from "@/lib/supabase";
 import * as XLSX from "xlsx";
+import { DatePickerDefault } from "@/components/ui/date-picker-default";
 
 // Types
 interface ATMComplaint {
@@ -352,13 +353,13 @@ export default function ATMComplaints() {
                             onChange={(e) =>
                               editingComplaint
                                 ? setEditingComplaint({
-                                    ...editingComplaint,
-                                    atm_id: e.target.value,
-                                  })
+                                  ...editingComplaint,
+                                  atm_id: e.target.value,
+                                })
                                 : setNewComplaint({
-                                    ...newComplaint,
-                                    atm_id: e.target.value,
-                                  })
+                                  ...newComplaint,
+                                  atm_id: e.target.value,
+                                })
                             }
                           />
                         </div>
@@ -375,13 +376,13 @@ export default function ATMComplaints() {
                             onChange={(e) =>
                               editingComplaint
                                 ? setEditingComplaint({
-                                    ...editingComplaint,
-                                    reported_by: e.target.value,
-                                  })
+                                  ...editingComplaint,
+                                  reported_by: e.target.value,
+                                })
                                 : setNewComplaint({
-                                    ...newComplaint,
-                                    reported_by: e.target.value,
-                                  })
+                                  ...newComplaint,
+                                  reported_by: e.target.value,
+                                })
                             }
                           />
                         </div>
@@ -402,13 +403,13 @@ export default function ATMComplaints() {
                             onChange={(e) =>
                               editingComplaint
                                 ? setEditingComplaint({
-                                    ...editingComplaint,
-                                    account_number: e.target.value,
-                                  })
+                                  ...editingComplaint,
+                                  account_number: e.target.value,
+                                })
                                 : setNewComplaint({
-                                    ...newComplaint,
-                                    account_number: e.target.value,
-                                  })
+                                  ...newComplaint,
+                                  account_number: e.target.value,
+                                })
                             }
                           />
                         </div>
@@ -426,13 +427,13 @@ export default function ATMComplaints() {
                             onChange={(e) =>
                               editingComplaint
                                 ? setEditingComplaint({
-                                    ...editingComplaint,
-                                    nominal: Number(e.target.value),
-                                  })
+                                  ...editingComplaint,
+                                  nominal: Number(e.target.value),
+                                })
                                 : setNewComplaint({
-                                    ...newComplaint,
-                                    nominal: Number(e.target.value),
-                                  })
+                                  ...newComplaint,
+                                  nominal: Number(e.target.value),
+                                })
                             }
                           />
                         </div>
@@ -444,6 +445,27 @@ export default function ATMComplaints() {
                           <Label htmlFor="date_complaint">
                             Tanggal Kejadian
                           </Label>
+                          {/* <DatePickerDefault
+  date={
+    editingComplaint
+      ? new Date(editingComplaint.date_complaint)
+      : new Date(newComplaint.date_complaint)
+  }
+  setDate={(date: Date | undefined) => {
+    const selectedDate = date ? date.toISOString().split('T')[0] : '';
+    if (editingComplaint) {
+      setEditingComplaint({
+        ...editingComplaint,
+        date_complaint: selectedDate,
+      });
+    } else {
+      setNewComplaint({
+        ...newComplaint,
+        date_complaint: selectedDate,
+      });
+    }
+  }}
+/> */}
                           <Input
                             id="date_complaint"
                             type="date"
@@ -476,13 +498,13 @@ export default function ATMComplaints() {
                             onValueChange={(value) =>
                               editingComplaint
                                 ? setEditingComplaint({
-                                    ...editingComplaint,
-                                    status: value,
-                                  })
+                                  ...editingComplaint,
+                                  status: value,
+                                })
                                 : setNewComplaint({
-                                    ...newComplaint,
-                                    status: value,
-                                  })
+                                  ...newComplaint,
+                                  status: value,
+                                })
                             }
                           >
                             <SelectTrigger>
@@ -515,13 +537,13 @@ export default function ATMComplaints() {
                           onChange={(e) =>
                             editingComplaint
                               ? setEditingComplaint({
-                                  ...editingComplaint,
-                                  complaint: e.target.value,
-                                })
+                                ...editingComplaint,
+                                complaint: e.target.value,
+                              })
                               : setNewComplaint({
-                                  ...newComplaint,
-                                  complaint: e.target.value,
-                                })
+                                ...newComplaint,
+                                complaint: e.target.value,
+                              })
                           }
                         />
                       </div>
@@ -541,13 +563,13 @@ export default function ATMComplaints() {
                           onChange={(e) =>
                             editingComplaint
                               ? setEditingComplaint({
-                                  ...editingComplaint,
-                                  resolution: e.target.value,
-                                })
+                                ...editingComplaint,
+                                resolution: e.target.value,
+                              })
                               : setNewComplaint({
-                                  ...newComplaint,
-                                  resolution: e.target.value,
-                                })
+                                ...newComplaint,
+                                resolution: e.target.value,
+                              })
                           }
                         />
                       </div>

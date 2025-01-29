@@ -32,7 +32,6 @@ import {
 } from "@/components/ui/select";
 import { CalendarIcon, Download } from "lucide-react";
 import { format } from "date-fns";
-import { DatePicker } from "@/components/ui/date-picker"; // Assume we have a custom date picker component
 import {
   Table,
   TableBody,
@@ -63,6 +62,7 @@ import { Calendar } from "@/components/ui/calendar";
 import * as XLSX from "xlsx";
 import { toast } from "sonner";
 import { DateRange } from "react-day-picker";
+import { DatePickerDefault } from "@/components/ui/date-picker-default";
 
 type Incident = {
   id: number;
@@ -427,14 +427,10 @@ export default function ITIncidentManagement() {
                     })
               }
             />
-            <DatePicker
-              value={
-                new Date(
-                  editingIncident?.date_reported || newIncident.date_reported,
-                )
-              }
-              onChange={(date: Date | undefined) => {
-                const selectedDate = date || new Date(); // Fallback to current date if `date` is undefined
+            <DatePickerDefault
+              date={editingIncident ? new Date(editingIncident.date_reported) : new Date(newIncident.date_reported)}
+              setDateAction={(newDate: Date | undefined) => {
+                const selectedDate = newDate || new Date();
                 if (editingIncident) {
                   setEditingIncident({
                     ...editingIncident,
