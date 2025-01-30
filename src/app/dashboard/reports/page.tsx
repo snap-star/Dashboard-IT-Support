@@ -64,7 +64,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import ReportLayout from "./layout";
 import supabase from "@/lib/supabase";
 
 // Schema untuk form checklist
@@ -419,403 +418,395 @@ export default function RoomChecklistPage() {
   };
 
   return (
-    <ReportLayout>
-      <div className="space-y-6">
-        <div className="flex justify-between items-center">
-          <div className="flex items-center gap-4">
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  className={cn(
-                    "justify-start text-left font-normal",
-                    !date && "text-muted-foreground",
-                  )}
-                >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {date?.from ? (
-                    date.to ? (
-                      <>
-                        {formatIndonesianDate(date.from)} -{" "}
-                        {formatIndonesianDate(date.to)}
-                      </>
-                    ) : (
-                      formatIndonesianDate(date.from)
-                    )
-                  ) : (
-                    "Pilih tanggal"
-                  )}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="end">
-                <Calendar
-                  initialFocus
-                  mode="range"
-                  defaultMonth={date?.from}
-                  selected={date}
-                  onSelect={setDate}
-                  numberOfMonths={2}
-                />
-              </PopoverContent>
-            </Popover>
-
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button disabled={isExporting}>
-                  {isExporting ? (
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <div className="flex items-center gap-4">
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                className={cn(
+                  "justify-start text-left font-normal",
+                  !date && "text-muted-foreground",
+                )}
+              >
+                <CalendarIcon className="mr-2 h-4 w-4" />
+                {date?.from ? (
+                  date.to ? (
                     <>
-                      <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
-                      Mengexport...
+                      {formatIndonesianDate(date.from)} -{" "}
+                      {formatIndonesianDate(date.to)}
                     </>
                   ) : (
-                    <>Download Excel</>
-                  )}
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={handleExportAll}>
-                  Semua Data
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={handleExportRange}
-                  disabled={!date?.from}
-                >
-                  Data Berdasarkan Tanggal
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-        </div>
+                    formatIndonesianDate(date.from)
+                  )
+                ) : (
+                  "Pilih tanggal"
+                )}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="end">
+              <Calendar
+                initialFocus
+                mode="range"
+                defaultMonth={date?.from}
+                selected={date}
+                onSelect={setDate}
+                numberOfMonths={2}
+              />
+            </PopoverContent>
+          </Popover>
 
-        <div className="grid gap-6 md:grid-cols-2">
-          <Card className="shadow-md">
-            <CardHeader>
-              <CardTitle>Form Checklist Ruangan</CardTitle>
-              <CardDescription>
-                Isi form checklist untuk pengecekan ruangan
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Form {...form}>
-                <form
-                  onSubmit={form.handleSubmit(onSubmit)}
-                  className="space-y-4"
-                >
-                  <FormField
-                    control={form.control}
-                    name="location_id"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Lokasi</FormLabel>
-                        <Select
-                          onValueChange={(value) => {
-                            field.onChange(value);
-                            handleLocationChange(value);
-                          }}
-                          value={field.value}
-                        >
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Pilih lokasi" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {locations.map((location) => (
-                              <SelectItem key={location.id} value={location.id}>
-                                {location.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="room_id"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Ruangan</FormLabel>
-                        <Select
-                          onValueChange={field.onChange}
-                          value={field.value}
-                          disabled={!form.watch("location_id")}
-                        >
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Pilih ruangan" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {filteredRooms.map((room) => (
-                              <SelectItem key={room.id} value={room.id}>
-                                {room.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="checked_by"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Nama Petugas</FormLabel>
-                        <FormControl>
-                          <Input
-                            {...field}
-                            placeholder="Masukkan nama petugas"
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <div className="grid grid-cols-2 gap-4">
-                    <FormField
-                      control={form.control}
-                      name="temperature"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Suhu (°C)</FormLabel>
-                          <FormControl>
-                            <Input {...field} placeholder="0.0" />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name="humidity"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Kelembaban (%)</FormLabel>
-                          <FormControl>
-                            <Input {...field} placeholder="0.0" />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4">
-                    <FormField
-                      control={form.control}
-                      name="is_clean"
-                      render={({ field }) => (
-                        <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                          <FormControl>
-                            <Checkbox
-                              checked={field.value}
-                              onCheckedChange={field.onChange}
-                            />
-                          </FormControl>
-                          <div className="space-y-1 leading-none">
-                            <FormLabel>Kondisi Bersih</FormLabel>
-                          </div>
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name="is_secure"
-                      render={({ field }) => (
-                        <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                          <FormControl>
-                            <Checkbox
-                              checked={field.value}
-                              onCheckedChange={field.onChange}
-                            />
-                          </FormControl>
-                          <div className="space-y-1 leading-none">
-                            <FormLabel>Kondisi Aman</FormLabel>
-                          </div>
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-
-                  <FormField
-                    control={form.control}
-                    name="equipment_status"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Status Peralatan</FormLabel>
-                        <Select
-                          onValueChange={field.onChange}
-                          defaultValue={field.value}
-                        >
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Pilih status" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="Normal">Normal</SelectItem>
-                            <SelectItem value="Perlu Pengecekan">
-                              Perlu Pengecekan
-                            </SelectItem>
-                            <SelectItem value="Butuh Perbaikan">
-                              Butuh Perbaikan
-                            </SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="notes"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Catatan</FormLabel>
-                        <FormControl>
-                          <Textarea
-                            {...field}
-                            placeholder="Tambahkan catatan jika ada..."
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <Button type="submit" className="w-full">
-                    Simpan Checklist
-                  </Button>
-                </form>
-              </Form>
-            </CardContent>
-          </Card>
-
-          <Card className="shadow-md">
-            <CardHeader>
-              <CardTitle>Checklist Hari Ini</CardTitle>
-              <CardDescription>
-                {formatIndonesianDate(new Date())}
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {isLoading ? (
-                <div className="flex items-center justify-center h-[400px]">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900" />
-                </div>
-              ) : checks.length === 0 ? (
-                <div className="flex flex-col items-center justify-center h-[400px] text-muted-foreground">
-                  <AlertTriangle className="h-8 w-8 mb-2" />
-                  <p>Belum ada checklist untuk hari ini</p>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  {checks.map((check) => (
-                    <Card
-                      key={check.id}
-                      className="hover:border-red-600 dark:hover:border-white"
-                    >
-                      <CardContent className="pt-6">
-                        <div className="grid gap-4">
-                          <div className="flex justify-between items-start">
-                            <div>
-                              <h4 className="font-semibold">
-                                {check.location_name}
-                              </h4>
-                              <p className="text-sm text-muted-foreground">
-                                {check.room_name}
-                              </p>
-                            </div>
-                            <div className="text-right">
-                              <p className="text-sm font-medium">
-                                {check.formatted_time}
-                              </p>
-                              <p className="text-sm text-muted-foreground">
-                                {check.checked_by}
-                              </p>
-                            </div>
-                          </div>
-
-                          <div className="grid grid-cols-2 gap-4">
-                            <div className="flex items-center gap-2">
-                              <Thermometer className="h-4 w-4 text-orange-500" />
-                              <span className="text-sm">
-                                {check.temperature}°C
-                              </span>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <Droplets className="h-4 w-4 text-blue-500" />
-                              <span className="text-sm">{check.humidity}%</span>
-                            </div>
-                          </div>
-
-                          <div className="grid grid-cols-2 gap-4">
-                            <div className="flex items-center gap-2">
-                              <Check
-                                className={`h-4 w-4 ${check.is_clean ? "text-green-500" : "text-red-500"}`}
-                              />
-                              <span className="text-sm">
-                                {check.is_clean
-                                  ? "Bersih"
-                                  : "Perlu Dibersihkan"}
-                              </span>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <Shield
-                                className={`h-4 w-4 ${check.is_secure ? "text-green-500" : "text-red-500"}`}
-                              />
-                              <span className="text-sm">
-                                {check.is_secure ? "Aman" : "Perlu Dicek"}
-                              </span>
-                            </div>
-                          </div>
-
-                          <div>
-                            <p className="text-sm font-medium">
-                              Status Peralatan:
-                            </p>
-                            <p
-                              className={`text-sm ${
-                                check.equipment_status === "Normal"
-                                  ? "text-green-600"
-                                  : check.equipment_status ===
-                                      "Perlu Pengecekan"
-                                    ? "text-yellow-600"
-                                    : "text-red-600"
-                              }`}
-                            >
-                              {check.equipment_status}
-                            </p>
-                          </div>
-
-                          {check.notes && (
-                            <div>
-                              <p className="text-sm font-medium">Catatan:</p>
-                              <p className="text-sm text-muted-foreground">
-                                {check.notes}
-                              </p>
-                            </div>
-                          )}
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button disabled={isExporting}>
+                {isExporting ? (
+                  <>
+                    <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                    Mengexport...
+                  </>
+                ) : (
+                  <>Download Excel</>
+                )}
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={handleExportAll}>
+                Semua Data
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={handleExportRange}
+                disabled={!date?.from}
+              >
+                Data Berdasarkan Tanggal
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
-    </ReportLayout>
+
+      <div className="grid gap-6 md:grid-cols-2">
+        <Card className="shadow-md">
+          <CardHeader>
+            <CardTitle>Form Checklist Ruangan</CardTitle>
+            <CardDescription>
+              Isi form checklist untuk pengecekan ruangan
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Form {...form}>
+              <form
+                onSubmit={form.handleSubmit(onSubmit)}
+                className="space-y-4"
+              >
+                <FormField
+                  control={form.control}
+                  name="location_id"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Lokasi</FormLabel>
+                      <Select
+                        onValueChange={(value) => {
+                          field.onChange(value);
+                          handleLocationChange(value);
+                        }}
+                        value={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Pilih lokasi" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {locations.map((location) => (
+                            <SelectItem key={location.id} value={location.id}>
+                              {location.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="room_id"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Ruangan</FormLabel>
+                      <Select
+                        onValueChange={field.onChange}
+                        value={field.value}
+                        disabled={!form.watch("location_id")}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Pilih ruangan" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {filteredRooms.map((room) => (
+                            <SelectItem key={room.id} value={room.id}>
+                              {room.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="checked_by"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Nama Petugas</FormLabel>
+                      <FormControl>
+                        <Input {...field} placeholder="Masukkan nama petugas" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <div className="grid grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="temperature"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Suhu (°C)</FormLabel>
+                        <FormControl>
+                          <Input {...field} placeholder="0.0" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="humidity"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Kelembaban (%)</FormLabel>
+                        <FormControl>
+                          <Input {...field} placeholder="0.0" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="is_clean"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                        <FormControl>
+                          <Checkbox
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                          />
+                        </FormControl>
+                        <div className="space-y-1 leading-none">
+                          <FormLabel>Kondisi Bersih</FormLabel>
+                        </div>
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="is_secure"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                        <FormControl>
+                          <Checkbox
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                          />
+                        </FormControl>
+                        <div className="space-y-1 leading-none">
+                          <FormLabel>Kondisi Aman</FormLabel>
+                        </div>
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                <FormField
+                  control={form.control}
+                  name="equipment_status"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Status Peralatan</FormLabel>
+                      <Select
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Pilih status" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="Normal">Normal</SelectItem>
+                          <SelectItem value="Perlu Pengecekan">
+                            Perlu Pengecekan
+                          </SelectItem>
+                          <SelectItem value="Butuh Perbaikan">
+                            Butuh Perbaikan
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="notes"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Catatan</FormLabel>
+                      <FormControl>
+                        <Textarea
+                          {...field}
+                          placeholder="Tambahkan catatan jika ada..."
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <Button type="submit" className="w-full">
+                  Simpan Checklist
+                </Button>
+              </form>
+            </Form>
+          </CardContent>
+        </Card>
+
+        <Card className="shadow-md">
+          <CardHeader>
+            <CardTitle>Checklist Hari Ini</CardTitle>
+            <CardDescription>
+              {formatIndonesianDate(new Date())}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {isLoading ? (
+              <div className="flex items-center justify-center h-[400px]">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900" />
+              </div>
+            ) : checks.length === 0 ? (
+              <div className="flex flex-col items-center justify-center h-[400px] text-muted-foreground">
+                <AlertTriangle className="h-8 w-8 mb-2" />
+                <p>Belum ada checklist untuk hari ini</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {checks.map((check) => (
+                  <Card
+                    key={check.id}
+                    className="hover:border-red-600 dark:hover:border-white"
+                  >
+                    <CardContent className="pt-6">
+                      <div className="grid gap-4">
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <h4 className="font-semibold">
+                              {check.location_name}
+                            </h4>
+                            <p className="text-sm text-muted-foreground">
+                              {check.room_name}
+                            </p>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-sm font-medium">
+                              {check.formatted_time}
+                            </p>
+                            <p className="text-sm text-muted-foreground">
+                              {check.checked_by}
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="flex items-center gap-2">
+                            <Thermometer className="h-4 w-4 text-orange-500" />
+                            <span className="text-sm">
+                              {check.temperature}°C
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Droplets className="h-4 w-4 text-blue-500" />
+                            <span className="text-sm">{check.humidity}%</span>
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="flex items-center gap-2">
+                            <Check
+                              className={`h-4 w-4 ${check.is_clean ? "text-green-500" : "text-red-500"}`}
+                            />
+                            <span className="text-sm">
+                              {check.is_clean ? "Bersih" : "Perlu Dibersihkan"}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Shield
+                              className={`h-4 w-4 ${check.is_secure ? "text-green-500" : "text-red-500"}`}
+                            />
+                            <span className="text-sm">
+                              {check.is_secure ? "Aman" : "Perlu Dicek"}
+                            </span>
+                          </div>
+                        </div>
+
+                        <div>
+                          <p className="text-sm font-medium">
+                            Status Peralatan:
+                          </p>
+                          <p
+                            className={`text-sm ${
+                              check.equipment_status === "Normal"
+                                ? "text-green-600"
+                                : check.equipment_status === "Perlu Pengecekan"
+                                  ? "text-yellow-600"
+                                  : "text-red-600"
+                            }`}
+                          >
+                            {check.equipment_status}
+                          </p>
+                        </div>
+
+                        {check.notes && (
+                          <div>
+                            <p className="text-sm font-medium">Catatan:</p>
+                            <p className="text-sm text-muted-foreground">
+                              {check.notes}
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+    </div>
   );
 }

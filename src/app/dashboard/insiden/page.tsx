@@ -428,18 +428,26 @@ export default function ITIncidentManagement() {
               }
             />
             <DatePickerDefault
-              date={editingIncident ? new Date(editingIncident.date_reported) : new Date(newIncident.date_reported)}
+              date={
+                editingIncident
+                  ? editingIncident.date_reported
+                    ? new Date(editingIncident.date_reported)
+                    : new Date()
+                  : newIncident.date_reported
+                    ? new Date(newIncident.date_reported)
+                    : new Date()
+              }
               setDateAction={(newDate: Date | undefined) => {
                 const selectedDate = newDate || new Date();
                 if (editingIncident) {
                   setEditingIncident({
                     ...editingIncident,
-                    date_reported: selectedDate.toISOString(),
+                    date_reported: selectedDate.toISOString().split("T")[0],
                   });
                 } else {
                   setNewIncident({
                     ...newIncident,
-                    date_reported: selectedDate.toISOString(),
+                    date_reported: selectedDate.toISOString().split("T")[0],
                   });
                 }
               }}
@@ -504,7 +512,7 @@ export default function ITIncidentManagement() {
           </Button>
         </DialogContent>
       </Dialog>
-<Card className="w-full overflow-hidden mx-auto max-w-[100vw] h-full">
+      <Card className="w-full overflow-hidden mx-auto max-w-[100vw] h-full">
         <CardHeader className="pb-3">
           <CardTitle className="text-lg font-semibold">List Insiden</CardTitle>
           <CardDescription>
@@ -513,7 +521,7 @@ export default function ITIncidentManagement() {
         </CardHeader>
         <CardContent>
           <div className="space-y-6">
-<div className="flex flex-col sm:flex-row items-center gap-3 mb-4">
+            <div className="flex flex-col sm:flex-row items-center gap-3 mb-4">
               <Input
                 placeholder="Cari insiden..."
                 value={globalFilter}
@@ -521,7 +529,7 @@ export default function ITIncidentManagement() {
                 className="max-w-sm"
               />
 
-<div className="flex flex-wrap items-center gap-2 w-full sm:w-auto sm:ml-auto">
+              <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto sm:ml-auto">
                 <Popover>
                   <PopoverTrigger asChild>
                     <Button
