@@ -445,27 +445,6 @@ export default function ATMComplaints() {
                           <Label htmlFor="date_complaint">
                             Tanggal Kejadian
                           </Label>
-                          {/* <DatePickerDefault
-  date={
-    editingComplaint
-      ? new Date(editingComplaint.date_complaint)
-      : new Date(newComplaint.date_complaint)
-  }
-  setDate={(date: Date | undefined) => {
-    const selectedDate = date ? date.toISOString().split('T')[0] : '';
-    if (editingComplaint) {
-      setEditingComplaint({
-        ...editingComplaint,
-        date_complaint: selectedDate,
-      });
-    } else {
-      setNewComplaint({
-        ...newComplaint,
-        date_complaint: selectedDate,
-      });
-    }
-  }}
-/> */}
                           <Input
                             id="date_complaint"
                             type="date"
