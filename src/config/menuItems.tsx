@@ -114,6 +114,16 @@ export const singleNavMain = [
     url: "/dashboard/ip-address",
     icon: Users,
   },
+  {
+    title: "Rekap User ESTIM",
+    url: "/dashboard/estim",
+    icon: Users,
+  },
+  {
+    title: "Upload data Excel",
+    url: "/dashboard/uploader",
+    icon: FileText,
+  }
 ];
 
 export type NavItem = {
