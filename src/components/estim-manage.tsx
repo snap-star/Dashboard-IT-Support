@@ -41,47 +41,62 @@ import {
   Loader2,
   Pencil,
   Upload,
+  DownloadIcon,
+  Trash,
 } from "lucide-react";
 import { Button } from "./ui/button";
 import { toast } from "sonner";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./ui/tooltip";
+import { Card } from "./ui/card";
 
 // Define types
 type As400User = {
   id: number;
   username: string;
+  display_user: string;
   ip_address: string;
   last_login: string;
 };
 
 type Pegawai = {
   id: number;
+  nip: string;
   name: string;
+  jabatan: string;
   department: string;
   as400_users: As400User[];
 };
 
 type ExcelPegawai = {
+  nip: string;
   name: string;
+  jabatan: string;
   department: string;
   username: string;
+  display_user: string;
   ip_address: string;
 };
 
 const EmployeeAS400Management = () => {
   const [pegawai, setPegawai] = useState<Pegawai[]>([]);
+  const [selectedPegawai, setSelectedPegawai] = useState<Pegawai | undefined>(
+    undefined,
+  );
+  const [duplicatePegawai, setDuplicatePegawai] = useState<Pegawai[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [newPegawai, setNewPegawai] = useState({
+    nip: "",
     name: "",
     department: "",
+    jabatan: "",
   });
-
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isAddAS400DialogOpen, setIsAddAS400DialogOpen] = useState(false);
-  const [selectedPegawai, setSelectedPegawai] = useState<Pegawai | null>(null);
   const [newAS400User, setNewAS400User] = useState({
     username: "",
+    display_user: "",
     ip_address: "",
   });
   //pagination
@@ -96,9 +111,9 @@ const EmployeeAS400Management = () => {
 
   //editUserESTIM
   const [isEditAS400DialogOpen, setIsEditAS400DialogOpen] = useState(false);
-  const [selectedAS400User, setSelectedAS400User] = useState<As400User | null>(
-    null,
-  );
+  const [selectedAS400User, setSelectedAS400User] = useState<
+    As400User | undefined
+  >(undefined);
 
   //upload EXCEL
   const [isUploading, setIsUploading] = useState(false);
@@ -107,13 +122,16 @@ const EmployeeAS400Management = () => {
   const downloadTemplate = () => {
     const template = [
       {
-        name: "Example Name",
-        department: "Example Department",
-        username: "example_user",
-        ip_address: "192.168.1.1"
-      }
+        nip: "NIP 8 Digit",
+        name: "Nama Lengkap",
+        jabatan: "Jabatan Pegawai",
+        department: "Unit Bagian",
+        username: "User ESTIM",
+        display_user: "Display User",
+        ip_address: "192.168.1.1",
+      },
     ];
-  
+
     const ws = XLSX.utils.json_to_sheet(template);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Template");
@@ -126,17 +144,17 @@ const EmployeeAS400Management = () => {
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-  
+
     setIsUploading(true);
     try {
       const data = await readExcelFile(file);
       await uploadBulkData(data);
       setIsUploadDialogOpen(false);
       await fetchPegawai(); // Refresh the data
-      toast.success("Data uploaded successfully");
+      toast.success("Data berhasil di upload");
     } catch (error) {
       console.error("Error uploading data:", error);
-      toast.error("Failed to upload data");
+      toast.error("Failed upload data");
     } finally {
       setIsUploading(false);
     }
@@ -147,10 +165,12 @@ const EmployeeAS400Management = () => {
       reader.onload = async (e) => {
         try {
           const data = e.target?.result;
-          const workbook = XLSX.read(data, { type: 'binary' });
+          const workbook = XLSX.read(data, { type: "binary" });
           const sheetName = workbook.SheetNames[0];
           const worksheet = workbook.Sheets[sheetName];
-          const jsonData = XLSX.utils.sheet_to_json(worksheet) as ExcelPegawai[];
+          const jsonData = XLSX.utils.sheet_to_json(
+            worksheet,
+          ) as ExcelPegawai[];
           resolve(jsonData);
         } catch (error) {
           reject(error);
@@ -166,34 +186,37 @@ const EmployeeAS400Management = () => {
       try {
         // First, create or find the employee
         const { data: employeeData, error: employeeError } = await supabase
-          .from('employees')
+          .from("employees")
           .upsert([
             {
+              nip: row.nip,
               name: row.name,
-              department: row.department
-            }
+              jabatan: row.jabatan,
+              department: row.department,
+            },
           ])
           .select()
           .single();
-  
+
         if (employeeError) throw employeeError;
-  
+
         // Then, create the AS400 user for this employee
         if (row.username && row.ip_address) {
           const { error: as400Error } = await supabase
-            .from('as400_users')
+            .from("as400_users")
             .upsert([
               {
                 employee_id: employeeData.id,
                 username: row.username,
-                ip_address: row.ip_address
-              }
+                display_user: row.display_user,
+                ip_address: row.ip_address,
+              },
             ]);
-  
+
           if (as400Error) throw as400Error;
         }
       } catch (error) {
-        console.error(`Error processing row for ${row.name}:`, error);
+        console.error(`Gagal memproses tabel ${row.name}:`, error);
         throw error;
       }
     }
@@ -204,7 +227,7 @@ const EmployeeAS400Management = () => {
     <Dialog open={isUploadDialogOpen} onOpenChange={setIsUploadDialogOpen}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Upload Employee Data</DialogTitle>
+          <DialogTitle>Upload Data Pegawai</DialogTitle>
         </DialogHeader>
         <div className="space-y-4">
           <div>
@@ -216,7 +239,7 @@ const EmployeeAS400Management = () => {
                 <div className="flex flex-col items-center justify-center pt-7">
                   <Upload className="w-8 h-8 text-gray-400 group-hover:text-gray-600" />
                   <p className="pt-1 text-sm tracking-wider text-gray-400 group-hover:text-gray-600">
-                    {isUploading ? "Uploading..." : "Select Excel file"}
+                    {isUploading ? "Uploading..." : "Pilih File Excel"}
                   </p>
                 </div>
                 <input
@@ -228,17 +251,25 @@ const EmployeeAS400Management = () => {
                 />
               </label>
             </div>
-            <Button onClick={downloadTemplate} variant="outline" className="mt-2">
-  Download Template
-</Button>
+            <Button
+              onClick={downloadTemplate}
+              variant="outline"
+              className="mt-2"
+            >
+              <DownloadIcon className="h-4 w-4 p-0" />
+              Download Template
+            </Button>
           </div>
           <div className="text-sm text-gray-500">
             <p>File format should have the following columns:</p>
             <ul className="list-disc pl-5 mt-2">
+              <li>nip</li>
               <li>name</li>
+              <li>jabatan</li>
               <li>department</li>
-              <li>username (optional)</li>
-              <li>ip_address (optional)</li>
+              <li>username</li>
+              <li>display_user</li>
+              <li>ip_address</li>
             </ul>
           </div>
         </div>
@@ -259,6 +290,7 @@ const EmployeeAS400Management = () => {
           as400_users (
             id,
             username,
+            display_user,
             ip_address,
             last_login
           )
@@ -285,11 +317,14 @@ const EmployeeAS400Management = () => {
     try {
       const XLSX = await import("xlsx");
       const exportData = pegawai.map((emp) => ({
-        "Employee ID": emp.id,
+        ID: emp.id,
+        Nip: emp.nip,
         Name: emp.name,
+        Jabatan: emp.jabatan,
         Department: emp.department,
-        "AS400 Users": emp.as400_users.map((u) => u.username).join(", "),
-        "IP Addresses": emp.as400_users.map((u) => u.ip_address).join(", "),
+        "User ESTIM": emp.as400_users.map((u) => u.username).join(", "),
+        "Display User": emp.as400_users.map((u) => u.display_user).join(", "),
+        "IP Address": emp.as400_users.map((u) => u.ip_address).join(", "),
       }));
 
       const ws = XLSX.utils.json_to_sheet(exportData);
@@ -327,14 +362,16 @@ const EmployeeAS400Management = () => {
         setPegawai((prev) => [...prev, data[0]]);
         setIsAddDialogOpen(false);
         setNewPegawai({
+          nip: "",
           name: "",
+          jabatan: "",
           department: "",
         });
-        toast.success("Employee added successfully");
+        toast.success("Berhasil menambahkan pegawai");
       }
     } catch (error) {
-      console.error("Error adding employee:", error);
-      toast.error("Failed to add employee");
+      console.error("Error menambahkan pegawai:", error);
+      toast.error("Failed menambahkan pegawai");
     }
   };
 
@@ -342,7 +379,9 @@ const EmployeeAS400Management = () => {
   const handleEditPegawai = async (pegawai: Pegawai) => {
     setSelectedPegawai(pegawai);
     setNewPegawai({
+      nip: pegawai.nip,
       name: pegawai.name,
+      jabatan: pegawai.jabatan,
       department: pegawai.department,
     });
     setIsEditDialogOpen(true);
@@ -358,7 +397,9 @@ const EmployeeAS400Management = () => {
         .update(newPegawai)
         .eq("id", selectedPegawai.id)
         .select();
-      if (error) throw error;
+      if (error) {
+        throw error;
+      }
 
       setPegawai((prev) =>
         prev.map((p) =>
@@ -366,16 +407,16 @@ const EmployeeAS400Management = () => {
         ),
       );
       setIsEditDialogOpen(false);
-      toast.success("Employee updated successfully");
+      toast.success("Data Pegawai berhasil di update");
     } catch (error) {
-      console.error("Error updating employee:", error);
-      toast.error("Failed to update employee");
+      console.error("Error updating pegawai:", error);
+      toast.error("Failed update pegawai");
     }
   };
 
   //handleDeletePegawai
   const handleDeletePegawai = async (pegawai: Pegawai) => {
-    if (confirm("Are you sure you want to delete this employee?")) {
+    if (confirm("Apakah anda yakin akan menghapus data pegawai?")) {
       try {
         const { error } = await supabase
           .from("employees")
@@ -384,10 +425,10 @@ const EmployeeAS400Management = () => {
         if (error) throw error;
 
         setPegawai((prev) => prev.filter((p) => p.id !== pegawai.id));
-        toast.success("Employee deleted successfully");
+        toast.success("Pegawai berhasil di hapus");
       } catch (error) {
-        console.error("Error deleting employee:", error);
-        toast.error("Failed to delete employee");
+        console.error("Error menghapus pegawai:", error);
+        toast.error("Gagal Menghapus pegawai");
       }
     }
   };
@@ -396,6 +437,7 @@ const EmployeeAS400Management = () => {
     setSelectedAS400User(user);
     setNewAS400User({
       username: user.username,
+      display_user: user.display_user,
       ip_address: user.ip_address,
     });
     setIsEditAS400DialogOpen(true);
@@ -410,6 +452,7 @@ const EmployeeAS400Management = () => {
         .from("as400_users")
         .update({
           username: newAS400User.username,
+          display_user: newAS400User.display_user,
           ip_address: newAS400User.ip_address,
         })
         .eq("id", selectedAS400User.id)
@@ -426,12 +469,35 @@ const EmployeeAS400Management = () => {
         })),
       );
       setIsEditAS400DialogOpen(false);
-      setSelectedAS400User(null);
-      setNewAS400User({ username: "", ip_address: "" });
+      setSelectedAS400User(undefined);
+      setNewAS400User({ username: "", display_user: "", ip_address: "" });
       toast.success("AS400 user updated successfully");
     } catch (error) {
       console.error("Error updating AS400 user:", error);
       toast.error("Failed to update AS400 user");
+    }
+  };
+  //handleDeleteUserEstim
+  const handleDeleteAS400User = async (user: As400User) => {
+    if (confirm("Apakah anda yakin akan menghapus user ESTIM?")) {
+      try {
+        const { error } = await supabase
+          .from("as400_users")
+          .delete()
+          .eq("id", user.id);
+        if (error) throw error;
+
+        setPegawai((prev) =>
+          prev.map((p) => ({
+            ...p,
+            as400_users: p.as400_users.filter((u) => u.id !== user.id),
+          })),
+        );
+        toast.success("User Estim Berhasil Di Hapus");
+      } catch (error) {
+        console.error("Error deleting AS400 user:", error);
+        toast.error("Failed to delete AS400 user");
+      }
     }
   };
   //handlerAddUserEstim
@@ -468,12 +534,21 @@ const EmployeeAS400Management = () => {
         }),
       );
       setIsAddAS400DialogOpen(false);
-      setNewAS400User({ username: "", ip_address: "" });
+      setNewAS400User({ username: "", display_user: "", ip_address: "" });
       toast.success("AS400 user added successfully");
     } catch (error) {
       console.error("Error adding AS400 user:", error);
       toast.error("Failed to add AS400 user");
     }
+  };
+
+  // Function to filter duplicate data
+  const filterDuplicatePegawai = () => {
+    const duplicates = pegawai.filter(
+      (pegawai, index, self) =>
+        index !== self.findIndex((p) => p.nip === pegawai.nip),
+    );
+    setDuplicatePegawai(duplicates);
   };
 
   // Generate page numbers
@@ -523,16 +598,17 @@ const EmployeeAS400Management = () => {
     <div className="p-8">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">Daftar Pemegang User ESTIM</h1>
-        <div className="flex gap-4">
+        <div className="flex gap-4 flex-wrap justify-end items-center w-full sm:w-auto sm:ml-auto print:hidden">
           <div className="flex items-center rounded-md px-3 py-2">
             <Search className="w-4 h-4 text-gray-400 mr-2" />
             <Input
               placeholder="Cari Nama Pegawai..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="border-2 focus:ring-0"
-            />
+              className="border-2 focus:ring-0 dark:border-white"
+              />
           </div>
+          <Button onClick={filterDuplicatePegawai}>Filter Duplicate Peg</Button>
           <Button onClick={() => setIsUploadDialogOpen(true)}>
             <Upload className="w-4 h-4 mr-2" />
             Upload Excel
@@ -554,10 +630,20 @@ const EmployeeAS400Management = () => {
               </DialogHeader>
               <form onSubmit={handleAddPegawai} className="space-y-4">
                 <div>
-                  <label
-                    htmlFor="name"
-                    className="block text-sm font-medium"
-                  >
+                  <label htmlFor="nip" className="block text-sm font-medium">
+                    NIP
+                  </label>
+                  <Input
+                    type="text"
+                    name="nip"
+                    id="nip"
+                    value={newPegawai.nip}
+                    onChange={handleInputChange}
+                    required
+                  />
+                </div>
+                <div>
+                  <label htmlFor="name" className="block text-sm font-medium">
                     Nama Lengkap
                   </label>
                   <Input
@@ -567,6 +653,21 @@ const EmployeeAS400Management = () => {
                     value={newPegawai.name}
                     onChange={handleInputChange}
                     required
+                  />
+                </div>
+                <div>
+                  <label
+                    htmlFor="jabatan"
+                    className="block text-sm font-medium"
+                  >
+                    Jabatan
+                  </label>
+                  <Input
+                    type="text"
+                    name="jabatan"
+                    id="jabatan"
+                    value={newPegawai.jabatan}
+                    onChange={handleInputChange}
                   />
                 </div>
                 <div>
@@ -582,7 +683,6 @@ const EmployeeAS400Management = () => {
                     id="department"
                     value={newPegawai.department}
                     onChange={handleInputChange}
-                    required
                   />
                 </div>
                 <Button type="submit" className="w-full">
@@ -594,22 +694,25 @@ const EmployeeAS400Management = () => {
         </div>
       </div>
 
-      <div className="border rounded-lg">
+      <div className="border rounded-lg shadow-xl dark:border-white dark:shadow-white dark:shadow-sm">
         <Table>
-          <TableHeader>
+          <TableHeader className="uppercase border-b-2 bg-gray-200 dark:bg-gray-100">
             <TableRow>
-              <TableHead>ID</TableHead>
-              <TableHead>Nama Lengkap</TableHead>
-              <TableHead>Unit Bagian</TableHead>
-              <TableHead>User ESTIM</TableHead>
-              <TableHead>IP Address</TableHead>
-              <TableHead>Aksi</TableHead>
+              <TableHead className="font-bold print:hidden">ID</TableHead>
+              <TableHead className="font-bold">NIP</TableHead>
+              <TableHead className="font-bold">Nama Lengkap</TableHead>
+              <TableHead className="font-bold">Jabatan</TableHead>
+              <TableHead className="font-bold">Unit Bagian</TableHead>
+              <TableHead className="font-bold">User ESTIM</TableHead>
+              <TableHead className="font-bold">Display User</TableHead>
+              <TableHead className="font-bold">IP Address</TableHead>
+              <TableHead className="font-bold print:hidden">Aksi</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {loading ? (
               <TableRow>
-                <TableCell colSpan={6} className="text-center py-4">
+                <TableCell colSpan={9} className="text-center py-4">
                   <div className="flex justify-center items-center gap-2">
                     <Loader2 className="h-4 w-4 animate-spin" />
                     Loading...
@@ -618,7 +721,7 @@ const EmployeeAS400Management = () => {
               </TableRow>
             ) : currentItems.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} className="text-center py-4">
+                <TableCell colSpan={9} className="text-center py-4">
                   No data found.
                 </TableCell>
               </TableRow>
@@ -626,9 +729,15 @@ const EmployeeAS400Management = () => {
               currentItems.map((pegawai) => (
                 <TableRow key={pegawai.id}>
                   <TableCell>{pegawai.id}</TableCell>
-                  <TableCell>{pegawai.name}</TableCell>
-                  <TableCell>{pegawai.department}</TableCell>
-                  <TableCell>
+                  <TableCell>{pegawai.nip}</TableCell>
+                  <TableCell className="capitalize">{pegawai.name}</TableCell>
+                  <TableCell className="capitalize">
+                    {pegawai.jabatan}
+                  </TableCell>
+                  <TableCell className="capitalize">
+                    {pegawai.department}
+                  </TableCell>
+                  <TableCell className="uppercase">
                     <div className="flex flex-col gap-1">
                       {/* Tambahkan optional chaining */}
                       {(pegawai.as400_users || []).map((user) => (
@@ -639,15 +748,51 @@ const EmployeeAS400Management = () => {
                           <span key={user.id} className="text-sm">
                             {user.username}
                           </span>
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
                           <Button
                             variant={"ghost"}
                             size={"sm"}
                             onClick={() => handleEditAS400User(user)}
                             className="h-6 w-6 p-0"
-                          >
+                            >
                             <Pencil className="h-4 w-4" />
                           </Button>
+                              </TooltipTrigger>
+                                <TooltipContent className="capitalize">
+                                  <p>Edit User</p>
+                                </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                          <Button
+                            variant={"ghost"}
+                            size={"sm"}
+                            onClick={() => handleDeleteAS400User(user)}
+                            className="h-6 w-6 p-0"
+                          >
+                            <Trash className="h-4 w-4" />
+                          </Button>
+                              </TooltipTrigger>
+                                <TooltipContent className="capitalize">
+                                  <p>Delete User</p>
+                                </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
                         </div>
+                      ))}
+                    </div>
+                  </TableCell>
+                  <TableCell className="uppercase">
+                    <div className="flex flex-col gap-1">
+                      {/* Tambahkan optional chaining */}
+                      {(pegawai.as400_users || []).map((user) => (
+                        <span key={user.id} className="text-sm">
+                          {user.display_user}
+                        </span>
                       ))}
                     </div>
                   </TableCell>
@@ -660,7 +805,7 @@ const EmployeeAS400Management = () => {
                       ))}
                     </div>
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="print:hidden">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button variant="ghost" className="h-8 w-8 p-0">
@@ -670,18 +815,20 @@ const EmployeeAS400Management = () => {
                       <DropdownMenuContent align="end">
                         <DropdownMenuItem
                           onClick={() => handleEditPegawai(pegawai)}
-                        >
+                          >
+                          <Pencil className="h-4 w-4" />
                           Edit Pegawai
                         </DropdownMenuItem>
                         <DropdownMenuItem
                           onClick={() => handleAddAS400User(pegawai)}
                         >
+                          <Plus className="h-4 w-4" />
                           Tambah User ESTIM
                         </DropdownMenuItem>
                         <DropdownMenuItem
-                          className="bg-red-500"
                           onClick={() => handleDeletePegawai(pegawai)}
                         >
+                          <Trash className="h-4 w-4" />
                           Delete Pegawai
                         </DropdownMenuItem>
                       </DropdownMenuContent>
@@ -700,6 +847,22 @@ const EmployeeAS400Management = () => {
                           >
                             <div>
                               <label
+                                htmlFor="nip"
+                                className="block text-sm font-medium"
+                              >
+                                NIP
+                              </label>
+                              <Input
+                                type="text"
+                                name="nip"
+                                id="nip"
+                                value={newPegawai.nip}
+                                onChange={handleInputChange}
+                                required
+                              />
+                            </div>
+                            <div>
+                              <label
                                 htmlFor="name"
                                 className="block text-sm font-medium"
                               >
@@ -710,6 +873,22 @@ const EmployeeAS400Management = () => {
                                 name="name"
                                 id="name"
                                 value={newPegawai.name}
+                                onChange={handleInputChange}
+                                required
+                              />
+                            </div>
+                            <div>
+                              <label
+                                htmlFor="jabatan"
+                                className="block text-sm font-medium"
+                              >
+                                Jabatan
+                              </label>
+                              <Input
+                                type="text"
+                                name="jabatan"
+                                id="jabatan"
+                                value={newPegawai.jabatan}
                                 onChange={handleInputChange}
                                 required
                               />
@@ -753,15 +932,16 @@ const EmployeeAS400Management = () => {
                             <div>
                               <label
                                 htmlFor="username"
-                                className="block text-sm font-medium"
+                                className="block text-sm font-medium uppercase"
                               >
                                 Username
                               </label>
                               <Input
+                                className="uppercase"
                                 type="text"
                                 name="username"
                                 id="username"
-                                value={newAS400User.username}
+                                value={newAS400User.username ?? ""}
                                 onChange={(e) =>
                                   setNewAS400User((prev) => ({
                                     ...prev,
@@ -769,6 +949,27 @@ const EmployeeAS400Management = () => {
                                   }))
                                 }
                                 required
+                              />
+                            </div>
+                            <div>
+                              <label
+                                htmlFor="display_user"
+                                className="block text-sm font-medium"
+                              >
+                                Display User
+                              </label>
+                              <Input
+                                className="uppercase"
+                                type="text"
+                                name="display_user"
+                                id="display_user"
+                                value={newAS400User.display_user ?? ""}
+                                onChange={(e) =>
+                                  setNewAS400User((prev) => ({
+                                    ...prev,
+                                    display_user: e.target.value,
+                                  }))
+                                }
                               />
                             </div>
                             <div>
@@ -782,7 +983,7 @@ const EmployeeAS400Management = () => {
                                 type="text"
                                 name="ip_address"
                                 id="ip_address"
-                                value={newAS400User.ip_address}
+                                value={newAS400User.ip_address ?? ""}
                                 onChange={(e) =>
                                   setNewAS400User((prev) => ({
                                     ...prev,
@@ -819,10 +1020,11 @@ const EmployeeAS400Management = () => {
                                 Username
                               </label>
                               <Input
+                                className="uppercase"
                                 type="text"
                                 name="username"
                                 id="username"
-                                value={newAS400User.username}
+                                value={newAS400User.username ?? ""}
                                 onChange={(e) =>
                                   setNewAS400User((prev) => ({
                                     ...prev,
@@ -830,6 +1032,27 @@ const EmployeeAS400Management = () => {
                                   }))
                                 }
                                 required
+                              />
+                            </div>
+                            <div>
+                              <label
+                                htmlFor="display_user"
+                                className="block text-sm font-medium"
+                              >
+                                Display User
+                              </label>
+                              <Input
+                                className="uppercase"
+                                type="text"
+                                name="display_user"
+                                id="display_user"
+                                value={newAS400User.display_user ?? ""}
+                                onChange={(e) =>
+                                  setNewAS400User((prev) => ({
+                                    ...prev,
+                                    display_user: e.target.value,
+                                  }))
+                                }
                               />
                             </div>
                             <div>
@@ -843,7 +1066,7 @@ const EmployeeAS400Management = () => {
                                 type="text"
                                 name="ip_address"
                                 id="ip_address"
-                                value={newAS400User.ip_address}
+                                value={newAS400User.ip_address ?? ""}
                                 onChange={(e) =>
                                   setNewAS400User((prev) => ({
                                     ...prev,
@@ -867,7 +1090,7 @@ const EmployeeAS400Management = () => {
           </TableBody>
         </Table>
       </div>
-      <div className="flex justify-end mt-4">
+      <div className="flex justify-end mt-4 print:hidden">
         <Pagination>
           <PaginationContent>
             <PaginationItem>
