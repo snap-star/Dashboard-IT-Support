@@ -47,7 +47,7 @@ import {
 import { Button } from "./ui/button";
 import { toast } from "sonner";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./ui/tooltip";
-import { Card } from "./ui/card";
+import { Card, CardContent } from "./ui/card";
 
 // Define types
 type As400User = {
@@ -695,7 +695,9 @@ const EmployeeAS400Management = () => {
       </div>
 
       <div className="border rounded-lg shadow-xl dark:border-white dark:shadow-white dark:shadow-sm">
+        <Card>
         <Table>
+          <CardContent>
           <TableHeader className="uppercase border-b-2 bg-gray-200 dark:bg-gray-100">
             <TableRow>
               <TableHead className="font-bold print:hidden">ID</TableHead>
@@ -1088,7 +1090,9 @@ const EmployeeAS400Management = () => {
               ))
             )}
           </TableBody>
+          </CardContent>
         </Table>
+        </Card>
       </div>
       <div className="flex justify-end mt-4 print:hidden">
         <Pagination>
