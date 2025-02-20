@@ -46,6 +46,7 @@ import {
   Filter,
   ChevronDown,
   ChevronUp,
+  ArrowLeft,
 } from "lucide-react";
 import { Button } from "./ui/button";
 import { toast } from "sonner";
@@ -613,13 +614,30 @@ const EmployeeAS400Management = () => {
     }
   };
 
-  // Function to filter duplicate data
+  // Modifikasi fungsi filterDuplicatePegawai
   const filterDuplicatePegawai = () => {
-    const duplicates = pegawai.filter(
-      (pegawai, index, self) =>
-        index !== self.findIndex((p) => p.nip === pegawai.nip),
-    );
-    setDuplicatePegawai(duplicates);
+    // Mencari NIP yang duplikat
+    const nipCounts = pegawai.reduce((acc, curr) => {
+      acc[curr.nip] = (acc[curr.nip] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
+
+    // Filter pegawai yang memiliki NIP duplikat
+    const duplicates = pegawai.filter((p) => nipCounts[p.nip] > 1);
+    
+    if (duplicates.length > 0) {
+      setPegawai(duplicates); // Update tabel dengan data duplikat
+      toast.success(`Ditemukan ${duplicates.length} data duplikat`);
+    } else {
+      toast.info("Tidak ditemukan data duplikat");
+      fetchPegawai(); // Kembalikan ke data semula jika tidak ada duplikat
+    }
+  };
+
+  // Tambahkan tombol untuk mereset filter
+  const resetFilter = async () => {
+    await fetchPegawai();
+    toast.success("Data berhasil direset");
   };
 
   // Generate page numbers
@@ -737,11 +755,28 @@ const EmployeeAS400Management = () => {
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button variant="outline" onClick={filterDuplicatePegawai}>
+                <Button 
+                  variant="outline" 
+                  onClick={filterDuplicatePegawai}
+                >
                   <Filter className="h-4 w-4" />
                 </Button>
               </TooltipTrigger>
               <TooltipContent>Filter Data Duplikat</TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button 
+                  variant="outline" 
+                  onClick={resetFilter}
+                >
+                  <ArrowLeft className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Reset Filter</TooltipContent>
             </Tooltip>
           </TooltipProvider>
 
