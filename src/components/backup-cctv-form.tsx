@@ -148,7 +148,6 @@ export function BackupCCTVForm() {
         .select('*')
         .order('tanggal_backup', { ascending: false })
 
-      // Filter berdasarkan lokasi jika ada
       if (locationId) {
         query = query.eq('lokasi', locationId)
       }
@@ -164,13 +163,20 @@ export function BackupCCTVForm() {
         return
       }
 
-      const ws = XLSX.utils.json_to_sheet(data)
+      // Format data sebelum di-export
+      const formattedData = data.map(record => ({
+        ...record,
+        tanggal_backup: format(new Date(record.tanggal_backup), 'dd MMMM yyyy', { locale: id }),
+        created_at: format(new Date(record.created_at), 'dd MMMM yyyy HH:mm:ss', { locale: id }) + ' WIB'
+      }))
+
+      const ws = XLSX.utils.json_to_sheet(formattedData)
       const wb = XLSX.utils.book_new()
       XLSX.utils.book_append_sheet(wb, ws, "Backup CCTV")
       
       const fileName = locationId 
-        ? `backup-cctv-${locationId}-${format(new Date(), 'yyyy-MM-dd')}.xlsx`
-        : `backup-cctv-all-${format(new Date(), 'yyyy-MM-dd')}.xlsx`
+        ? `backup-cctv-${locationId}-${format(new Date(), 'dd-MM-yyyy-HH-mm', { locale: id })}.xlsx`
+        : `backup-cctv-all-${format(new Date(), 'dd-MM-yyyy-HH-mm', { locale: id })}.xlsx`
       
       XLSX.writeFile(wb, fileName)
       
