@@ -20,6 +20,10 @@ export const navMain = [
         url: "/dashboard/reports",
       },
       {
+        title: "Form Register CCTV",
+        url: "/dashboard/cctv",
+      },
+      {
         title: "Input Insiden Kantor",
         url: "/dashboard/insiden",
       },

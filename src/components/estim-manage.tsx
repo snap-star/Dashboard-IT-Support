@@ -43,11 +43,15 @@ import {
   Upload,
   DownloadIcon,
   Trash,
+  Filter,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 import { Button } from "./ui/button";
 import { toast } from "sonner";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./ui/tooltip";
 import { Card, CardContent } from "./ui/card";
+import { useDebounce } from "@/hooks/use-debounce";
 
 // Define types
 type As400User = {
@@ -75,6 +79,12 @@ type ExcelPegawai = {
   username: string;
   display_user: string;
   ip_address: string;
+};
+
+// Tambahkan type untuk sorting
+type SortConfig = {
+  key: keyof Pegawai | "username" | "display_user" | "ip_address";
+  direction: "asc" | "desc";
 };
 
 const EmployeeAS400Management = () => {
@@ -106,8 +116,73 @@ const EmployeeAS400Management = () => {
   // Calculate pagination values
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentItems = pegawai.slice(indexOfFirstItem, indexOfLastItem);
-  const totalPages = Math.ceil(pegawai.length / itemsPerPage);
+
+  // Tambahkan type untuk sorting
+  const [sortConfig, setSortConfig] = useState<SortConfig>({ 
+    key: "id", 
+    direction: "asc" 
+  });
+  
+  // Gunakan debounce untuk searchTerm
+  const debouncedSearchTerm = useDebounce(searchTerm, 500);
+
+  // Modifikasi useEffect untuk menggunakan debouncedSearchTerm
+  useEffect(() => {
+    //reset ke halaman pertama ketika search
+    setCurrentPage(1);
+    fetchPegawai();
+  }, [debouncedSearchTerm]); // Ganti searchTerm dengan debouncedSearchTerm
+
+  // Fungsi untuk sorting
+  const handleSort = (key: SortConfig["key"]) => {
+    setSortConfig((currentSort) => ({
+      key,
+      direction:
+        currentSort.key === key && currentSort.direction === "asc"
+          ? "desc"
+          : "asc",
+    }));
+  };
+
+  // Fungsi untuk mendapatkan sorted data
+  const getSortedData = (data: Pegawai[]) => {
+    return [...data].sort((a, b) => {
+      if (sortConfig.key === "username") {
+        const aValue = a.as400_users[0]?.username || "";
+        const bValue = b.as400_users[0]?.username || "";
+        return sortConfig.direction === "asc" 
+          ? aValue.localeCompare(bValue)
+          : bValue.localeCompare(aValue);
+      }
+      
+      if (sortConfig.key === "display_user") {
+        const aValue = a.as400_users[0]?.display_user || "";
+        const bValue = b.as400_users[0]?.display_user || "";
+        return sortConfig.direction === "asc"
+          ? aValue.localeCompare(bValue)
+          : bValue.localeCompare(aValue);
+      }
+      
+      if (sortConfig.key === "ip_address") {
+        const aValue = a.as400_users[0]?.ip_address || "";
+        const bValue = b.as400_users[0]?.ip_address || "";
+        return sortConfig.direction === "asc"
+          ? aValue.localeCompare(bValue)
+          : bValue.localeCompare(aValue);
+      }
+
+      const aValue = String(a[sortConfig.key]);
+      const bValue = String(b[sortConfig.key]);
+      
+      return sortConfig.direction === "asc"
+        ? aValue.localeCompare(bValue)
+        : bValue.localeCompare(aValue);
+    });
+  };
+
+  // Modifikasi currentItems untuk menggunakan sorted data
+  const sortedData = getSortedData(pegawai);
+  const currentItems = sortedData.slice(indexOfFirstItem, indexOfLastItem);
 
   //editUserESTIM
   const [isEditAS400DialogOpen, setIsEditAS400DialogOpen] = useState(false);
@@ -296,7 +371,7 @@ const EmployeeAS400Management = () => {
           )
         `,
         )
-        .ilike("name", `%${searchTerm}%`);
+        .ilike("name", `%${debouncedSearchTerm}%`);
 
       if (error) throw error;
       setPegawai(data || []);
@@ -307,10 +382,6 @@ const EmployeeAS400Management = () => {
       setLoading(false);
     }
   };
-
-  useEffect(() => {
-    fetchPegawai();
-  }, [searchTerm]); // Add searchTerm as dependency
 
   // Export ke Excel
   const exportToExcel = async () => {
@@ -553,7 +624,7 @@ const EmployeeAS400Management = () => {
 
   // Generate page numbers
   const pageNumbers = [];
-  for (let i = 1; i <= totalPages; i++) {
+  for (let i = 1; i <= Math.ceil(pegawai.length / itemsPerPage); i++) {
     pageNumbers.push(i);
   }
 
@@ -569,10 +640,10 @@ const EmployeeAS400Management = () => {
     const rangeWithDots = [];
     let l;
 
-    for (let i = 1; i <= totalPages; i++) {
+    for (let i = 1; i <= Math.ceil(pegawai.length / itemsPerPage); i++) {
       if (
         i === 1 ||
-        i === totalPages ||
+        i === Math.ceil(pegawai.length / itemsPerPage) ||
         (i >= currentPage - delta && i <= currentPage + delta)
       ) {
         range.push(i);
@@ -594,504 +665,492 @@ const EmployeeAS400Management = () => {
     return rangeWithDots;
   };
 
+  // Tambahkan loading skeleton
+  const TableSkeleton = () => (
+    <TableRow>
+      <TableCell colSpan={9}>
+        <div className="space-y-3">
+          {[...Array(5)].map((_, i) => (
+            <div key={i} className="flex items-center space-x-4">
+              <div className="h-4 w-[10%] animate-pulse rounded bg-gray-200" />
+              <div className="h-4 w-[15%] animate-pulse rounded bg-gray-200" />
+              <div className="h-4 w-[20%] animate-pulse rounded bg-gray-200" />
+              <div className="h-4 w-[15%] animate-pulse rounded bg-gray-200" />
+              <div className="h-4 w-[15%] animate-pulse rounded bg-gray-200" />
+            </div>
+          ))}
+        </div>
+      </TableCell>
+    </TableRow>
+  );
+
+  // Komponen SortHeader
+  const SortHeader = ({ 
+    column, 
+    label 
+  }: { 
+    column: SortConfig["key"]; 
+    label: string 
+  }) => (
+    <TableHead
+      className="cursor-pointer hover:bg-muted/60"
+      onClick={() => handleSort(column)}
+    >
+      <div className="flex items-center space-x-1">
+        <span>{label}</span>
+        <span className="flex flex-col">
+          <ChevronUp 
+            className={`h-3 w-3 ${
+              sortConfig.key === column && sortConfig.direction === "asc"
+                ? "text-primary"
+                : "text-muted-foreground"
+            }`}
+          />
+          <ChevronDown 
+            className={`h-3 w-3 ${
+              sortConfig.key === column && sortConfig.direction === "desc"
+                ? "text-primary"
+                : "text-muted-foreground"
+            }`}
+          />
+        </span>
+      </div>
+    </TableHead>
+  );
+
   return (
     <div className="p-8">
-      <div className="flex justify-between items-center mb-6">
+      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <h1 className="text-2xl font-bold">Daftar Pemegang User ESTIM</h1>
-        <div className="flex gap-4 flex-wrap justify-end items-center w-full sm:w-auto sm:ml-auto print:hidden">
-          <div className="flex items-center rounded-md px-3 py-2">
-            <Search className="w-4 h-4 text-gray-400 mr-2" />
+        
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="relative flex-1 sm:flex-initial">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
               placeholder="Cari Nama Pegawai..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="border-2 focus:ring-0 dark:border-white"
-              />
+              className="pl-9"
+            />
           </div>
-          <Button onClick={filterDuplicatePegawai}>Filter Duplicate Peg</Button>
-          <Button onClick={() => setIsUploadDialogOpen(true)}>
-            <Upload className="w-4 h-4 mr-2" />
-            Upload Excel
-          </Button>
-          <Button onClick={exportToExcel}>
-            <Download className="w-4 h-4 mr-2" />
-            Export Excel
-          </Button>
-          <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-            <DialogTrigger asChild>
-              <Button>
-                <Plus className="w-4 h-4 mr-2" />
-                Tambah Pegawai
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Tambah Daftar Pegawai</DialogTitle>
-              </DialogHeader>
-              <form onSubmit={handleAddPegawai} className="space-y-4">
-                <div>
-                  <label htmlFor="nip" className="block text-sm font-medium">
-                    NIP
-                  </label>
-                  <Input
-                    type="text"
-                    name="nip"
-                    id="nip"
-                    value={newPegawai.nip}
-                    onChange={handleInputChange}
-                    required
-                  />
-                </div>
-                <div>
-                  <label htmlFor="name" className="block text-sm font-medium">
-                    Nama Lengkap
-                  </label>
-                  <Input
-                    type="text"
-                    name="name"
-                    id="name"
-                    value={newPegawai.name}
-                    onChange={handleInputChange}
-                    required
-                  />
-                </div>
-                <div>
-                  <label
-                    htmlFor="jabatan"
-                    className="block text-sm font-medium"
-                  >
-                    Jabatan
-                  </label>
-                  <Input
-                    type="text"
-                    name="jabatan"
-                    id="jabatan"
-                    value={newPegawai.jabatan}
-                    onChange={handleInputChange}
-                  />
-                </div>
-                <div>
-                  <label
-                    htmlFor="department"
-                    className="block text-sm font-medium"
-                  >
-                    Unit Bagian
-                  </label>
-                  <Input
-                    type="text"
-                    name="department"
-                    id="department"
-                    value={newPegawai.department}
-                    onChange={handleInputChange}
-                  />
-                </div>
-                <Button type="submit" className="w-full">
-                  Tambah Pegawai
+          
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button variant="outline" onClick={filterDuplicatePegawai}>
+                  <Filter className="h-4 w-4" />
                 </Button>
-              </form>
-            </DialogContent>
-          </Dialog>
+              </TooltipTrigger>
+              <TooltipContent>Filter Data Duplikat</TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+
+          <Button variant="outline" onClick={() => setIsUploadDialogOpen(true)}>
+            <Upload className="mr-2 h-4 w-4" />
+            Upload
+          </Button>
+
+          <Button variant="outline" onClick={exportToExcel}>
+            <Download className="mr-2 h-4 w-4" />
+            Export
+          </Button>
+
+          <Button onClick={() => setIsAddDialogOpen(true)}>
+            <Plus className="mr-2 h-4 w-4" />
+            Tambah
+          </Button>
         </div>
       </div>
 
       <div className="border rounded-lg shadow-xl dark:border-white dark:shadow-white dark:shadow-sm">
-        <Card>
-        <Table>
-          <CardContent>
-          <TableHeader className="uppercase border-b-2 bg-gray-200 dark:bg-gray-100">
-            <TableRow>
-              <TableHead className="font-bold print:hidden">ID</TableHead>
-              <TableHead className="font-bold">NIP</TableHead>
-              <TableHead className="font-bold">Nama Lengkap</TableHead>
-              <TableHead className="font-bold">Jabatan</TableHead>
-              <TableHead className="font-bold">Unit Bagian</TableHead>
-              <TableHead className="font-bold">User ESTIM</TableHead>
-              <TableHead className="font-bold">Display User</TableHead>
-              <TableHead className="font-bold">IP Address</TableHead>
-              <TableHead className="font-bold print:hidden">Aksi</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {loading ? (
-              <TableRow>
-                <TableCell colSpan={9} className="text-center py-4">
-                  <div className="flex justify-center items-center gap-2">
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    Loading...
-                  </div>
-                </TableCell>
-              </TableRow>
-            ) : currentItems.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={9} className="text-center py-4">
-                  No data found.
-                </TableCell>
-              </TableRow>
-            ) : (
-              currentItems.map((pegawai) => (
-                <TableRow key={pegawai.id}>
-                  <TableCell>{pegawai.id}</TableCell>
-                  <TableCell>{pegawai.nip}</TableCell>
-                  <TableCell className="capitalize">{pegawai.name}</TableCell>
-                  <TableCell className="capitalize">
-                    {pegawai.jabatan}
-                  </TableCell>
-                  <TableCell className="capitalize">
-                    {pegawai.department}
-                  </TableCell>
-                  <TableCell className="uppercase">
-                    <div className="flex flex-col gap-1">
-                      {/* Tambahkan optional chaining */}
-                      {(pegawai.as400_users || []).map((user) => (
-                        <div
-                          key={user.id}
-                          className="flex items-center justify-between"
-                        >
-                          <span key={user.id} className="text-sm">
-                            {user.username}
-                          </span>
-                          <TooltipProvider>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                          <Button
-                            variant={"ghost"}
-                            size={"sm"}
-                            onClick={() => handleEditAS400User(user)}
-                            className="h-6 w-6 p-0"
-                            >
-                            <Pencil className="h-4 w-4" />
-                          </Button>
-                              </TooltipTrigger>
-                                <TooltipContent className="capitalize">
-                                  <p>Edit User</p>
-                                </TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
-                          <TooltipProvider>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                          <Button
-                            variant={"ghost"}
-                            size={"sm"}
-                            onClick={() => handleDeleteAS400User(user)}
-                            className="h-6 w-6 p-0"
-                          >
-                            <Trash className="h-4 w-4" />
-                          </Button>
-                              </TooltipTrigger>
-                                <TooltipContent className="capitalize">
-                                  <p>Delete User</p>
-                                </TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
+        <Card className="overflow-hidden">
+          <CardContent className="p-0">
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader className="bg-muted/50 sticky top-0">
+                  <TableRow>
+                    <SortHeader column="id" label="ID" />
+                    <SortHeader column="nip" label="NIP" />
+                    <SortHeader column="name" label="Nama Lengkap" />
+                    <SortHeader column="jabatan" label="Jabatan" />
+                    <SortHeader column="department" label="Unit Bagian" />
+                    <SortHeader column="username" label="User ESTIM" />
+                    <SortHeader column="display_user" label="Display User" />
+                    <SortHeader column="ip_address" label="IP Address" />
+                    <TableHead className="w-[100px]">Aksi</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {loading ? (
+                    <TableSkeleton />
+                  ) : currentItems.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={9} className="h-24 text-center">
+                        <div className="flex flex-col items-center justify-center space-y-2">
+                          <Search className="h-8 w-8 text-muted-foreground" />
+                          <p className="text-muted-foreground">Tidak ada data ditemukan</p>
                         </div>
-                      ))}
-                    </div>
-                  </TableCell>
-                  <TableCell className="uppercase">
-                    <div className="flex flex-col gap-1">
-                      {/* Tambahkan optional chaining */}
-                      {(pegawai.as400_users || []).map((user) => (
-                        <span key={user.id} className="text-sm">
-                          {user.display_user}
-                        </span>
-                      ))}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex flex-col gap-1">
-                      {(pegawai.as400_users || []).map((user) => (
-                        <span key={user.id} className="text-sm">
-                          {user.ip_address}
-                        </span>
-                      ))}
-                    </div>
-                  </TableCell>
-                  <TableCell className="print:hidden">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" className="h-8 w-8 p-0">
-                          <MoreVertical className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem
-                          onClick={() => handleEditPegawai(pegawai)}
-                          >
-                          <Pencil className="h-4 w-4" />
-                          Edit Pegawai
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={() => handleAddAS400User(pegawai)}
-                        >
-                          <Plus className="h-4 w-4" />
-                          Tambah User ESTIM
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={() => handleDeletePegawai(pegawai)}
-                        >
-                          <Trash className="h-4 w-4" />
-                          Delete Pegawai
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                      {/* Add Edit Dialog */}
-                      <Dialog
-                        open={isEditDialogOpen}
-                        onOpenChange={setIsEditDialogOpen}
-                      >
-                        <DialogContent>
-                          <DialogHeader>
-                            <DialogTitle>Edit Pegawai</DialogTitle>
-                          </DialogHeader>
-                          <form
-                            onSubmit={handleUpdatePegawai}
-                            className="space-y-4"
-                          >
-                            <div>
-                              <label
-                                htmlFor="nip"
-                                className="block text-sm font-medium"
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    currentItems.map((pegawai) => (
+                      <TableRow key={pegawai.id}>
+                        <TableCell>{pegawai.id}</TableCell>
+                        <TableCell>{pegawai.nip}</TableCell>
+                        <TableCell className="capitalize">{pegawai.name}</TableCell>
+                        <TableCell className="capitalize">
+                          {pegawai.jabatan}
+                        </TableCell>
+                        <TableCell className="capitalize">
+                          {pegawai.department}
+                        </TableCell>
+                        <TableCell className="uppercase">
+                          <div className="flex flex-col gap-1">
+                            {(pegawai.as400_users || []).map((user) => (
+                              <div
+                                key={user.id}
+                                className="flex items-center justify-between"
                               >
-                                NIP
-                              </label>
-                              <Input
-                                type="text"
-                                name="nip"
-                                id="nip"
-                                value={newPegawai.nip}
-                                onChange={handleInputChange}
-                                required
-                              />
-                            </div>
-                            <div>
-                              <label
-                                htmlFor="name"
-                                className="block text-sm font-medium"
+                                <span key={user.id} className="text-sm">
+                                  {user.username}
+                                </span>
+                                <TooltipProvider>
+                                  <Tooltip>
+                                    <TooltipTrigger asChild>
+                                      <Button
+                                        variant={"ghost"}
+                                        size={"sm"}
+                                        onClick={() => handleEditAS400User(user)}
+                                        className="h-6 w-6 p-0"
+                                      >
+                                        <Pencil className="h-4 w-4" />
+                                      </Button>
+                                    </TooltipTrigger>
+                                    <TooltipContent className="capitalize">
+                                      <p>Edit User</p>
+                                    </TooltipContent>
+                                  </Tooltip>
+                                </TooltipProvider>
+                                <TooltipProvider>
+                                  <Tooltip>
+                                    <TooltipTrigger asChild>
+                                      <Button
+                                        variant={"ghost"}
+                                        size={"sm"}
+                                        onClick={() => handleDeleteAS400User(user)}
+                                        className="h-6 w-6 p-0"
+                                      >
+                                        <Trash className="h-4 w-4" />
+                                      </Button>
+                                    </TooltipTrigger>
+                                    <TooltipContent className="capitalize">
+                                      <p>Delete User</p>
+                                    </TooltipContent>
+                                  </Tooltip>
+                                </TooltipProvider>
+                              </div>
+                            ))}
+                          </div>
+                        </TableCell>
+                        <TableCell className="uppercase">
+                          <div className="flex flex-col gap-1">
+                            {(pegawai.as400_users || []).map((user) => (
+                              <span key={user.id} className="text-sm">
+                                {user.display_user}
+                              </span>
+                            ))}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex flex-col gap-1">
+                            {(pegawai.as400_users || []).map((user) => (
+                              <span key={user.id} className="text-sm">
+                                {user.ip_address}
+                              </span>
+                            ))}
+                          </div>
+                        </TableCell>
+                        <TableCell className="print:hidden">
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" className="h-8 w-8 p-0">
+                                <MoreVertical className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem
+                                onClick={() => handleEditPegawai(pegawai)}
                               >
-                                Nama Lengkap
-                              </label>
-                              <Input
-                                type="text"
-                                name="name"
-                                id="name"
-                                value={newPegawai.name}
-                                onChange={handleInputChange}
-                                required
-                              />
-                            </div>
-                            <div>
-                              <label
-                                htmlFor="jabatan"
-                                className="block text-sm font-medium"
+                                <Pencil className="h-4 w-4" />
+                                Edit Pegawai
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() => handleAddAS400User(pegawai)}
                               >
-                                Jabatan
-                              </label>
-                              <Input
-                                type="text"
-                                name="jabatan"
-                                id="jabatan"
-                                value={newPegawai.jabatan}
-                                onChange={handleInputChange}
-                                required
-                              />
-                            </div>
-                            <div>
-                              <label
-                                htmlFor="department"
-                                className="block text-sm font-medium"
+                                <Plus className="h-4 w-4" />
+                                Tambah User ESTIM
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() => handleDeletePegawai(pegawai)}
                               >
-                                Unit Bagian
-                              </label>
-                              <Input
-                                type="text"
-                                name="department"
-                                id="department"
-                                value={newPegawai.department}
-                                onChange={handleInputChange}
-                                required
-                              />
-                            </div>
-                            <Button type="submit" className="w-full">
-                              Update Data Pegawai
-                            </Button>
-                          </form>
-                        </DialogContent>
-                      </Dialog>
+                                <Trash className="h-4 w-4" />
+                                Delete Pegawai
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                            <Dialog
+                              open={isEditDialogOpen}
+                              onOpenChange={setIsEditDialogOpen}
+                            >
+                              <DialogContent>
+                                <DialogHeader>
+                                  <DialogTitle>Edit Pegawai</DialogTitle>
+                                </DialogHeader>
+                                <form
+                                  onSubmit={handleUpdatePegawai}
+                                  className="space-y-4"
+                                >
+                                  <div>
+                                    <label
+                                      htmlFor="nip"
+                                      className="block text-sm font-medium"
+                                    >
+                                      NIP
+                                    </label>
+                                    <Input
+                                      type="text"
+                                      name="nip"
+                                      id="nip"
+                                      value={newPegawai.nip}
+                                      onChange={handleInputChange}
+                                      required
+                                    />
+                                  </div>
+                                  <div>
+                                    <label
+                                      htmlFor="name"
+                                      className="block text-sm font-medium"
+                                    >
+                                      Nama Lengkap
+                                    </label>
+                                    <Input
+                                      type="text"
+                                      name="name"
+                                      id="name"
+                                      value={newPegawai.name}
+                                      onChange={handleInputChange}
+                                      required
+                                    />
+                                  </div>
+                                  <div>
+                                    <label
+                                      htmlFor="jabatan"
+                                      className="block text-sm font-medium"
+                                    >
+                                      Jabatan
+                                    </label>
+                                    <Input
+                                      type="text"
+                                      name="jabatan"
+                                      id="jabatan"
+                                      value={newPegawai.jabatan}
+                                      onChange={handleInputChange}
+                                    />
+                                  </div>
+                                  <div>
+                                    <label
+                                      htmlFor="department"
+                                      className="block text-sm font-medium"
+                                    >
+                                      Unit Bagian
+                                    </label>
+                                    <Input
+                                      type="text"
+                                      name="department"
+                                      id="department"
+                                      value={newPegawai.department}
+                                      onChange={handleInputChange}
+                                    />
+                                  </div>
+                                  <Button type="submit" className="w-full">
+                                    Update Data Pegawai
+                                  </Button>
+                                </form>
+                              </DialogContent>
+                            </Dialog>
 
-                      {/* Add AS400 User Dialog */}
-                      <Dialog
-                        open={isAddAS400DialogOpen}
-                        onOpenChange={setIsAddAS400DialogOpen}
-                      >
-                        <DialogContent>
-                          <DialogHeader>
-                            <DialogTitle>Tambah User ESTIM</DialogTitle>
-                          </DialogHeader>
-                          <form
-                            onSubmit={handleSubmitAS400User}
-                            className="space-y-4"
-                          >
-                            <div>
-                              <label
-                                htmlFor="username"
-                                className="block text-sm font-medium uppercase"
-                              >
-                                Username
-                              </label>
-                              <Input
-                                className="uppercase"
-                                type="text"
-                                name="username"
-                                id="username"
-                                value={newAS400User.username ?? ""}
-                                onChange={(e) =>
-                                  setNewAS400User((prev) => ({
-                                    ...prev,
-                                    username: e.target.value,
-                                  }))
-                                }
-                                required
-                              />
-                            </div>
-                            <div>
-                              <label
-                                htmlFor="display_user"
-                                className="block text-sm font-medium"
-                              >
-                                Display User
-                              </label>
-                              <Input
-                                className="uppercase"
-                                type="text"
-                                name="display_user"
-                                id="display_user"
-                                value={newAS400User.display_user ?? ""}
-                                onChange={(e) =>
-                                  setNewAS400User((prev) => ({
-                                    ...prev,
-                                    display_user: e.target.value,
-                                  }))
-                                }
-                              />
-                            </div>
-                            <div>
-                              <label
-                                htmlFor="ip_address"
-                                className="block text-sm font-medium"
-                              >
-                                IP Address
-                              </label>
-                              <Input
-                                type="text"
-                                name="ip_address"
-                                id="ip_address"
-                                value={newAS400User.ip_address ?? ""}
-                                onChange={(e) =>
-                                  setNewAS400User((prev) => ({
-                                    ...prev,
-                                    ip_address: e.target.value,
-                                  }))
-                                }
-                                required
-                              />
-                            </div>
-                            <Button type="submit" className="w-full">
-                              Tambah Data User
-                            </Button>
-                          </form>
-                        </DialogContent>
-                      </Dialog>
-                      {/* Edit User ESTIM Dialog */}
-                      <Dialog
-                        open={isEditAS400DialogOpen}
-                        onOpenChange={setIsEditAS400DialogOpen}
-                      >
-                        <DialogContent>
-                          <DialogHeader>
-                            <DialogTitle>Edit User & IP Address</DialogTitle>
-                          </DialogHeader>
-                          <form
-                            onSubmit={handleUpdateAS400User}
-                            className="space-y-4"
-                          >
-                            <div>
-                              <label
-                                htmlFor="username"
-                                className="block text-sm font-medium"
-                              >
-                                Username
-                              </label>
-                              <Input
-                                className="uppercase"
-                                type="text"
-                                name="username"
-                                id="username"
-                                value={newAS400User.username ?? ""}
-                                onChange={(e) =>
-                                  setNewAS400User((prev) => ({
-                                    ...prev,
-                                    username: e.target.value,
-                                  }))
-                                }
-                                required
-                              />
-                            </div>
-                            <div>
-                              <label
-                                htmlFor="display_user"
-                                className="block text-sm font-medium"
-                              >
-                                Display User
-                              </label>
-                              <Input
-                                className="uppercase"
-                                type="text"
-                                name="display_user"
-                                id="display_user"
-                                value={newAS400User.display_user ?? ""}
-                                onChange={(e) =>
-                                  setNewAS400User((prev) => ({
-                                    ...prev,
-                                    display_user: e.target.value,
-                                  }))
-                                }
-                              />
-                            </div>
-                            <div>
-                              <label
-                                htmlFor="ip_address"
-                                className="block text-sm font-medium"
-                              >
-                                IP Address
-                              </label>
-                              <Input
-                                type="text"
-                                name="ip_address"
-                                id="ip_address"
-                                value={newAS400User.ip_address ?? ""}
-                                onChange={(e) =>
-                                  setNewAS400User((prev) => ({
-                                    ...prev,
-                                    ip_address: e.target.value,
-                                  }))
-                                }
-                                required
-                              />
-                            </div>
-                            <Button type="submit" className="w-full">
-                              Update User & IP
-                            </Button>
-                          </form>
-                        </DialogContent>
-                      </Dialog>
-                    </DropdownMenu>
-                  </TableCell>
-                </TableRow>
-              ))
-            )}
-          </TableBody>
+                            <Dialog
+                              open={isAddAS400DialogOpen}
+                              onOpenChange={setIsAddAS400DialogOpen}
+                            >
+                              <DialogContent>
+                                <DialogHeader>
+                                  <DialogTitle>Tambah User ESTIM</DialogTitle>
+                                </DialogHeader>
+                                <form
+                                  onSubmit={handleSubmitAS400User}
+                                  className="space-y-4"
+                                >
+                                  <div>
+                                    <label
+                                      htmlFor="username"
+                                      className="block text-sm font-medium uppercase"
+                                    >
+                                      Username
+                                    </label>
+                                    <Input
+                                      className="uppercase"
+                                      type="text"
+                                      name="username"
+                                      id="username"
+                                      value={newAS400User.username ?? ""}
+                                      onChange={(e) =>
+                                        setNewAS400User((prev) => ({
+                                          ...prev,
+                                          username: e.target.value,
+                                        }))
+                                      }
+                                      required
+                                    />
+                                  </div>
+                                  <div>
+                                    <label
+                                      htmlFor="display_user"
+                                      className="block text-sm font-medium"
+                                    >
+                                      Display User
+                                    </label>
+                                    <Input
+                                      className="uppercase"
+                                      type="text"
+                                      name="display_user"
+                                      id="display_user"
+                                      value={newAS400User.display_user ?? ""}
+                                      onChange={(e) =>
+                                        setNewAS400User((prev) => ({
+                                          ...prev,
+                                          display_user: e.target.value,
+                                        }))
+                                      }
+                                    />
+                                  </div>
+                                  <div>
+                                    <label
+                                      htmlFor="ip_address"
+                                      className="block text-sm font-medium"
+                                    >
+                                      IP Address
+                                    </label>
+                                    <Input
+                                      type="text"
+                                      name="ip_address"
+                                      id="ip_address"
+                                      value={newAS400User.ip_address ?? ""}
+                                      onChange={(e) =>
+                                        setNewAS400User((prev) => ({
+                                          ...prev,
+                                          ip_address: e.target.value,
+                                        }))
+                                      }
+                                      required
+                                    />
+                                  </div>
+                                  <Button type="submit" className="w-full">
+                                    Tambah Data User
+                                  </Button>
+                                </form>
+                              </DialogContent>
+                            </Dialog>
+                            <Dialog
+                              open={isEditAS400DialogOpen}
+                              onOpenChange={setIsEditAS400DialogOpen}
+                            >
+                              <DialogContent>
+                                <DialogHeader>
+                                  <DialogTitle>Edit User & IP Address</DialogTitle>
+                                </DialogHeader>
+                                <form
+                                  onSubmit={handleUpdateAS400User}
+                                  className="space-y-4"
+                                >
+                                  <div>
+                                    <label
+                                      htmlFor="username"
+                                      className="block text-sm font-medium"
+                                    >
+                                      Username
+                                    </label>
+                                    <Input
+                                      className="uppercase"
+                                      type="text"
+                                      name="username"
+                                      id="username"
+                                      value={newAS400User.username ?? ""}
+                                      onChange={(e) =>
+                                        setNewAS400User((prev) => ({
+                                          ...prev,
+                                          username: e.target.value,
+                                        }))
+                                      }
+                                      required
+                                    />
+                                  </div>
+                                  <div>
+                                    <label
+                                      htmlFor="display_user"
+                                      className="block text-sm font-medium"
+                                    >
+                                      Display User
+                                    </label>
+                                    <Input
+                                      className="uppercase"
+                                      type="text"
+                                      name="display_user"
+                                      id="display_user"
+                                      value={newAS400User.display_user ?? ""}
+                                      onChange={(e) =>
+                                        setNewAS400User((prev) => ({
+                                          ...prev,
+                                          display_user: e.target.value,
+                                        }))
+                                      }
+                                    />
+                                  </div>
+                                  <div>
+                                    <label
+                                      htmlFor="ip_address"
+                                      className="block text-sm font-medium"
+                                    >
+                                      IP Address
+                                    </label>
+                                    <Input
+                                      type="text"
+                                      name="ip_address"
+                                      id="ip_address"
+                                      value={newAS400User.ip_address ?? ""}
+                                      onChange={(e) =>
+                                        setNewAS400User((prev) => ({
+                                          ...prev,
+                                          ip_address: e.target.value,
+                                        }))
+                                      }
+                                      required
+                                    />
+                                  </div>
+                                  <Button type="submit" className="w-full">
+                                    Update User & IP
+                                  </Button>
+                                </form>
+                              </DialogContent>
+                            </Dialog>
+                          </DropdownMenu>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </div>
           </CardContent>
-        </Table>
         </Card>
       </div>
       <div className="flex justify-end mt-4 print:hidden">
@@ -1132,10 +1191,10 @@ const EmployeeAS400Management = () => {
             <PaginationItem>
               <PaginationNext
                 onClick={() =>
-                  currentPage < totalPages && handlePageChange(currentPage + 1)
+                  currentPage < Math.ceil(pegawai.length / itemsPerPage) && handlePageChange(currentPage + 1)
                 }
                 className={
-                  currentPage === totalPages
+                  currentPage === Math.ceil(pegawai.length / itemsPerPage)
                     ? "pointer-events-none opacity-50"
                     : "cursor-pointer"
                 }
