@@ -265,7 +265,20 @@ export default function RoomChecklistPage() {
       if (error) throw error;
 
       toast.success("Checklist berhasil disimpan");
-      form.reset();
+      form.reset(
+        {
+          location_id: "",
+          room_id: "",
+          checked_by: "",
+          temperature: "",
+          humidity: "",
+          is_clean: false,
+          is_secure: false,
+          equipment_status: "",
+          notes: "",
+        },
+        { keepValues: false },
+      );
 
       // Refresh data checklist
       const { data: newChecks, error: fetchError } = await supabase
@@ -641,7 +654,7 @@ export default function RoomChecklistPage() {
                       <FormLabel>Status Peralatan</FormLabel>
                       <Select
                         onValueChange={field.onChange}
-                        defaultValue={field.value}
+                        value={field.value || ""}
                       >
                         <FormControl>
                           <SelectTrigger>
