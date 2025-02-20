@@ -1204,6 +1204,68 @@ const EmployeeAS400Management = () => {
         </Pagination>
       </div>
       <UploadDialog />
+      <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Tambah Pegawai Baru</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleAddPegawai} className="space-y-4">
+            <div>
+              <label htmlFor="nip" className="block text-sm font-medium">
+                NIP
+              </label>
+              <Input
+                type="text"
+                name="nip"
+                id="nip"
+                value={newPegawai.nip}
+                onChange={handleInputChange}
+                required
+              />
+            </div>
+            <div>
+              <label htmlFor="name" className="block text-sm font-medium">
+                Nama Lengkap
+              </label>
+              <Input
+                type="text"
+                name="name"
+                id="name"
+                value={newPegawai.name}
+                onChange={handleInputChange}
+                required
+              />
+            </div>
+            <div>
+              <label htmlFor="jabatan" className="block text-sm font-medium">
+                Jabatan
+              </label>
+              <Input
+                type="text"
+                name="jabatan"
+                id="jabatan"
+                value={newPegawai.jabatan}
+                onChange={handleInputChange}
+              />
+            </div>
+            <div>
+              <label htmlFor="department" className="block text-sm font-medium">
+                Unit Bagian
+              </label>
+              <Input
+                type="text"
+                name="department"
+                id="department"
+                value={newPegawai.department}
+                onChange={handleInputChange}
+              />
+            </div>
+            <Button type="submit" className="w-full">
+              Tambah Pegawai
+            </Button>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
