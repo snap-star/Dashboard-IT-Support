@@ -212,7 +212,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         {/* Single Links */}
       </SidebarContent>
       <SidebarFooter className="space-y-4 p-4">
+        <div className="flex flex-col items-end gap-2">
         <ModeToggle />
+        </div>
         <Button
           variant="default"
           className={cn(

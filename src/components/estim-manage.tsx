@@ -60,6 +60,7 @@ type As400User = {
   username: string;
   display_user: string;
   ip_address: string;
+  mac_address: string;
   last_login: string;
 };
 
@@ -80,11 +81,12 @@ type ExcelPegawai = {
   username: string;
   display_user: string;
   ip_address: string;
+  mac_address: string;
 };
 
 // Tambahkan type untuk sorting
 type SortConfig = {
-  key: keyof Pegawai | "username" | "display_user" | "ip_address";
+  key: keyof Pegawai | "username" | "display_user" | "ip_address" | "mac_address";
   direction: "asc" | "desc";
 };
 
@@ -109,6 +111,7 @@ const EmployeeAS400Management = () => {
     username: "",
     display_user: "",
     ip_address: "",
+    mac_address: "",
   });
   //pagination
   const [currentPage, setCurrentPage] = useState(1);
@@ -171,6 +174,13 @@ const EmployeeAS400Management = () => {
           ? aValue.localeCompare(bValue)
           : bValue.localeCompare(aValue);
       }
+      if (sortConfig.key === "mac_address") {
+        const aValue = a.as400_users[0]?.mac_address || "";
+        const bValue = b.as400_users[0]?.mac_address || "";
+        return sortConfig.direction === "asc"
+          ? aValue.localeCompare(bValue)
+          : bValue.localeCompare(aValue); 
+      }
 
       const aValue = String(a[sortConfig.key]);
       const bValue = String(b[sortConfig.key]);
@@ -205,6 +215,7 @@ const EmployeeAS400Management = () => {
         username: "User ESTIM",
         display_user: "Display User",
         ip_address: "192.168.1.1",
+        mac_address: "00:00:00:00:00:00",
       },
     ];
 
@@ -286,6 +297,7 @@ const EmployeeAS400Management = () => {
                 username: row.username,
                 display_user: row.display_user,
                 ip_address: row.ip_address,
+                mac_address: row.mac_address,
               },
             ]);
 
@@ -346,6 +358,7 @@ const EmployeeAS400Management = () => {
               <li>username</li>
               <li>display_user</li>
               <li>ip_address</li>
+              <li>mac_address</li>
             </ul>
           </div>
         </div>
@@ -353,7 +366,7 @@ const EmployeeAS400Management = () => {
     </Dialog>
   );
 
-  // Fetch data pegawai dan user AS400
+  // Fetch data pegawai dan user ESTIM
   // Perbaikan di fetchPegawai
   const fetchPegawai = async () => {
     setLoading(true);
@@ -368,7 +381,7 @@ const EmployeeAS400Management = () => {
             username,
             display_user,
             ip_address,
-            last_login
+            mac_address
           )
         `,
         )
@@ -439,11 +452,11 @@ const EmployeeAS400Management = () => {
           jabatan: "",
           department: "",
         });
-        toast.success("Berhasil menambahkan pegawai");
+        toast.success("Berhasil menambahkan data pegawai baru");
       }
     } catch (error) {
       console.error("Error menambahkan pegawai:", error);
-      toast.error("Failed menambahkan pegawai");
+      toast.error("Failed menambahkan data pegawai");
     }
   };
 
@@ -497,10 +510,10 @@ const EmployeeAS400Management = () => {
         if (error) throw error;
 
         setPegawai((prev) => prev.filter((p) => p.id !== pegawai.id));
-        toast.success("Pegawai berhasil di hapus");
+        toast.success("Field Pegawai berhasil di hapus");
       } catch (error) {
         console.error("Error menghapus pegawai:", error);
-        toast.error("Gagal Menghapus pegawai");
+        toast.error("Gagal Menghapus field pegawai");
       }
     }
   };
@@ -511,6 +524,7 @@ const EmployeeAS400Management = () => {
       username: user.username,
       display_user: user.display_user,
       ip_address: user.ip_address,
+      mac_address: user.mac_address,
     });
     setIsEditAS400DialogOpen(true);
   };
@@ -526,6 +540,7 @@ const EmployeeAS400Management = () => {
           username: newAS400User.username,
           display_user: newAS400User.display_user,
           ip_address: newAS400User.ip_address,
+          mac_address: newAS400User.mac_address,
         })
         .eq("id", selectedAS400User.id)
         .select();
@@ -542,11 +557,11 @@ const EmployeeAS400Management = () => {
       );
       setIsEditAS400DialogOpen(false);
       setSelectedAS400User(undefined);
-      setNewAS400User({ username: "", display_user: "", ip_address: "" });
-      toast.success("AS400 user updated successfully");
+      setNewAS400User({ username: "", display_user: "", ip_address: "" , mac_address: ""});
+      toast.success("User ESTIM berhasil di update");
     } catch (error) {
-      console.error("Error updating AS400 user:", error);
-      toast.error("Failed to update AS400 user");
+      console.error("Error updating user ESTIM:", error);
+      toast.error("Gagal mengubah user ESTIM");
     }
   };
   //handleDeleteUserEstim
@@ -567,8 +582,8 @@ const EmployeeAS400Management = () => {
         );
         toast.success("User Estim Berhasil Di Hapus");
       } catch (error) {
-        console.error("Error deleting AS400 user:", error);
-        toast.error("Failed to delete AS400 user");
+        console.error("error gagal menghapus user:", error);
+        toast.error("Gagal Menghapus User Estim");
       }
     }
   };
@@ -606,11 +621,11 @@ const EmployeeAS400Management = () => {
         }),
       );
       setIsAddAS400DialogOpen(false);
-      setNewAS400User({ username: "", display_user: "", ip_address: "" });
+      setNewAS400User({ username: "", display_user: "", ip_address: "", mac_address: "" });
       toast.success("AS400 user added successfully");
     } catch (error) {
-      console.error("Error adding AS400 user:", error);
-      toast.error("Failed to add AS400 user");
+      console.error("Error Menambahkan user ESTIM:", error);
+      toast.error("Gagal Menambahkan user ESTIM");
     }
   };
 
@@ -686,13 +701,17 @@ const EmployeeAS400Management = () => {
   // Tambahkan loading skeleton
   const TableSkeleton = () => (
     <TableRow>
-      <TableCell colSpan={9}>
+      <TableCell colSpan={10}>
         <div className="space-y-3">
           {[...Array(5)].map((_, i) => (
             <div key={i} className="flex items-center space-x-4">
               <div className="h-4 w-[10%] animate-pulse rounded bg-gray-200" />
               <div className="h-4 w-[15%] animate-pulse rounded bg-gray-200" />
               <div className="h-4 w-[20%] animate-pulse rounded bg-gray-200" />
+              <div className="h-4 w-[15%] animate-pulse rounded bg-gray-200" />
+              <div className="h-4 w-[15%] animate-pulse rounded bg-gray-200" />
+              <div className="h-4 w-[15%] animate-pulse rounded bg-gray-200" />
+              <div className="h-4 w-[15%] animate-pulse rounded bg-gray-200" />
               <div className="h-4 w-[15%] animate-pulse rounded bg-gray-200" />
               <div className="h-4 w-[15%] animate-pulse rounded bg-gray-200" />
             </div>
@@ -812,6 +831,7 @@ const EmployeeAS400Management = () => {
                     <SortHeader column="username" label="User ESTIM" />
                     <SortHeader column="display_user" label="Display User" />
                     <SortHeader column="ip_address" label="IP Address" />
+                    <SortHeader column="mac_address" label="MAC Address" />
                     <TableHead className="w-[100px]">Aksi</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -820,7 +840,7 @@ const EmployeeAS400Management = () => {
                     <TableSkeleton />
                   ) : currentItems.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={9} className="h-24 text-center">
+                      <TableCell colSpan={10} className="h-24 text-center">
                         <div className="flex flex-col items-center justify-center space-y-2">
                           <Search className="h-8 w-8 text-muted-foreground" />
                           <p className="text-muted-foreground">Tidak ada data ditemukan</p>
@@ -901,6 +921,15 @@ const EmployeeAS400Management = () => {
                             {(pegawai.as400_users || []).map((user) => (
                               <span key={user.id} className="text-sm">
                                 {user.ip_address}
+                              </span>
+                            ))}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex flex-col gap-1">
+                            {(pegawai.as400_users || []).map((user) => (
+                              <span key={user.id} className="text-sm">
+                                {user.mac_address}
                               </span>
                             ))}
                           </div>
@@ -1089,6 +1118,26 @@ const EmployeeAS400Management = () => {
                                       required
                                     />
                                   </div>
+                                  <div>
+                                    <label
+                                      htmlFor="mac_address"
+                                      className="block text-sm font-medium"
+                                    >
+                                      MAC Address
+                                    </label>
+                                    <Input
+                                      type="text"
+                                      name="mac_address"
+                                      id="mac_address"
+                                      value={newAS400User.mac_address?? ""}
+                                      onChange={(e) =>
+                                        setNewAS400User((prev) => ({
+                                          ...prev,
+                                          mac_address: e.target.value,
+                                        }))
+                                      }
+                                    />
+                                  </div>
                                   <Button type="submit" className="w-full">
                                     Tambah Data User
                                   </Button>
@@ -1169,6 +1218,26 @@ const EmployeeAS400Management = () => {
                                         }))
                                       }
                                       required
+                                    />
+                                  </div>
+                                  <div>
+                                    <label
+                                      htmlFor="mac_address"
+                                      className="block text-sm font-medium"
+                                    >
+                                      MAC Address
+                                    </label>
+                                    <Input
+                                      type="text"
+                                      name="mac_address"
+                                      id="mac_address"
+                                      value={newAS400User.mac_address ?? ""}
+                                      onChange={(e) =>
+                                        setNewAS400User((prev) => ({
+                                         ...prev,
+                                          mac_address: e.target.value,
+                                        }))
+                                      }
                                     />
                                   </div>
                                   <Button type="submit" className="w-full">
