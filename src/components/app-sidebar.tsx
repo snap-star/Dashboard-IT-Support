@@ -194,7 +194,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarHeader>
       <SidebarContent>
         <Label>
-          <span className="mx-auto p-4 text-sm font-medium">Quick Links</span>
+          <span className="mx-auto p-4 text-sm text-muted-foreground">Menu Utama</span>
         </Label>
         <nav className="space-y-1">
           {singleNavMain.map((item) => (

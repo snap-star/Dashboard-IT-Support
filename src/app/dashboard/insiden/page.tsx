@@ -18,7 +18,6 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -43,7 +42,6 @@ import {
 import {
   Card,
   CardContent,
-  CardFooter,
   CardHeader,
   CardTitle,
   CardDescription,
@@ -336,7 +334,7 @@ export default function ITIncidentManagement() {
       }
 
       // Format data untuk Excel
-      const formattedData = dataToExport.map((item) => ({
+      const formattedData = dataToExport.map((item:any) => ({
         Judul: item.title,
         Deskripsi: item.description,
         Pelapor: item.reported_by,
@@ -514,9 +512,9 @@ export default function ITIncidentManagement() {
       </Dialog>
       <Card className="w-full overflow-hidden mx-auto max-w-[100vw] h-full">
         <CardHeader className="pb-3">
-          <CardTitle className="text-lg font-semibold">List Insiden</CardTitle>
+          <CardTitle className="text-lg font-semibold">List Insiden & Kegiatan IT Support</CardTitle>
           <CardDescription>
-            Daftar semua insiden yang telah dilaporkan
+            Daftar semua insiden yang sedang berjalan dan telah selesai.
           </CardDescription>
         </CardHeader>
         <CardContent>

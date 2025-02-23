@@ -19,6 +19,21 @@ interface DatePickerProps {
 }
 
 export function DatePickerDefault({ date, setDateAction }: DatePickerProps) {
+  const handleDateSelect = (selectedDate: Date | undefined) => {
+    if (selectedDate) {
+      // Menyesuaikan tanggal agar tidak terpengaruh zona waktu
+      const adjustedDate = new Date(
+        selectedDate.getFullYear(),
+        selectedDate.getMonth(),
+        selectedDate.getDate(),
+        12  // Set jam ke tengah hari untuk menghindari masalah timezone
+      );
+      setDateAction(adjustedDate);
+    } else {
+      setDateAction(undefined);
+    }
+  };
+
   return (
     <Popover>
       <PopoverTrigger asChild>
@@ -41,7 +56,7 @@ export function DatePickerDefault({ date, setDateAction }: DatePickerProps) {
         <Calendar
           mode="single"
           selected={date}
-          onSelect={setDateAction}
+          onSelect={handleDateSelect}
           locale={id}
           initialFocus
         />

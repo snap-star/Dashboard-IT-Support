@@ -121,7 +121,7 @@ export default function ATMComplaints() {
   const [totalPages, setTotalPages] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
+  const [statusFilter, setStatusFilter] = useState("");
 
   // Effects
   useEffect(() => {
@@ -243,7 +243,7 @@ export default function ATMComplaints() {
       if (error) throw error;
 
       // Format data untuk excel
-      const exportData = data.map((item) => ({
+      const exportData = data.map((item:any) => ({
         "ATM ID": item.atm_id,
         Komplain: item.complaint,
         Pelapor: item.reported_by,
@@ -445,7 +445,32 @@ export default function ATMComplaints() {
                           <Label htmlFor="date_complaint">
                             Tanggal Kejadian
                           </Label>
-                          <Input
+                          <DatePickerDefault
+              date={
+                editingComplaint
+                  ? editingComplaint.date_reported
+                    ? new Date(editingComplaint.date_reported)
+                    : new Date()
+                  : newComplaint.date_reported
+                    ? new Date(newComplaint.date_reported)
+                    : new Date()
+              }
+              setDateAction={(newDate: Date | undefined) => {
+                const selectedDate = newDate || new Date();
+                if (editingComplaint) {
+                  setEditingComplaint({
+                    ...editingComplaint,
+                    date_reported: selectedDate.toISOString().split("T")[0],
+                  });
+                } else {
+                  setNewComplaint({
+                    ...newComplaint,
+                    date_reported: selectedDate.toISOString().split("T")[0],
+                  });
+                }
+              }}
+            />
+                          {/* <Input
                             id="date_complaint"
                             type="date"
                             value={
@@ -464,7 +489,7 @@ export default function ATMComplaints() {
                                     date_complaint: e.target.value,
                                   })
                             }
-                          />
+                          /> */}
                         </div>
                         <div className="space-y-1.5">
                           <Label htmlFor="status">Status</Label>
@@ -598,7 +623,7 @@ export default function ATMComplaints() {
                   />
                 </div>
                 <Select
-                  value={statusFilter}
+                  value={statusFilter ?? ""}
                   onValueChange={(value) => {
                     setStatusFilter(value);
                     setCurrentPage(1); // Reset page when filtering
@@ -741,8 +766,8 @@ export default function ATMComplaints() {
                               }}
                               className="h-8 px-2 lg:px-3"
                             >
-                              <Pencil className="h-4 w-4 lg:mr-2" />
-                              <span className="hidden lg:inline">Edit</span>
+                              <Pencil className="h-4 w-4" />
+                              {/* <span className="hidden lg:inline">Edit</span> */}
                             </Button>
                             <Button
                               variant="destructive"
@@ -750,8 +775,8 @@ export default function ATMComplaints() {
                               onClick={() => handleDelete(complaint.id)}
                               className="h-8 px-2 lg:px-3"
                             >
-                              <Trash className="h-4 w-4 lg:mr-2" />
-                              <span className="hidden lg:inline">Hapus</span>
+                              <Trash className="h-4 w-4" />
+                              {/* <span className="hidden lg:inline">Hapus</span> */}
                             </Button>
                           </div>
                         </TableCell>

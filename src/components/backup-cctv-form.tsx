@@ -6,7 +6,7 @@ import { useForm } from "react-hook-form"
 import * as z from "zod"
 import { format } from "date-fns"
 import { Calendar } from "@/components/ui/calendar"
-import { CalendarIcon, Download, Loader2 } from "lucide-react"
+import { CalendarIcon, Download, Loader2, Save } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
   Form,
@@ -105,7 +105,7 @@ export function BackupCCTVForm() {
     const loadingToast = toast.loading('Menyimpan data...')
 
     try {
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from('cctv_backups')
         .insert([
           {
@@ -168,7 +168,7 @@ export function BackupCCTVForm() {
       }
 
       // Format data sebelum di-export
-      const formattedData = data.map(record => ({
+      const formattedData = data.map((record:any) => ({
         ...record,
         tanggal_backup: format(new Date(record.tanggal_backup), 'dd MMMM yyyy', { locale: id }),
         created_at: format(new Date(record.created_at), 'dd MMMM yyyy HH:mm:ss', { locale: id }) + ' WIB'
@@ -348,6 +348,7 @@ export function BackupCCTVForm() {
 
                   <div className="flex flex-col sm:flex-row gap-4">
                     <Button type="submit" disabled={isLoading}>
+                    <Save className="h-4 w-4" />
                       {isLoading ? (
                         <>
                           <Loader2 className="mr-2 h-4 w-4 animate-spin" />

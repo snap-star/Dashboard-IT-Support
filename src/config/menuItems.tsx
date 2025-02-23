@@ -1,4 +1,4 @@
-import { LucideIcon } from "lucide-react";
+import { Computer, FileWarning, LucideIcon, Video } from "lucide-react";
 import {
   LayoutDashboard,
   FileText,
@@ -15,18 +15,6 @@ export const navMain = [
     url: "/dashboard/aktivitas",
     icon: FileText,
     items: [
-      {
-        title: "Pengecekan Ruang Server",
-        url: "/dashboard/reports",
-      },
-      {
-        title: "Form Register CCTV",
-        url: "/dashboard/cctv",
-      },
-      {
-        title: "Input Insiden Kantor",
-        url: "/dashboard/insiden",
-      },
       {
         title: "Input Komplain ATM",
         url: "/dashboard/atm",
@@ -103,6 +91,10 @@ export const navMain = [
         title: "IP Address Catalyst",
         url: "/dashboard/ip-address/catalyst",
       },
+      {
+        title: "IP Address Calculator",
+        url: "/dashboard/ip-address-calculator",
+      }
     ],
   },
 ];
@@ -114,19 +106,24 @@ export const singleNavMain = [
     icon: LayoutDashboard,
   },
   {
-    title: "Manage User ESTIM",
-    url: "/dashboard/ip-address",
-    icon: Users,
-  },
-  {
     title: "Rekap User ESTIM",
     url: "/dashboard/estim",
     icon: Users,
   },
   {
-    title: "Upload data Excel",
-    url: "/dashboard/uploader",
-    icon: FileText,
+    title: "Pengecekan Ruang Server",
+    url: "/dashboard/reports",
+    icon: Computer,
+  },
+  {
+    title: "Form Register CCTV",
+    url: "/dashboard/cctv",
+    icon: Video,
+  },
+  {
+    title: "Input Insiden Kantor",
+    url: "/dashboard/insiden",
+    icon: FileWarning,
   }
 ];
 
