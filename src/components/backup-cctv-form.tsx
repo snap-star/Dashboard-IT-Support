@@ -45,16 +45,20 @@ import { id } from "date-fns/locale"
 // Schema validasi form
 const formSchema = z.object({
   backupFileName: z.string().min(8, {
-    message: "Nama file backup harus diisi minimal tanggal mulai backup dan akhir backup. (contoh: 0102021 s/d 30092021)",
+    message: "Nama file backup harus diisi minimal tanggal mulai backup dan akhir backup. (contoh: 01-02-2021 s/d 30-09-2021)",
   }),
   tanggalBackup: z.date({
     required_error: "Tanggal backup harus diisi",
   }),
   dvr: z.string({
-    required_error: "DVR harus dipilih. Jika hanya ada 1 DVR, pilih DVR 1",
+    required_error: "DVR harus dipilih.",
+  }).min(4, {
+    message: "DVR harus dipilih",
   }),
   location: z.string({
-    required_error: "Lokasi harus dipilih",
+    required_error: "Lokasi backup harus dipilih.",
+  }).min(12, {
+    message: "Lokasi harus diisi",
   }),
   petugas: z.string().min(2, {
     message: "Nama petugas harus diisi",
@@ -270,7 +274,7 @@ export function BackupCCTVForm() {
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>DVR</FormLabel>
-                          <Select onValueChange={field.onChange} value={field.value || ""}>
+                          <Select onValueChange={field.onChange} value={field.value || ""} required>
                             <FormControl>
                               <SelectTrigger>
                                 <SelectValue placeholder="Pilih DVR" />
@@ -280,6 +284,7 @@ export function BackupCCTVForm() {
                               <SelectItem value="dvr1">DVR 1</SelectItem>
                               <SelectItem value="dvr2">DVR 2</SelectItem>
                               <SelectItem value="dvr3">DVR 3</SelectItem>
+                              <SelectItem value="dvr4">DVR 4</SelectItem>
                             </SelectContent>
                           </Select>
                           <FormMessage />
@@ -293,7 +298,7 @@ export function BackupCCTVForm() {
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Lokasi</FormLabel>
-                          <Select onValueChange={field.onChange} value={field.value || ""}>
+                          <Select onValueChange={field.onChange} value={field.value || ""} required>
                             <FormControl>
                               <SelectTrigger>
                                 <SelectValue placeholder="Pilih lokasi" />
