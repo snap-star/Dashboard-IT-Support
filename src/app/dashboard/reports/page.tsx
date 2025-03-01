@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -56,6 +56,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Camera } from "lucide-react";
+import imageCompression from "browser-image-compression";
 import supabase from "@/lib/supabase";
 
 // Schema untuk form checklist
@@ -69,6 +71,7 @@ const checklistSchema = z.object({
   is_secure: z.boolean().default(false),
   equipment_status: z.string().min(1, "Status peralatan harus diisi"),
   notes: z.string().optional().default(""),
+  image_url: z.string().optional(),
 });
 
 interface Location {
@@ -98,6 +101,7 @@ interface RoomCheck {
   check_date: string;
   check_time: string;
   formatted_time: string;
+  image_url: string;
 }
 
 // Fungsi helper untuk format waktu Indonesia
@@ -115,6 +119,23 @@ const formatIndonesianDate = (date: Date | string) => {
   });
 };
 
+// Tambahkan fungsi untuk kompresi gambar
+const compressImage = async (file: File) => {
+  const options = {
+    maxSizeMB: 1,
+    maxWidthOrHeight: 1024,
+    useWebWorker: true,
+  };
+  
+  try {
+    const compressedFile = await imageCompression(file, options);
+    return compressedFile;
+  } catch (error) {
+    console.error("Error compressing image:", error);
+    throw error;
+  }
+};
+
 export default function RoomChecklistPage() {
   const [locations, setLocations] = useState<Location[]>([]);
   const [rooms, setRooms] = useState<Room[]>([]);
@@ -126,7 +147,6 @@ export default function RoomChecklistPage() {
     to: undefined,
   });
   const [isExporting, setIsExporting] = useState(false);
-
   const form = useForm<z.infer<typeof checklistSchema>>({
     resolver: zodResolver(checklistSchema),
     defaultValues: {
@@ -139,8 +159,48 @@ export default function RoomChecklistPage() {
       is_secure: false,
       equipment_status: "",
       notes: "",
+      image_url: "",
     },
   });
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Fungsi untuk upload gambar ke Supabase Storage
+  const uploadImage = async (file: File) => {
+    try {
+      const compressedFile = await compressImage(file);
+      const fileName = `${Date.now()}-${file.name}`;
+      
+      const { data, error } = await supabase.storage
+        .from('room-checks') // Sesuaikan dengan nama bucket Anda
+        .upload(fileName, compressedFile);
+
+      if (error) throw error;
+
+      // Dapatkan public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('room-checks')
+        .getPublicUrl(fileName);
+
+      return publicUrl;
+    } catch (error) {
+      console.error("Error uploading image:", error);
+      throw error;
+    }
+  };
+
+  // Handler untuk capture/upload gambar
+  const handleImageCapture = useCallback(async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    try {
+      const imageUrl = await uploadImage(file);
+      form.setValue("image_url", imageUrl);
+      toast.success("Gambar berhasil diunggah");
+    } catch (error:any) {
+      toast.error("Gagal mengunggah gambar:"+ error + error.message);
+    }
+  }, [form]);
 
   // Fetch locations dan rooms
   useEffect(() => {
@@ -243,7 +303,7 @@ export default function RoomChecklistPage() {
       const checkDate = format(jakartaTime, "yyyy-MM-dd");
       const checkTime = format(jakartaTime, "HH:mm:ss");
 
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from("room_checks")
         .insert([
           {
@@ -257,6 +317,7 @@ export default function RoomChecklistPage() {
             notes: values.notes || "",
             check_date: checkDate,
             check_time: checkTime,
+            image_url: values.image_url || null,
           },
         ])
         .select()
@@ -276,6 +337,7 @@ export default function RoomChecklistPage() {
           is_secure: false,
           equipment_status: "",
           notes: "",
+          image_url: "",
         },
         { keepValues: false },
       );
@@ -693,6 +755,48 @@ export default function RoomChecklistPage() {
                   )}
                 />
 
+                {/* Tambahkan input file dan preview gambar sebelum Button submit */}
+                <div className="space-y-2">
+                  <Input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    capture="environment"
+                    className="hidden"
+                    onChange={handleImageCapture}
+                  />
+                  
+                  <div className="flex gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => fileInputRef.current?.click()}
+                    >
+                      <Camera className="h-4 w-4 mr-2" />
+                      Ambil/Upload Foto
+                    </Button>
+                  </div>
+
+                  {form.watch("image_url") && (
+                    <div className="relative w-full h-48">
+                      <img
+                        src={form.watch("image_url")}
+                        alt="Preview"
+                        className="w-full h-full object-cover rounded-md"
+                      />
+                      <Button
+                        type="button"
+                        variant="destructive"
+                        size="sm"
+                        className="absolute top-2 right-2"
+                        onClick={() => form.setValue("image_url", "")}
+                      >
+                        Hapus
+                      </Button>
+                    </div>
+                  )}
+                </div>
+
                 <Button type="submit" className="w-full">
                   Simpan Checklist
                 </Button>
@@ -795,6 +899,15 @@ export default function RoomChecklistPage() {
                           </p>
                         </div>
 
+                        {check.image_url && (
+                          <div className="mt-4">
+                            <img
+                              src={check.image_url}
+                              alt="Room check"
+                              className="w-full h-48 object-cover rounded-md"
+                            />
+                          </div>
+                        )}
                         {check.notes && (
                           <div>
                             <p className="text-sm font-medium">Catatan:</p>
