@@ -37,8 +37,11 @@ import {
   Thermometer,
   Droplets,
   Check,
+  Camera,
   Shield,
   AlertTriangle,
+  Download,
+  Printer,
 } from "lucide-react";
 import * as XLSX from "xlsx";
 import { DateRange } from "react-day-picker";
@@ -56,8 +59,9 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Camera } from "lucide-react";
 import imageCompression from "browser-image-compression";
+import html2canvas from "html2canvas";
+import jsPDF from "jspdf";
 import supabase from "@/lib/supabase";
 
 // Schema untuk form checklist
@@ -126,7 +130,7 @@ const compressImage = async (file: File) => {
     maxWidthOrHeight: 1024,
     useWebWorker: true,
   };
-  
+
   try {
     const compressedFile = await imageCompression(file, options);
     return compressedFile;
@@ -163,23 +167,64 @@ export default function RoomChecklistPage() {
     },
   });
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const formRef = useRef<HTMLFormElement>(null);
+  const checklistRef = useRef<HTMLDivElement>(null);
+
+  //fungsi generate pdf
+const generatePDF = async () => {
+  if (!checklistRef.current) return;
+  try {
+    toast.loading("Menyiapkan PDF...");
+    const canvas = await html2canvas(checklistRef.current, {
+      scale: 2,
+      useCORS: true,
+      logging: false,
+    });
+    const imgWidth = 210; // A4 size
+    const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+    const pdf = new jsPDF("p", "mm", "a4");
+    const imgData = canvas.toDataURL("image/png");
+    pdf.addImage(imgData, "PNG", 0, 0, imgWidth, imgHeight);
+    pdf.save(`checklistt_${format(new Date(), "ddMMyyyy")}.pdf`);
+    toast.dismiss();
+    toast.success("PDF berhasil dibuat");
+  } catch (error) {
+    console.error("Error generating PDF:", error);
+    toast.error("Gagal membuat PDF");
+  }
+};
+
+// Fungsi untuk print
+const handlePrint = useCallback(() => {
+  if (!checklistRef.current) return;
+
+  const printContent = checklistRef.current;
+  const originalContents = document.body.innerHTML;
+
+  document.body.innerHTML = printContent.innerHTML;
+  window.print();
+  document.body.innerHTML = originalContents;
+  window.location.reload(); // Reload halaman setelah print
+}, []);
+
 
   // Fungsi untuk upload gambar ke Supabase Storage
   const uploadImage = async (file: File) => {
     try {
       const compressedFile = await compressImage(file);
       const fileName = `${Date.now()}-${file.name}`;
-      
+
       const { data, error } = await supabase.storage
-        .from('room-checks') // Sesuaikan dengan nama bucket Anda
+        .from("room-checks") // Sesuaikan dengan nama bucket Anda
         .upload(fileName, compressedFile);
 
       if (error) throw error;
 
       // Dapatkan public URL
-      const { data: { publicUrl } } = supabase.storage
-        .from('room-checks')
-        .getPublicUrl(fileName);
+      const {
+        data: { publicUrl },
+      } = supabase.storage.from("room-checks").getPublicUrl(fileName);
 
       return publicUrl;
     } catch (error) {
@@ -189,18 +234,21 @@ export default function RoomChecklistPage() {
   };
 
   // Handler untuk capture/upload gambar
-  const handleImageCapture = useCallback(async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
+  const handleImageCapture = useCallback(
+    async (event: React.ChangeEvent<HTMLInputElement>) => {
+      const file = event.target.files?.[0];
+      if (!file) return;
 
-    try {
-      const imageUrl = await uploadImage(file);
-      form.setValue("image_url", imageUrl);
-      toast.success("Gambar berhasil diunggah");
-    } catch (error:any) {
-      toast.error("Gagal mengunggah gambar:"+ error + error.message);
-    }
-  }, [form]);
+      try {
+        const imageUrl = await uploadImage(file);
+        form.setValue("image_url", imageUrl);
+        toast.success("Gambar berhasil diunggah");
+      } catch (error: any) {
+        toast.error("Gagal mengunggah gambar:" + error + error.message);
+      }
+    },
+    [form],
+  );
 
   // Fetch locations dan rooms
   useEffect(() => {
@@ -429,8 +477,9 @@ export default function RoomChecklistPage() {
         "Kondisi Bersih": check.is_clean ? "Ya" : "Tidak",
         "Kondisi Aman": check.is_secure ? "Ya" : "Tidak",
         "Status Peralatan": check.equipment_status,
-        "Diperiksa Oleh": check.checked_by,
+        "Petugas": check.checked_by,
         Catatan: check.notes || "-",
+        image_url: check.image_url || "-",
       }));
     } catch (error) {
       console.error("Error fetching data:", error);
@@ -563,6 +612,7 @@ export default function RoomChecklistPage() {
           <CardContent>
             <Form {...form}>
               <form
+                ref={formRef}
                 onSubmit={form.handleSubmit(onSubmit)}
                 className="space-y-4"
               >
@@ -765,7 +815,7 @@ export default function RoomChecklistPage() {
                     className="hidden"
                     onChange={handleImageCapture}
                   />
-                  
+
                   <div className="flex gap-2">
                     <Button
                       type="button"
@@ -811,8 +861,36 @@ export default function RoomChecklistPage() {
             <CardDescription>
               {formatIndonesianDate(new Date())}
             </CardDescription>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={generatePDF}
+                title="Simpan sebagai PDF"
+              >
+                <Download className="h-4 w-4 mr-2" />
+                PDF
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handlePrint}
+                title="Cetak checklist"
+              >
+                <Printer className="h-4 w-4 mr-2" />
+                Print
+              </Button>
+            </div>
           </CardHeader>
           <CardContent>
+          <div ref={checklistRef}>
+              {/* Tambahkan style untuk print */}
+              <style type="text/css" media="print">
+                {`
+                  @page { size: auto; margin: 20mm; }
+                  body { margin: 0; padding: 20px; }
+                `}
+              </style>
             {isLoading ? (
               <div className="flex items-center justify-center h-[400px]">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900" />
@@ -854,12 +932,14 @@ export default function RoomChecklistPage() {
                           <div className="flex items-center gap-2">
                             <Thermometer className="h-4 w-4 text-orange-500" />
                             <span className="text-sm">
-                              {check.temperature}°C
+                              Temperatur: {check.temperature}°C
                             </span>
                           </div>
                           <div className="flex items-center gap-2">
                             <Droplets className="h-4 w-4 text-blue-500" />
-                            <span className="text-sm">{check.humidity}%</span>
+                            <span className="text-sm">
+                              Kelembapan: {check.humidity}%
+                            </span>
                           </div>
                         </div>
 
@@ -869,6 +949,7 @@ export default function RoomChecklistPage() {
                               className={`h-4 w-4 ${check.is_clean ? "text-green-500" : "text-red-500"}`}
                             />
                             <span className="text-sm">
+                              Kondisi:{" "}
                               {check.is_clean ? "Bersih" : "Perlu Dibersihkan"}
                             </span>
                           </div>
@@ -877,7 +958,7 @@ export default function RoomChecklistPage() {
                               className={`h-4 w-4 ${check.is_secure ? "text-green-500" : "text-red-500"}`}
                             />
                             <span className="text-sm">
-                              {check.is_secure ? "Aman" : "Perlu Dicek"}
+                              Status: {check.is_secure ? "Aman" : "Perlu Dicek"}
                             </span>
                           </div>
                         </div>
@@ -922,6 +1003,7 @@ export default function RoomChecklistPage() {
                 ))}
               </div>
             )}
+            </div>
           </CardContent>
         </Card>
       </div>
