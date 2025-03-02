@@ -5,8 +5,6 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
-import { useUserProfile } from "@/hooks/useUserProfile";
-import RoleBasedMenu from "@/components/RoleBasedMenu";
 
 export default function DashboardLayout({
   children,
@@ -25,9 +23,6 @@ export default function DashboardLayout({
             </div>
           </header>
           <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
-            <aside>
-              {profile && <RoleBasedMenu userRole={profile.role} />}
-            </aside>
             <div className="container py-4">{children}</div>
           </div>
         </main>
