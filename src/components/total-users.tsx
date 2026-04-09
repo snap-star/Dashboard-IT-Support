@@ -20,7 +20,7 @@ export default function DashboardOverview() {
     try {
       // Query untuk mendapatkan IP address unik
       const { data: ipData, error: ipError } = await supabase
-        .from("users")
+        .from("as400_users")
         .select("ip_address");
 
       if (ipError) throw ipError;
@@ -34,15 +34,15 @@ export default function DashboardOverview() {
 
       // Query untuk mendapatkan user ESTIM unik
       const { data: userEstimData, error: userEstimError } = await supabase
-        .from("users")
-        .select("user_estim");
+        .from("as400_users")
+        .select("username");
 
       if (userEstimError) throw userEstimError;
 
       // Filter user ESTIM unik
       const uniqueUserEstim = new Set(
         userEstimData
-          ?.map((item) => item.user_estim)
+          ?.map((item) => item.username)
           .filter((user) => user && user.trim() !== ""),
       );
 

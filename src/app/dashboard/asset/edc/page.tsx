@@ -270,7 +270,7 @@ export default function EDCAssetPage() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-96">
+      <div className="flex items-center align-center justify-center h-96">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
       </div>
     );
@@ -517,7 +517,7 @@ export default function EDCAssetPage() {
             <Table>
               <TableHeader>
                 <TableRow className="bg-muted/50">
-                  <TableHead className="font-semibold">TID</TableHead>
+                  <TableHead className="font-semibold" >TID</TableHead>
                   <TableHead className="font-semibold">MID</TableHead>
                   <TableHead className="font-semibold">Merchant</TableHead>
                   <TableHead className="font-semibold">Lokasi</TableHead>
