@@ -1,6 +1,7 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState, type FormEvent } from "react"
+import supabase from "@/lib/supabase"
 import {
   Table,
   TableBody,
@@ -21,53 +22,65 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 
 interface Employee {
-  id: number
-  name: string
-  department: string
+  id?: number
   nip: string
+  nama: string
   jabatan: string
-  email: string
-  created_at: string
+  department: string
+  created_at?: string | null
 }
 
 export default function PegawaiPage() {
   const [employees, setEmployees] = useState<Employee[]>([])
   const [isOpen, setIsOpen] = useState(false)
+  const [loading, setLoading] = useState(true)
   const [formData, setFormData] = useState({
-    name: "",
-    department: "",
     nip: "",
+    nama: "",
     jabatan: "",
-    email: "",
+    department: "",
   })
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    try {
-      const response = await fetch("/api/employees", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(formData),
-      })
-      if (response.ok) {
-        setIsOpen(false)
-        fetchEmployees()
-      }
-    } catch (error) {
-      console.error("Error:", error)
-    }
-  }
+  useEffect(() => {
+    void fetchEmployees()
+  }, [])
 
   const fetchEmployees = async () => {
-    try {
-      const response = await fetch("/api/employees")
-      const data = await response.json()
+    setLoading(true)
+    const { data, error } = await supabase
+      .from("employee")
+      .select("id, nip, nama, jabatan, department, created_at")
+      .order("nip", { ascending: true })
+
+    if (error) {
+      console.error("Gagal memuat data pegawai:", error)
+    } else if (data) {
       setEmployees(data)
-    } catch (error) {
-      console.error("Error:", error)
     }
+
+    setLoading(false)
+  }
+
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+
+    const { error } = await supabase.from("employee").insert([
+      {
+        nip: formData.nip,
+        nama: formData.nama,
+        jabatan: formData.jabatan,
+        department: formData.department,
+      },
+    ])
+
+    if (error) {
+      console.error("Gagal menyimpan pegawai:", error)
+      return
+    }
+
+    setFormData({ nip: "", nama: "", jabatan: "", department: "" })
+    setIsOpen(false)
+    void fetchEmployees()
   }
 
   return (
@@ -87,21 +100,20 @@ export default function PegawaiPage() {
                 <Label htmlFor="nip">NIP</Label>
                 <Input
                   id="nip"
-                  maxLength={8}
                   value={formData.nip}
                   onChange={(e) => setFormData({ ...formData, nip: e.target.value })}
                 />
               </div>
               <div>
-                <Label htmlFor="name">Nama</Label>
+                <Label htmlFor="nama">Nama</Label>
                 <Input
-                  id="name"
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  id="nama"
+                  value={formData.nama}
+                  onChange={(e) => setFormData({ ...formData, nama: e.target.value })}
                 />
               </div>
               <div>
-                <Label htmlFor="department">Departemen</Label>
+                <Label htmlFor="department">Department</Label>
                 <Input
                   id="department"
                   value={formData.department}
@@ -116,45 +128,42 @@ export default function PegawaiPage() {
                   onChange={(e) => setFormData({ ...formData, jabatan: e.target.value })}
                 />
               </div>
-              <div>
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                />
-              </div>
               <Button type="submit">Simpan</Button>
             </form>
           </DialogContent>
         </Dialog>
       </div>
 
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>NIP</TableHead>
-            <TableHead>Nama</TableHead>
-            <TableHead>Departemen</TableHead>
-            <TableHead>Jabatan</TableHead>
-            <TableHead>Email</TableHead>
-            <TableHead>Tanggal Dibuat</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {employees.map((employee) => (
-            <TableRow key={employee.id}>
-              <TableCell>{employee.nip}</TableCell>
-              <TableCell>{employee.name}</TableCell>
-              <TableCell>{employee.department}</TableCell>
-              <TableCell>{employee.jabatan}</TableCell>
-              <TableCell>{employee.email}</TableCell>
-              <TableCell>{new Date(employee.created_at).toLocaleDateString("id-ID")}</TableCell>
+      {loading ? (
+        <p>Loading...</p>
+      ) : (
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>NIP</TableHead>
+              <TableHead>Nama</TableHead>
+              <TableHead>Department</TableHead>
+              <TableHead>Jabatan</TableHead>
+              <TableHead>Created At</TableHead>
             </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+          </TableHeader>
+          <TableBody>
+            {employees.map((employee, index) => (
+              <TableRow key={employee.id ?? index}>
+                <TableCell>{employee.nip}</TableCell>
+                <TableCell>{employee.nama}</TableCell>
+                <TableCell>{employee.department}</TableCell>
+                <TableCell>{employee.jabatan}</TableCell>
+                <TableCell>
+                  {employee.created_at
+                    ? new Date(employee.created_at).toLocaleDateString("id-ID")
+                    : "-"}
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      )}
     </div>
   )
 }

@@ -1,3 +1,4 @@
+import { PersonIcon } from "@radix-ui/react-icons";
 import { Computer, FileWarning, LucideIcon, Video } from "lucide-react";
 import {
   LayoutDashboard,
@@ -8,6 +9,7 @@ import {
   Wrench,
   CreditCard,
 } from "lucide-react";
+import { title } from "process";
 
 export const navMain = [
   {
@@ -124,6 +126,11 @@ export const singleNavMain = [
     title: "Input Insiden Kantor",
     url: "/dashboard/insiden",
     icon: FileWarning,
+  },
+  {
+    title: "Data Pegawai",
+    url: "/dashboard/pegawai",
+    icon: PersonIcon,
   }
 ];
 
