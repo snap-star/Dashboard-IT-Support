@@ -1,36 +1,94 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Dashboard IT Support
+
+Dashboard IT Support is a modern Next.js application designed to help IT teams manage support operations, incidents, asset inventories, ATM monitoring, overtime submissions, employee records, and reporting in one centralized interface.
+
+## Key Features
+
+- User authentication and registration flow
+- Dashboard overview with incidents and support metrics
+- IT incident management with CRUD operations
+- Assets management organized by category (EDC, hardware, software)
+- ATM operations and transaction recap dashboard
+- CCTV and room check reporting
+- Overtime application and submission tracking
+- IP address tools and calculator utilities
+- Macro generator and document / data uploader support
+- Employee and user management pages
+- Supabase integration for storage and database operations
+
+## Tech Stack
+
+- Next.js 15
+- React 19
+- TypeScript
+- Tailwind CSS
+- Supabase
+- shadcn/ui
+- Radix UI
+- Recharts
+- Zod
 
 ## Getting Started
 
-First, run the development server:
+### Install dependencies
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+pnpm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Run development server
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+pnpm dev
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-## Learn More
+### Build for production
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+pnpm build
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### Start production server
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```bash
+pnpm start
+```
 
-## Deploy on Vercel
+## Environment Variables
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Create a `.env.local` file at the project root with the following values:
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```env
+NEXT_PUBLIC_SUPABASE_URL=<your-supabase-url>
+NEXT_PUBLIC_SUPABASE_ANON_KEY=<your-supabase-anon-key>
+```
+
+If you add other Supabase keys or custom secrets for deployment, include those in this file as well.
+
+## Project Structure
+
+- `src/app/` — Next.js app routes and page layout
+- `src/components/` — shared UI and page components
+- `src/lib/` — Supabase client and utility helpers
+- `src/components/ui/` — design system components built on Radix and Tailwind
+
+## Available Scripts
+
+- `pnpm dev` — run the app in development mode
+- `pnpm build` — compile the app for production
+- `pnpm start` — start the production server
+- `pnpm lint` — run linting checks
+
+## Deployment
+
+This project is compatible with Vercel, Netlify, or any Node.js hosting provider that supports Next.js.
+
+For Vercel, simply connect the repository, configure environment variables, and deploy.
+
+## Notes
+
+- Supabase is used for database access and storage services.
+- The app supports rich IT support workflows across incidents, asset tracking, ATM reporting, and employee management.
+- Customize the workflow and Supabase schema as needed for your organization.
