@@ -1,4 +1,4 @@
-import { BackupCCTVForm } from "@/components/backup-cctv-form"
+import { BackupCCTVForm } from '@/components/backup-cctv-form'
 
 export default function Page() {
   return (

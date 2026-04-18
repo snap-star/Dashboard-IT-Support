@@ -1,16 +1,10 @@
-"use client";
+'use client'
 
-import { useState, useEffect } from "react";
-import * as XLSX from "xlsx";
-import FileSaver from "file-saver";
-import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { useState, useEffect } from 'react'
+import * as XLSX from 'xlsx'
+import FileSaver from 'file-saver'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import {
   Form,
   FormControl,
@@ -18,37 +12,37 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form";
+} from '@/components/ui/form'
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
-import { Upload, FileSpreadsheet, Download, Trash } from "lucide-react";
-import { toast } from "sonner";
-import { Badge } from "@/components/ui/badge";
+} from '@/components/ui/select'
+import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
+import { Label } from '@/components/ui/label'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import * as z from 'zod'
+import { Upload, FileSpreadsheet, Download, Trash } from 'lucide-react'
+import { toast } from 'sonner'
+import { Badge } from '@/components/ui/badge'
 
 // Schema untuk form konfigurasi
 const configSchema = z.object({
-  macroType: z.string().min(1, "Tipe macro harus dipilih"),
-  startRow: z.string().regex(/^\d+$/, "Harus berupa angka"),
-  waitTime: z.string().regex(/^\d+$/, "Harus berupa angka"),
+  macroType: z.string().min(1, 'Tipe macro harus dipilih'),
+  startRow: z.string().regex(/^\d+$/, 'Harus berupa angka'),
+  waitTime: z.string().regex(/^\d+$/, 'Harus berupa angka'),
   customScript: z.string().optional(),
-});
+})
 
 // Tipe macro yang tersedia
 const macroTypes = [
   {
-    value: "kycp",
-    label: "KYCP Tanggal",
+    value: 'kycp',
+    label: 'KYCP Tanggal',
     template: (data: any, waitTime: number) =>
       `[PCOMM SCRIPT HEADER]
 LANGUAGE=VBSCRIPT
@@ -126,12 +120,12 @@ autECLSession.autECLPS.SendKeys "[ENTER]"
     WScript.Sleep ${waitTime}
     `,
       )
-      .join("\n")}
+      .join('\n')}
 End Sub`,
   },
   {
-    value: "MACRO OTOR",
-    label: "MACRO OTOR",
+    value: 'MACRO OTOR',
+    label: 'MACRO OTOR',
     template: (data: any, waitTime: number) =>
       `[PCOMM SCRIPT HEADER]
 LANGUAGE=VBSCRIPT
@@ -151,12 +145,12 @@ Sub Main
     WScript.Sleep ${waitTime}
     `,
       )
-      .join("\n")}
+      .join('\n')}
 End Sub`,
   },
   {
-    value: "new-account",
-    label: "Pembuatan Rekening Baru",
+    value: 'new-account',
+    label: 'Pembuatan Rekening Baru',
     template: (data: any, waitTime: number) =>
       `[PCOMM SCRIPT HEADER]
 LANGUAGE=VBSCRIPT
@@ -181,12 +175,12 @@ Sub Main
     WScript.Sleep ${waitTime}
     `,
       )
-      .join("\n")}
+      .join('\n')}
 End Sub`,
   },
   {
-    value: "maintenance",
-    label: "Maintenance Data Nasabah",
+    value: 'maintenance',
+    label: 'Maintenance Data Nasabah',
     template: (data: any, waitTime: number) =>
       `[PCOMM SCRIPT HEADER]
 LANGUAGE=VBSCRIPT
@@ -209,12 +203,12 @@ Sub Main
     WScript.Sleep ${waitTime}
     `,
       )
-      .join("\n")}
+      .join('\n')}
 End Sub`,
   },
   {
-    value: "Rubah Saldo Minimum",
-    label: "Rubah Saldo Minimum",
+    value: 'Rubah Saldo Minimum',
+    label: 'Rubah Saldo Minimum',
     template: (data: any, waitTime: number) =>
       `[PCOMM SCRIPT HEADER]
 LANGUAGE=VBSCRIPT
@@ -263,29 +257,24 @@ Sub Main
     WScript.Sleep ${waitTime}
     `,
       )
-      .join("\n")}
+      .join('\n')}
 End Sub`,
   },
   {
-    value: "custom",
-    label: "Custom Macro",
+    value: 'custom',
+    label: 'Custom Macro',
   },
-];
+]
 
 // Tambahkan fungsi untuk generate preview macro
-const generatePreviewMacro = (
-  values: z.infer<typeof configSchema>,
-  data: any[],
-) => {
-  if (data.length === 0) return "";
+const generatePreviewMacro = (values: z.infer<typeof configSchema>, data: any[]) => {
+  if (data.length === 0) return ''
 
-  const waitTime = parseInt(values.waitTime);
-  const previewData = data.slice(0, 3); // Preview 3 data pertama
-  const selectedType = macroTypes.find(
-    (type) => type.value === values.macroType,
-  );
+  const waitTime = parseInt(values.waitTime)
+  const previewData = data.slice(0, 3) // Preview 3 data pertama
+  const selectedType = macroTypes.find(type => type.value === values.macroType)
 
-  if (values.macroType === "custom" && values.customScript) {
+  if (values.macroType === 'custom' && values.customScript) {
     return `[PCOMM SCRIPT HEADER]
 LANGUAGE=VBSCRIPT
 DESCRIPTION=Custom Macro
@@ -294,96 +283,91 @@ Sub Main
     autECLSession.SetConnectionByName(ThisSessionName)
     ${previewData
       .map((row, index) => {
-        let script = values.customScript;
-        Object.keys(row).forEach((key) => {
-          script = script?.replace(new RegExp(`\\[${key}\\]`, "g"), row[key]);
-        });
+        let script = values.customScript
+        Object.keys(row).forEach(key => {
+          script = script?.replace(new RegExp(`\\[${key}\\]`, 'g'), row[key])
+        })
         return `
     ' Record ${index + 1}
     autECLSession.autECLOIA.WaitForInputReady
     autECLSession.autECLPS.SendKeys "${script}"
-    WScript.Sleep ${waitTime}`;
+    WScript.Sleep ${waitTime}`
       })
-      .join("\n")}
+      .join('\n')}
     ' ... dan seterusnya untuk ${data.length - 3} data lainnya
-End Sub`;
+End Sub`
   } else if (selectedType?.template) {
     return selectedType
       .template(previewData, waitTime)
-      .replace(
-        "End Sub",
-        `    ' ... dan seterusnya untuk ${data.length - 3} data lainnya\nEnd Sub`,
-      );
+      .replace('End Sub', `    ' ... dan seterusnya untuk ${data.length - 3} data lainnya\nEnd Sub`)
   }
 
-  return "";
-};
+  return ''
+}
 
 export default function MacroGeneratorPage() {
-  const [excelData, setExcelData] = useState<any[]>([]);
-  const [fileName, setFileName] = useState<string>("");
-  const [previewData, setPreviewData] = useState<any[]>([]);
-  const [previewMacro, setPreviewMacro] = useState<string>("");
+  const [excelData, setExcelData] = useState<any[]>([])
+  const [fileName, setFileName] = useState<string>('')
+  const [previewData, setPreviewData] = useState<any[]>([])
+  const [previewMacro, setPreviewMacro] = useState<string>('')
 
   const form = useForm<z.infer<typeof configSchema>>({
     resolver: zodResolver(configSchema),
     defaultValues: {
-      macroType: "",
-      startRow: "1",
-      waitTime: "1000",
-      customScript: "",
+      macroType: '',
+      startRow: '1',
+      waitTime: '1000',
+      customScript: '',
     },
-  });
+  })
 
-  const formValues = form.watch();
+  const formValues = form.watch()
 
   useEffect(() => {
     if (excelData.length > 0 && formValues.macroType) {
-      const preview = generatePreviewMacro(formValues, excelData);
-      setPreviewMacro(preview);
+      const preview = generatePreviewMacro(formValues, excelData)
+      setPreviewMacro(preview)
     }
-  }, [formValues, excelData]);
+  }, [formValues, excelData])
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
+    const file = event.target.files?.[0]
     if (file) {
-      setFileName(file.name);
-      const reader = new FileReader();
-      reader.onload = (e) => {
+      setFileName(file.name)
+      const reader = new FileReader()
+      reader.onload = e => {
         try {
-          const data = new Uint8Array(e.target?.result as ArrayBuffer);
-          const workbook = XLSX.read(data, { type: "array" });
-          const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-          const jsonData = XLSX.utils.sheet_to_json(firstSheet);
-          setExcelData(jsonData);
-          setPreviewData(jsonData.slice(0, 5)); // Preview 5 baris pertama
-          toast.success("File Excel berhasil dimuat");
+          const data = new Uint8Array(e.target?.result as ArrayBuffer)
+          const workbook = XLSX.read(data, { type: 'array' })
+          const firstSheet = workbook.Sheets[workbook.SheetNames[0]]
+          const jsonData = XLSX.utils.sheet_to_json(firstSheet)
+          setExcelData(jsonData)
+          setPreviewData(jsonData.slice(0, 5)) // Preview 5 baris pertama
+          toast.success('File Excel berhasil dimuat')
         } catch (error) {
-          toast.error("Gagal membaca file Excel");
-          console.error(error);
+          toast.error('Gagal membaca file Excel')
+          console.error(error)
         }
-      };
-      reader.readAsArrayBuffer(file);
+      }
+      reader.readAsArrayBuffer(file)
     }
-  };
+  }
 
   const generateMacro = (values: z.infer<typeof configSchema>) => {
     if (excelData.length === 0) {
-      toast.error("Belum ada data yang dimuat");
-      return;
+      toast.error('Belum ada data yang dimuat')
+      return
     }
 
     try {
-      const startRow = parseInt(values.startRow) - 1;
-      const waitTime = parseInt(values.waitTime);
-      const data = excelData.slice(startRow);
+      const startRow = parseInt(values.startRow) - 1
+      const waitTime = parseInt(values.waitTime)
+      const data = excelData.slice(startRow)
 
-      let macroContent = "";
-      const selectedType = macroTypes.find(
-        (type) => type.value === values.macroType,
-      );
+      let macroContent = ''
+      const selectedType = macroTypes.find(type => type.value === values.macroType)
 
-      if (values.macroType === "custom" && values.customScript) {
+      if (values.macroType === 'custom' && values.customScript) {
         // Generate custom macro
         macroContent = `[PCOMM SCRIPT HEADER]
 LANGUAGE=VBSCRIPT
@@ -393,34 +377,34 @@ Sub Main
     autECLSession.SetConnectionByName(ThisSessionName)
     ${data
       .map((row, index) => {
-        let script = values.customScript;
+        let script = values.customScript
         // Replace placeholders with actual data
-        Object.keys(row).forEach((key) => {
-          script = script?.replace(new RegExp(`\\[${key}\\]`, "g"), row[key]);
-        });
+        Object.keys(row).forEach(key => {
+          script = script?.replace(new RegExp(`\\[${key}\\]`, 'g'), row[key])
+        })
         return `
     ' Record ${index + 1}
     ${script}
-    WScript.Sleep ${waitTime}`;
+    WScript.Sleep ${waitTime}`
       })
-      .join("\n")}
-End Sub`;
+      .join('\n')}
+End Sub`
       } else if (selectedType?.template) {
         // Generate macro using predefined template
-        macroContent = selectedType.template(data, waitTime);
+        macroContent = selectedType.template(data, waitTime)
       }
 
       // Create and download .mac file
       const blob = new Blob([macroContent], {
-        type: "text/plain;charset=utf-8",
-      });
-      FileSaver.saveAs(blob, `${fileName.split(".")[0]}_macro.mac`);
-      toast.success("Macro berhasil digenerate");
+        type: 'text/plain;charset=utf-8',
+      })
+      FileSaver.saveAs(blob, `${fileName.split('.')[0]}_macro.mac`)
+      toast.success('Macro berhasil digenerate')
     } catch (error) {
-      toast.error("Gagal generate macro");
-      console.error(error);
+      toast.error('Gagal generate macro')
+      console.error(error)
     }
-  };
+  }
 
   return (
     <div className="space-y-6">
@@ -453,7 +437,7 @@ End Sub`;
                 <Button
                   variant="outline"
                   className="w-full"
-                  onClick={() => document.getElementById("excel")?.click()}
+                  onClick={() => document.getElementById('excel')?.click()}
                 >
                   <Upload className="mr-2 h-4 w-4" />
                   Upload File
@@ -462,11 +446,11 @@ End Sub`;
                   variant="outline"
                   className="w-full"
                   onClick={() => {
-                    setExcelData([]);
-                    setFileName("");
-                    setPreviewData([]);
-                    setPreviewMacro("");
-                    form.reset();
+                    setExcelData([])
+                    setFileName('')
+                    setPreviewData([])
+                    setPreviewMacro('')
+                    form.reset()
                   }}
                 >
                   <Trash className="mr-2 h-4 w-4" />
@@ -476,7 +460,7 @@ End Sub`;
               {fileName && (
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <FileSpreadsheet className="h-4 w-4" />
-                  {fileName}{" "}
+                  {fileName}{' '}
                   <Badge variant="default" className="rounded-sm">
                     Opened
                   </Badge>
@@ -488,9 +472,7 @@ End Sub`;
               <div>
                 <h4 className="font-semibold mb-2">Preview Data</h4>
                 <div className="max-h-[350px] overflow-auto rounded border p-2">
-                  <pre className="text-xs">
-                    {JSON.stringify(previewData, null, 2)}
-                  </pre>
+                  <pre className="text-xs">{JSON.stringify(previewData, null, 2)}</pre>
                 </div>
               </div>
             )}
@@ -500,33 +482,25 @@ End Sub`;
         <Card className="hover:border-red-600 dark:hover:border-white">
           <CardHeader>
             <CardTitle>Konfigurasi Macro</CardTitle>
-            <CardDescription>
-              Atur konfigurasi untuk generate macro
-            </CardDescription>
+            <CardDescription>Atur konfigurasi untuk generate macro</CardDescription>
           </CardHeader>
           <CardContent>
             <Form {...form}>
-              <form
-                onSubmit={form.handleSubmit(generateMacro)}
-                className="space-y-4"
-              >
+              <form onSubmit={form.handleSubmit(generateMacro)} className="space-y-4">
                 <FormField
                   control={form.control}
                   name="macroType"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Tipe Macro</FormLabel>
-                      <Select
-                        onValueChange={field.onChange}
-                        defaultValue={field.value}
-                      >
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue placeholder="Pilih tipe macro" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {macroTypes.map((type) => (
+                          {macroTypes.map(type => (
                             <SelectItem key={type.value} value={type.value}>
                               {type.label}
                             </SelectItem>
@@ -568,7 +542,7 @@ End Sub`;
                   />
                 </div>
 
-                {form.watch("macroType") === "custom" && (
+                {form.watch('macroType') === 'custom' && (
                   <FormField
                     control={form.control}
                     name="customScript"
@@ -589,11 +563,7 @@ End Sub`;
                   />
                 )}
 
-                <Button
-                  type="submit"
-                  className="w-full"
-                  disabled={excelData.length === 0}
-                >
+                <Button type="submit" className="w-full" disabled={excelData.length === 0}>
                   <Download className="mr-2 h-4 w-4" />
                   Generate Macro
                 </Button>
@@ -618,8 +588,8 @@ End Sub`;
                   variant="secondary"
                   size="sm"
                   onClick={() => {
-                    navigator.clipboard.writeText(previewMacro);
-                    toast.success("Macro preview disalin ke clipboard");
+                    navigator.clipboard.writeText(previewMacro)
+                    toast.success('Macro preview disalin ke clipboard')
                   }}
                 >
                   Copy
@@ -641,43 +611,41 @@ End Sub`;
           <div>
             <h4 className="font-semibold mb-2">Format Excel</h4>
             <p className="text-sm text-muted-foreground">
-              Pastikan file Excel memiliki kolom yang sesuai dengan tipe macro
-              yang dipilih:
+              Pastikan file Excel memiliki kolom yang sesuai dengan tipe macro yang dipilih:
             </p>
             <ul className="list-disc list-inside text-sm text-muted-foreground mt-2 space-y-1">
               <li>
-                Pembuatan Rekening: accountType, customerName, idNumber{" "}
+                Pembuatan Rekening: accountType, customerName, idNumber{' '}
                 <Badge variant="default" className="rounded-sm">
                   Tahap Pengembangan
                 </Badge>
               </li>
               <li>
-                Maintenance Data: accountNumber, newData{" "}
+                Maintenance Data: accountNumber, newData{' '}
                 <Badge variant="default" className="rounded-sm">
                   Tahap Pengembangan
                 </Badge>
               </li>
               <li>
-                Rubah Saldo Minimum: NONAS{" "}
+                Rubah Saldo Minimum: NONAS{' '}
                 <Badge variant="default" className="rounded-sm">
                   Work
                 </Badge>
               </li>
               <li>
-                KYCP Tanggal: NONAS, TGL_UPDATE{" "}
+                KYCP Tanggal: NONAS, TGL_UPDATE{' '}
                 <Badge variant="default" className="rounded-sm">
                   Work
                 </Badge>
               </li>
               <li>
-                OTOR: id{" "}
+                OTOR: id{' '}
                 <Badge variant="default" className="rounded-sm">
                   Work
                 </Badge>
               </li>
               <li>
-                Custom: Sesuaikan dengan kebutuhan, gunakan [nama_kolom] sebagai
-                placeholder{" "}
+                Custom: Sesuaikan dengan kebutuhan, gunakan [nama_kolom] sebagai placeholder{' '}
                 <Badge variant="default" className="rounded-sm">
                   Work
                 </Badge>
@@ -687,9 +655,8 @@ End Sub`;
           <div>
             <h4 className="font-semibold mb-2">Custom Script</h4>
             <p className="text-sm text-muted-foreground">
-              Untuk custom macro, gunakan placeholder [nama_kolom] yang akan
-              diganti dengan data dari Excel. Contoh:{" "}
-              <code>autECLSession.autECLPS.SendKeys "[nama_kolom]"</code>
+              Untuk custom macro, gunakan placeholder [nama_kolom] yang akan diganti dengan data
+              dari Excel. Contoh: <code>autECLSession.autECLPS.SendKeys "[nama_kolom]"</code>
             </p>
           </div>
           <div>
@@ -704,21 +671,19 @@ End Sub`;
             <h4 className="font-semibold mb-2">Informasi</h4>
             <ul className="list-disc list-inside text-sm text-muted-foreground space-y-1">
               <li>
-                Macro yang masih dalam tahap pengembangan akan ditandai dengan
-                badge{" "}
+                Macro yang masih dalam tahap pengembangan akan ditandai dengan badge{' '}
                 <Badge variant="default" className="rounded-sm">
                   Tahap Pengembangan
                 </Badge>
               </li>
               <li>
-                Macro yang sudah selesai dan sudah di-test akan ditandai dengan
-                badge{" "}
+                Macro yang sudah selesai dan sudah di-test akan ditandai dengan badge{' '}
                 <Badge variant="default" className="rounded-sm">
                   Work
                 </Badge>
               </li>
               <li>
-                Request template macro dapat dilakukan melalui{" "}
+                Request template macro dapat dilakukan melalui{' '}
                 <a
                   href="https://wa.me/6285236695155"
                   target="_blank"
@@ -733,5 +698,5 @@ End Sub`;
         </CardContent>
       </Card>
     </div>
-  );
+  )
 }

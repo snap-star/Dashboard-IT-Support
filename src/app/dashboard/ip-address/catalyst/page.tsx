@@ -1,11 +1,11 @@
-"use client";
+'use client'
 
-import { useState, useEffect } from "react";
-import { useForm } from "react-hook-form";
-import * as z from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { createClient } from "@supabase/supabase-js";
-import { Button } from "@/components/ui/button";
+import { useState, useEffect } from 'react'
+import { useForm } from 'react-hook-form'
+import * as z from 'zod'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { createClient } from '@supabase/supabase-js'
+import { Button } from '@/components/ui/button'
 import {
   Table,
   TableBody,
@@ -13,7 +13,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
+} from '@/components/ui/table'
 import {
   Dialog,
   DialogContent,
@@ -22,7 +22,7 @@ import {
   DialogTrigger,
   DialogDescription,
   DialogFooter,
-} from "@/components/ui/dialog";
+} from '@/components/ui/dialog'
 import {
   Form,
   FormControl,
@@ -30,15 +30,15 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
+} from '@/components/ui/form'
+import { Input } from '@/components/ui/input'
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+} from '@/components/ui/dropdown-menu'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -48,7 +48,7 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+} from '@/components/ui/alert-dialog'
 import {
   MoreHorizontal,
   Pencil,
@@ -60,131 +60,119 @@ import {
   ArrowUpDown,
   ChevronDown,
   ChevronUp,
-} from "lucide-react";
-import { toast } from "sonner";
+} from 'lucide-react'
+import { toast } from 'sonner'
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-  CardContent,
-} from "@/components/ui/card";
-import { calculateSubnetInfo } from "@/lib/ip-calculator";
-import { Label } from "@/components/ui/label";
+} from '@/components/ui/select'
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card'
+import { calculateSubnetInfo } from '@/lib/ip-calculator'
+import { Label } from '@/components/ui/label'
 
 // Schema validasi form
 const formSchema = z.object({
-  location: z.string().min(1, "Lokasi harus diisi"),
-  ipAddress: z
-    .string()
-    .regex(/^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$/, "Format IP Address tidak valid"),
-  subnet: z
-    .string()
-    .regex(/^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$/, "Format Subnet tidak valid"),
-  gateway: z
-    .string()
-    .regex(/^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$/, "Format Gateway tidak valid"),
+  location: z.string().min(1, 'Lokasi harus diisi'),
+  ipAddress: z.string().regex(/^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$/, 'Format IP Address tidak valid'),
+  subnet: z.string().regex(/^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$/, 'Format Subnet tidak valid'),
+  gateway: z.string().regex(/^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$/, 'Format Gateway tidak valid'),
   description: z.string().optional(),
   user_estim: z.string().optional(),
   display_estim: z.string().optional(),
-});
+})
 
 // Update interface untuk menyesuaikan dengan Supabase
 interface IPAddress {
-  id: string;
-  created_at: string;
-  location: string;
-  ip_address: string;
-  subnet: string;
-  gateway: string;
-  description: string;
-  user_estim?: string;
-  display_estim?: string;
+  id: string
+  created_at: string
+  location: string
+  ip_address: string
+  subnet: string
+  gateway: string
+  description: string
+  user_estim?: string
+  display_estim?: string
 }
 
 const locationOptions = [
-  "Cabang Ponorogo",
-  "Capem Sumoroto",
-  "Capem Jetis",
-  "Capem Pulung",
-  "Capem Balong",
-  "KFF Pemda Ponorogo",
-  "KFF Sukorejo",
-  "KFF Jenangan",
-  "KFF RSUD Harjono",
-  "KFF Slahung",
-  "KFF Sawoo",
-  "Payment Point Samsat Ponorogo",
-  "Payment Point BPKAD Ponorogo",
-  "Mall Pelayanan Publik Ponorogo",
-];
+  'Cabang Ponorogo',
+  'Capem Sumoroto',
+  'Capem Jetis',
+  'Capem Pulung',
+  'Capem Balong',
+  'KFF Pemda Ponorogo',
+  'KFF Sukorejo',
+  'KFF Jenangan',
+  'KFF RSUD Harjono',
+  'KFF Slahung',
+  'KFF Sawoo',
+  'Payment Point Samsat Ponorogo',
+  'Payment Point BPKAD Ponorogo',
+  'Mall Pelayanan Publik Ponorogo',
+]
 
 // Update interface untuk IP Calculator props
 interface IPCalculatorProps {
   onGenerate: (
     ips: Array<{
-      location: string;
-      ip_address: string;
-      subnet: string;
-      gateway: string;
+      location: string
+      ip_address: string
+      subnet: string
+      gateway: string
     }>,
-  ) => void;
+  ) => void
 }
 
 // Update komponen IP Calculator
 const IPCalculator = ({ onGenerate }: IPCalculatorProps) => {
-  const [network, setNetwork] = useState("");
-  const [subnetMask, setSubnetMask] = useState("");
-  const [location, setLocation] = useState("");
-  const [error, setError] = useState("");
+  const [network, setNetwork] = useState('')
+  const [subnetMask, setSubnetMask] = useState('')
+  const [location, setLocation] = useState('')
+  const [error, setError] = useState('')
 
   // Gunakan location options yang sama dengan form utama
   const locationOptions = [
-    "Cabang Ponorogo",
-    "Capem Sumoroto",
-    "Capem Jetis",
-    "Capem Pulung",
-    "Capem Balong",
-    "KFF Pemda Ponorogo",
-    "KFF Sukorejo",
-    "KFF Jenangan",
-    "KFF RSUD Harjono",
-    "KFF Slahung",
-    "KFF Sawoo",
-    "Payment Point Samsat Ponorogo",
-    "Payment Point BPKAD Ponorogo",
-    "Mall Pelayanan Publik Ponorogo",
-  ];
+    'Cabang Ponorogo',
+    'Capem Sumoroto',
+    'Capem Jetis',
+    'Capem Pulung',
+    'Capem Balong',
+    'KFF Pemda Ponorogo',
+    'KFF Sukorejo',
+    'KFF Jenangan',
+    'KFF RSUD Harjono',
+    'KFF Slahung',
+    'KFF Sawoo',
+    'Payment Point Samsat Ponorogo',
+    'Payment Point BPKAD Ponorogo',
+    'Mall Pelayanan Publik Ponorogo',
+  ]
 
   const handleCalculate = () => {
     try {
       if (!location) {
-        throw new Error("Silakan pilih lokasi terlebih dahulu");
+        throw new Error('Silakan pilih lokasi terlebih dahulu')
       }
 
-      const subnetInfo = calculateSubnetInfo(network, subnetMask);
-      const gateway = subnetInfo.usableHosts[0]; // Ambil IP pertama sebagai gateway
+      const subnetInfo = calculateSubnetInfo(network, subnetMask)
+      const gateway = subnetInfo.usableHosts[0] // Ambil IP pertama sebagai gateway
 
       // Map IP addresses dengan lokasi dan subnet yang sama
-      const generatedIPs = subnetInfo.usableHosts.slice(1).map((ip) => ({
+      const generatedIPs = subnetInfo.usableHosts.slice(1).map(ip => ({
         location,
         ip_address: ip,
         subnet: subnetMask,
         gateway: gateway,
-      }));
+      }))
 
-      onGenerate(generatedIPs);
+      onGenerate(generatedIPs)
     } catch (err: any) {
-      setError(err.message);
+      setError(err.message)
     }
-  };
+  }
 
   return (
     <div className="space-y-4">
@@ -196,7 +184,7 @@ const IPCalculator = ({ onGenerate }: IPCalculatorProps) => {
               <SelectValue placeholder="Pilih lokasi" />
             </SelectTrigger>
             <SelectContent>
-              {locationOptions.map((loc) => (
+              {locationOptions.map(loc => (
                 <SelectItem key={loc} value={loc}>
                   {loc}
                 </SelectItem>
@@ -209,7 +197,7 @@ const IPCalculator = ({ onGenerate }: IPCalculatorProps) => {
           <Input
             placeholder="192.168.1.0"
             value={network}
-            onChange={(e) => setNetwork(e.target.value)}
+            onChange={e => setNetwork(e.target.value)}
           />
         </div>
         <div className="space-y-2">
@@ -217,44 +205,41 @@ const IPCalculator = ({ onGenerate }: IPCalculatorProps) => {
           <Input
             placeholder="255.255.255.0"
             value={subnetMask}
-            onChange={(e) => setSubnetMask(e.target.value)}
+            onChange={e => setSubnetMask(e.target.value)}
           />
         </div>
       </div>
       {error && <p className="text-sm text-destructive">{error}</p>}
-      <Button
-        onClick={handleCalculate}
-        disabled={!network || !subnetMask || !location}
-      >
+      <Button onClick={handleCalculate} disabled={!network || !subnetMask || !location}>
         Generate IP Addresses
       </Button>
     </div>
-  );
-};
+  )
+}
 
 // Types dan interfaces tetap di luar
 type SortConfig = {
-  column: string;
-  direction: "asc" | "desc";
-} | null;
+  column: string
+  direction: 'asc' | 'desc'
+} | null
 
 export default function CatalystIPAddressPage() {
   // Pindahkan state sortConfig ke dalam komponen
-  const [sortConfig, setSortConfig] = useState<SortConfig>(null);
-  const [ipAddresses, setIpAddresses] = useState<IPAddress[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [isDeleteAlertOpen, setIsDeleteAlertOpen] = useState(false);
-  const [selectedIp, setSelectedIp] = useState<IPAddress | null>(null);
-  const [isEditing, setIsEditing] = useState(false);
-  const [calculatedIPs, setCalculatedIPs] = useState<string[]>([]);
-  const [showIPCalculator, setShowIPCalculator] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(0);
-  const [isPurgeAlertOpen, setIsPurgeAlertOpen] = useState(false);
+  const [sortConfig, setSortConfig] = useState<SortConfig>(null)
+  const [ipAddresses, setIpAddresses] = useState<IPAddress[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [isDialogOpen, setIsDialogOpen] = useState(false)
+  const [isDeleteAlertOpen, setIsDeleteAlertOpen] = useState(false)
+  const [selectedIp, setSelectedIp] = useState<IPAddress | null>(null)
+  const [isEditing, setIsEditing] = useState(false)
+  const [calculatedIPs, setCalculatedIPs] = useState<string[]>([])
+  const [showIPCalculator, setShowIPCalculator] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [currentPage, setCurrentPage] = useState(1)
+  const [totalPages, setTotalPages] = useState(0)
+  const [isPurgeAlertOpen, setIsPurgeAlertOpen] = useState(false)
 
-  const PAGE_SIZE = 10;
+  const PAGE_SIZE = 10
 
   const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -264,143 +249,138 @@ export default function CatalystIPAddressPage() {
         persistSession: true,
       },
     },
-  );
+  )
 
   // Fetch data dari Supabase
   const fetchIpAddresses = async () => {
     try {
-      setIsLoading(true);
+      setIsLoading(true)
 
       // Count total rows dengan search filter
-      let countQuery = supabase
-        .from("ip_addresses")
-        .select("*", { count: "exact" });
+      let countQuery = supabase.from('ip_addresses').select('*', { count: 'exact' })
 
       if (searchQuery) {
         countQuery = countQuery.or(
           `ip_address.ilike.%${searchQuery}%,` +
             `location.ilike.%${searchQuery}%,` +
             `description.ilike.%${searchQuery}%`,
-        );
+        )
       }
 
-      const { count, error: countError } = await countQuery;
+      const { count, error: countError } = await countQuery
 
-      if (countError) throw countError;
+      if (countError) throw countError
 
-      setTotalPages(Math.ceil((count || 0) / PAGE_SIZE));
+      setTotalPages(Math.ceil((count || 0) / PAGE_SIZE))
 
       // Fetch data dengan pagination, search, dan sorting
       let dataQuery = supabase
-        .from("ip_addresses")
-        .select("*")
-        .range((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE - 1);
+        .from('ip_addresses')
+        .select('*')
+        .range((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE - 1)
 
       if (searchQuery) {
         dataQuery = dataQuery.or(
           `ip_address.ilike.%${searchQuery}%,` +
             `location.ilike.%${searchQuery}%,` +
             `description.ilike.%${searchQuery}%`,
-        );
+        )
       }
 
       // Tambahkan sorting jika ada
       if (sortConfig) {
         dataQuery = dataQuery.order(sortConfig.column, {
-          ascending: sortConfig.direction === "asc",
-        });
+          ascending: sortConfig.direction === 'asc',
+        })
       } else {
         // Default sort
-        dataQuery = dataQuery.order("created_at", { ascending: false });
+        dataQuery = dataQuery.order('created_at', { ascending: false })
       }
 
-      const { data, error: dataError } = await dataQuery;
+      const { data, error: dataError } = await dataQuery
 
-      if (dataError) throw dataError;
+      if (dataError) throw dataError
 
-      setIpAddresses(data || []);
+      setIpAddresses(data || [])
     } catch (error: any) {
-      console.error("Error detail:", error);
-      toast.error(error.message || "Gagal memuat data IP Address");
-      setIpAddresses([]);
-      setTotalPages(0);
+      console.error('Error detail:', error)
+      toast.error(error.message || 'Gagal memuat data IP Address')
+      setIpAddresses([])
+      setTotalPages(0)
     } finally {
-      setIsLoading(false);
+      setIsLoading(false)
     }
-  };
+  }
 
   // Tambahkan fungsi untuk handle sorting
   const handleSort = (column: string) => {
-    setSortConfig((current) => {
+    setSortConfig(current => {
       if (current?.column === column) {
         // Jika kolom yang sama, ubah direction
         return {
           column,
-          direction: current.direction === "asc" ? "desc" : "asc",
-        };
+          direction: current.direction === 'asc' ? 'desc' : 'asc',
+        }
       }
       // Jika kolom berbeda, set ke ascending
       return {
         column,
-        direction: "asc",
-      };
-    });
-  };
+        direction: 'asc',
+      }
+    })
+  }
 
   // Tambahkan useEffect untuk search
   useEffect(() => {
     const debounceSearch = setTimeout(() => {
-      setCurrentPage(1); // Reset ke halaman pertama saat search
-      fetchIpAddresses();
-    }, 300);
+      setCurrentPage(1) // Reset ke halaman pertama saat search
+      fetchIpAddresses()
+    }, 300)
 
-    return () => clearTimeout(debounceSearch);
-  }, [searchQuery]);
+    return () => clearTimeout(debounceSearch)
+  }, [searchQuery])
 
   // Tambahkan useEffect untuk pagination
   useEffect(() => {
-    fetchIpAddresses();
-  }, [currentPage]);
+    fetchIpAddresses()
+  }, [currentPage])
 
   // Update useEffect untuk merefresh data saat sorting berubah
   useEffect(() => {
-    fetchIpAddresses();
-  }, [currentPage, searchQuery, sortConfig]);
+    fetchIpAddresses()
+  }, [currentPage, searchQuery, sortConfig])
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      location: "",
-      ipAddress: "",
-      subnet: "",
-      gateway: "",
-      description: "",
+      location: '',
+      ipAddress: '',
+      subnet: '',
+      gateway: '',
+      description: '',
     },
-  });
+  })
 
   // Tambahkan fungsi untuk cek duplikasi IP
   const checkDuplicateIP = async (ipAddress: string, currentId?: string) => {
     try {
-      let query = supabase
-        .from("ip_addresses")
-        .select("id")
-        .eq("ip_address", ipAddress);
+      let query = supabase.from('ip_addresses').select('id').eq('ip_address', ipAddress)
 
       // Jika sedang edit, exclude IP yang sedang diedit
       if (currentId) {
-        query = query.neq("id", currentId);
+        query = query.neq('id', currentId)
       }
 
-      const { data, error } = await query;
+      const { data, error } = await query
 
-      if (error) throw error;
+      if (error) throw error
 
-      return data.length > 0;
+      return data.length > 0
     } catch (error) {
-      console.error("Error checking duplicate IP:", error);
-      return false;
+      console.error('Error checking duplicate IP:', error)
+      return false
     }
-  };
+  }
 
   // Update fungsi onSubmit untuk mengecek duplikasi
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
@@ -408,17 +388,17 @@ export default function CatalystIPAddressPage() {
       const isDuplicate = await checkDuplicateIP(
         values.ipAddress,
         isEditing ? selectedIp?.id : undefined,
-      );
+      )
 
       if (isDuplicate) {
-        toast.error("IP Address sudah digunakan");
-        return;
+        toast.error('IP Address sudah digunakan')
+        return
       }
 
       if (isEditing && selectedIp) {
         // Update existing IP
         const { error } = await supabase
-          .from("ip_addresses")
+          .from('ip_addresses')
           .update({
             location: values.location,
             ip_address: values.ipAddress,
@@ -428,13 +408,13 @@ export default function CatalystIPAddressPage() {
             user_estim: values.user_estim,
             display_estim: values.display_estim,
           })
-          .eq("id", selectedIp.id);
+          .eq('id', selectedIp.id)
 
-        if (error) throw error;
-        toast.success("IP Address berhasil diperbarui");
+        if (error) throw error
+        toast.success('IP Address berhasil diperbarui')
       } else {
         // Add new IP
-        const { error } = await supabase.from("ip_addresses").insert([
+        const { error } = await supabase.from('ip_addresses').insert([
           {
             location: values.location,
             ip_address: values.ipAddress,
@@ -444,137 +424,134 @@ export default function CatalystIPAddressPage() {
             user_estim: values.user_estim,
             display_estim: values.display_estim,
           },
-        ]);
+        ])
 
-        if (error) throw error;
-        toast.success("IP Address berhasil ditambahkan");
+        if (error) throw error
+        toast.success('IP Address berhasil ditambahkan')
       }
 
-      fetchIpAddresses();
-      handleCloseDialog();
+      fetchIpAddresses()
+      handleCloseDialog()
     } catch (error) {
-      console.error("Error saving IP address:", error);
-      toast.error("Gagal menyimpan data IP Address");
+      console.error('Error saving IP address:', error)
+      toast.error('Gagal menyimpan data IP Address')
     }
-  };
+  }
 
   const handleEdit = (ip: IPAddress) => {
-    setSelectedIp(ip);
-    setIsEditing(true);
+    setSelectedIp(ip)
+    setIsEditing(true)
     form.reset({
       location: ip.location,
       ipAddress: ip.ip_address,
       subnet: ip.subnet,
       gateway: ip.gateway,
-      description: ip.description || "",
-      user_estim: ip.user_estim || "",
-      display_estim: ip.display_estim || "",
-    });
-    setIsDialogOpen(true);
-  };
+      description: ip.description || '',
+      user_estim: ip.user_estim || '',
+      display_estim: ip.display_estim || '',
+    })
+    setIsDialogOpen(true)
+  }
 
   const handleDelete = (ip: IPAddress) => {
-    setSelectedIp(ip);
-    setIsDeleteAlertOpen(true);
-  };
+    setSelectedIp(ip)
+    setIsDeleteAlertOpen(true)
+  }
 
   const confirmDelete = async () => {
     if (selectedIp) {
       try {
-        const { error } = await supabase
-          .from("ip_addresses")
-          .delete()
-          .eq("id", selectedIp.id);
+        const { error } = await supabase.from('ip_addresses').delete().eq('id', selectedIp.id)
 
-        if (error) throw error;
-        toast.success("IP Address berhasil dihapus");
-        fetchIpAddresses(); // Refresh data
+        if (error) throw error
+        toast.success('IP Address berhasil dihapus')
+        fetchIpAddresses() // Refresh data
       } catch (error) {
-        console.error("Error deleting IP address:", error);
-        toast.error("Gagal menghapus IP Address");
+        console.error('Error deleting IP address:', error)
+        toast.error('Gagal menghapus IP Address')
       }
     }
-    setIsDeleteAlertOpen(false);
-  };
+    setIsDeleteAlertOpen(false)
+  }
 
   const handleCloseDialog = () => {
-    setIsDialogOpen(false);
-    setIsEditing(false);
-    setSelectedIp(null);
+    setIsDialogOpen(false)
+    setIsEditing(false)
+    setSelectedIp(null)
     form.reset({
-      location: "",
-      ipAddress: "",
-      subnet: "",
-      gateway: "",
-      description: "",
-    });
-  };
+      location: '',
+      ipAddress: '',
+      subnet: '',
+      gateway: '',
+      description: '',
+    })
+  }
 
   const handleAddNew = () => {
-    setIsEditing(false);
-    setSelectedIp(null);
+    setIsEditing(false)
+    setSelectedIp(null)
     form.reset({
-      location: "",
-      ipAddress: "",
-      subnet: "",
-      gateway: "",
-      description: "",
-    });
-    setIsDialogOpen(true);
-  };
+      location: '',
+      ipAddress: '',
+      subnet: '',
+      gateway: '',
+      description: '',
+    })
+    setIsDialogOpen(true)
+  }
 
   const handleGenerateIPs = async (
     generatedIPs: Array<{
-      location: string;
-      ip_address: string;
-      subnet: string;
-      gateway: string;
+      location: string
+      ip_address: string
+      subnet: string
+      gateway: string
     }>,
   ) => {
     try {
-      const newIPs = generatedIPs.map((ip) => ({
+      const newIPs = generatedIPs.map(ip => ({
         ...ip,
-        description: "", // Kolom description kosong untuk diisi manual nanti
-        user_estim: "",
-        display_estim: "",
-      }));
+        description: '', // Kolom description kosong untuk diisi manual nanti
+        user_estim: '',
+        display_estim: '',
+      }))
 
-      const { error } = await supabase.from("ip_addresses").insert(newIPs);
+      const { error } = await supabase.from('ip_addresses').insert(newIPs)
 
-      if (error) throw error;
+      if (error) throw error
 
-      toast.success(`${newIPs.length} IP Addresses berhasil ditambahkan`);
-      await fetchIpAddresses();
-      setShowIPCalculator(false);
+      toast.success(`${newIPs.length} IP Addresses berhasil ditambahkan`)
+      await fetchIpAddresses()
+      setShowIPCalculator(false)
     } catch (error: any) {
-      console.error("Error adding IP addresses:", error);
-      toast.error(error.message || "Gagal menambahkan IP Addresses");
+      console.error('Error adding IP addresses:', error)
+      toast.error(error.message || 'Gagal menambahkan IP Addresses')
     }
-  };
+  }
 
   // Tambahkan fungsi untuk purge data
   const handlePurgeData = async () => {
     try {
       // Hapus semua data tanpa pengecualian
       const { error } = await supabase
-        .from("ip_addresses")
+        .from('ip_addresses')
         .delete()
-        .neq("id", "00000000-0000-0000-0000-000000000000"); // Gunakan UUID kosong sebagai placeholder jika perlu
+        .neq('id', '00000000-0000-0000-0000-000000000000') // Gunakan UUID kosong sebagai placeholder jika perlu
 
       if (error) {
-        console.error("Supabase error:", error);
-        throw new Error(error.message);
+        console.error('Supabase error:', error)
+        throw new Error(error.message)
       }
 
-      toast.success("Semua data berhasil dihapus");
-      await fetchIpAddresses(); // Tunggu sampai data selesai di-fetch
+      toast.success('Semua data berhasil dihapus')
+      await fetchIpAddresses() // Tunggu sampai data selesai di-fetch
     } catch (error: any) {
-      console.error("Error detail:", error);
-      toast.error(error.message || "Gagal menghapus data");
+      console.error('Error detail:', error)
+      toast.error(error.message || 'Gagal menghapus data')
     } finally {
-      setIsPurgeAlertOpen(false);
+      setIsPurgeAlertOpen(false)
     }
-  };
+  }
 
   // Tambahkan loading state di table
   if (isLoading) {
@@ -582,7 +559,7 @@ export default function CatalystIPAddressPage() {
       <div className="flex items-center justify-center h-96">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
       </div>
-    );
+    )
   }
 
   return (
@@ -591,25 +568,15 @@ export default function CatalystIPAddressPage() {
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle className="text-2xl font-bold">
-                IP Address Cisco Catalyst
-              </CardTitle>
-              <CardDescription>
-                Manajemen IP Address untuk perangkat Cisco Catalyst
-              </CardDescription>
+              <CardTitle className="text-2xl font-bold">IP Address Cisco Catalyst</CardTitle>
+              <CardDescription>Manajemen IP Address untuk perangkat Cisco Catalyst</CardDescription>
             </div>
             <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                onClick={() => setShowIPCalculator(true)}
-              >
+              <Button variant="outline" onClick={() => setShowIPCalculator(true)}>
                 <Calculator className="mr-2 h-4 w-4" />
                 IP Calculator
               </Button>
-              <Button
-                variant="destructive"
-                onClick={() => setIsPurgeAlertOpen(true)}
-              >
+              <Button variant="destructive" onClick={() => setIsPurgeAlertOpen(true)}>
                 <Trash2 className="mr-2 h-4 w-4" />
                 Purge Data
               </Button>
@@ -623,31 +590,25 @@ export default function CatalystIPAddressPage() {
                 <DialogContent>
                   <DialogHeader>
                     <DialogTitle>
-                      {isEditing ? "Edit IP Address" : "Tambah IP Address Baru"}
+                      {isEditing ? 'Edit IP Address' : 'Tambah IP Address Baru'}
                     </DialogTitle>
                   </DialogHeader>
                   <Form {...form}>
-                    <form
-                      onSubmit={form.handleSubmit(onSubmit)}
-                      className="space-y-4"
-                    >
+                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                       <FormField
                         control={form.control}
                         name="location"
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel>Lokasi</FormLabel>
-                            <Select
-                              onValueChange={field.onChange}
-                              defaultValue={field.value}
-                            >
+                            <Select onValueChange={field.onChange} defaultValue={field.value}>
                               <FormControl>
                                 <SelectTrigger>
                                   <SelectValue placeholder="Pilih lokasi" />
                                 </SelectTrigger>
                               </FormControl>
                               <SelectContent>
-                                {locationOptions.map((location) => (
+                                {locationOptions.map(location => (
                                   <SelectItem key={location} value={location}>
                                     {location}
                                   </SelectItem>
@@ -719,10 +680,7 @@ export default function CatalystIPAddressPage() {
                             <FormItem>
                               <FormLabel>Display Estim</FormLabel>
                               <FormControl>
-                                <Input
-                                  placeholder="display estim..."
-                                  {...field}
-                                />
+                                <Input placeholder="display estim..." {...field} />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -737,10 +695,7 @@ export default function CatalystIPAddressPage() {
                           <FormItem>
                             <FormLabel>Keterangan</FormLabel>
                             <FormControl>
-                              <Input
-                                placeholder="Deskripsi IP Address..."
-                                {...field}
-                              />
+                              <Input placeholder="Deskripsi IP Address..." {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -748,9 +703,7 @@ export default function CatalystIPAddressPage() {
                       />
 
                       <DialogFooter>
-                        <Button type="submit">
-                          {isEditing ? "Simpan Perubahan" : "Tambah"}
-                        </Button>
+                        <Button type="submit">{isEditing ? 'Simpan Perubahan' : 'Tambah'}</Button>
                       </DialogFooter>
                     </form>
                   </Form>
@@ -766,7 +719,7 @@ export default function CatalystIPAddressPage() {
               <Input
                 placeholder="Cari IP Address, lokasi..."
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={e => setSearchQuery(e.target.value)}
                 className="pl-9"
               />
             </div>
@@ -774,7 +727,7 @@ export default function CatalystIPAddressPage() {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                 disabled={currentPage === 1 || isLoading}
               >
                 Previous
@@ -785,9 +738,7 @@ export default function CatalystIPAddressPage() {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() =>
-                  setCurrentPage((prev) => Math.min(prev + 1, totalPages))
-                }
+                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
                 disabled={currentPage === totalPages || isLoading}
               >
                 Next
@@ -801,12 +752,12 @@ export default function CatalystIPAddressPage() {
                 <TableRow className="bg-muted/50">
                   <TableHead
                     className="font-semibold cursor-pointer hover:bg-muted/80"
-                    onClick={() => handleSort("location")}
+                    onClick={() => handleSort('location')}
                   >
                     <div className="flex items-center gap-1">
                       Lokasi
-                      {sortConfig?.column === "location" ? (
-                        sortConfig.direction === "asc" ? (
+                      {sortConfig?.column === 'location' ? (
+                        sortConfig.direction === 'asc' ? (
                           <ChevronUp className="h-4 w-4" />
                         ) : (
                           <ChevronDown className="h-4 w-4" />
@@ -818,12 +769,12 @@ export default function CatalystIPAddressPage() {
                   </TableHead>
                   <TableHead
                     className="font-semibold cursor-pointer hover:bg-muted/80"
-                    onClick={() => handleSort("ip_address")}
+                    onClick={() => handleSort('ip_address')}
                   >
                     <div className="flex items-center gap-1">
                       IP Address
-                      {sortConfig?.column === "ip_address" ? (
-                        sortConfig.direction === "asc" ? (
+                      {sortConfig?.column === 'ip_address' ? (
+                        sortConfig.direction === 'asc' ? (
                           <ChevronUp className="h-4 w-4" />
                         ) : (
                           <ChevronDown className="h-4 w-4" />
@@ -835,12 +786,12 @@ export default function CatalystIPAddressPage() {
                   </TableHead>
                   <TableHead
                     className="font-semibold cursor-pointer hover:bg-muted/80"
-                    onClick={() => handleSort("subnet")}
+                    onClick={() => handleSort('subnet')}
                   >
                     <div className="flex items-center gap-1">
                       Subnet Mask
-                      {sortConfig?.column === "subnet" ? (
-                        sortConfig.direction === "asc" ? (
+                      {sortConfig?.column === 'subnet' ? (
+                        sortConfig.direction === 'asc' ? (
                           <ChevronUp className="h-4 w-4" />
                         ) : (
                           <ChevronDown className="h-4 w-4" />
@@ -852,12 +803,12 @@ export default function CatalystIPAddressPage() {
                   </TableHead>
                   <TableHead
                     className="font-semibold cursor-pointer hover:bg-muted/80"
-                    onClick={() => handleSort("gateway")}
+                    onClick={() => handleSort('gateway')}
                   >
                     <div className="flex items-center gap-1">
                       Gateway
-                      {sortConfig?.column === "gateway" ? (
-                        sortConfig.direction === "asc" ? (
+                      {sortConfig?.column === 'gateway' ? (
+                        sortConfig.direction === 'asc' ? (
                           <ChevronUp className="h-4 w-4" />
                         ) : (
                           <ChevronDown className="h-4 w-4" />
@@ -869,12 +820,12 @@ export default function CatalystIPAddressPage() {
                   </TableHead>
                   <TableHead
                     className="font-semibold cursor-pointer hover:bg-muted/80"
-                    onClick={() => handleSort("user_estim")}
+                    onClick={() => handleSort('user_estim')}
                   >
                     <div className="flex items-center gap-1">
                       User Estim
-                      {sortConfig?.column === "user_estim" ? (
-                        sortConfig.direction === "asc" ? (
+                      {sortConfig?.column === 'user_estim' ? (
+                        sortConfig.direction === 'asc' ? (
                           <ChevronUp className="h-4 w-4" />
                         ) : (
                           <ChevronDown className="h-4 w-4" />
@@ -886,12 +837,12 @@ export default function CatalystIPAddressPage() {
                   </TableHead>
                   <TableHead
                     className="font-semibold cursor-pointer hover:bg-muted/80"
-                    onClick={() => handleSort("display_estim")}
+                    onClick={() => handleSort('display_estim')}
                   >
                     <div className="flex items-center gap-1">
                       Display Estim
-                      {sortConfig?.column === "display_estim" ? (
-                        sortConfig.direction === "asc" ? (
+                      {sortConfig?.column === 'display_estim' ? (
+                        sortConfig.direction === 'asc' ? (
                           <ChevronUp className="h-4 w-4" />
                         ) : (
                           <ChevronDown className="h-4 w-4" />
@@ -903,12 +854,12 @@ export default function CatalystIPAddressPage() {
                   </TableHead>
                   <TableHead
                     className="font-semibold cursor-pointer hover:bg-muted/80"
-                    onClick={() => handleSort("description")}
+                    onClick={() => handleSort('description')}
                   >
                     <div className="flex items-center gap-1">
                       Keterangan
-                      {sortConfig?.column === "description" ? (
-                        sortConfig.direction === "asc" ? (
+                      {sortConfig?.column === 'description' ? (
+                        sortConfig.direction === 'asc' ? (
                           <ChevronUp className="h-4 w-4" />
                         ) : (
                           <ChevronDown className="h-4 w-4" />
@@ -952,21 +903,16 @@ export default function CatalystIPAddressPage() {
                   </TableRow>
                 ) : ipAddresses.length === 0 ? (
                   <TableRow>
-                    <TableCell
-                      colSpan={8}
-                      className="h-24 text-center text-muted-foreground"
-                    >
+                    <TableCell colSpan={8} className="h-24 text-center text-muted-foreground">
                       {searchQuery
-                        ? "Tidak ada data yang sesuai dengan pencarian"
-                        : "Tidak ada data IP Address"}
+                        ? 'Tidak ada data yang sesuai dengan pencarian'
+                        : 'Tidak ada data IP Address'}
                     </TableCell>
                   </TableRow>
                 ) : (
-                  ipAddresses.map((ip) => (
+                  ipAddresses.map(ip => (
                     <TableRow key={ip.id}>
-                      <TableCell className="font-medium">
-                        {ip.location}
-                      </TableCell>
+                      <TableCell className="font-medium">{ip.location}</TableCell>
                       <TableCell>{ip.ip_address}</TableCell>
                       <TableCell>{ip.subnet}</TableCell>
                       <TableCell>{ip.gateway}</TableCell>
@@ -1023,8 +969,7 @@ export default function CatalystIPAddressPage() {
           <AlertDialogHeader>
             <AlertDialogTitle>Konfirmasi Hapus</AlertDialogTitle>
             <AlertDialogDescription>
-              Apakah Anda yakin ingin menghapus IP Address ini? Tindakan ini
-              tidak dapat dibatalkan.
+              Apakah Anda yakin ingin menghapus IP Address ini? Tindakan ini tidak dapat dibatalkan.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -1042,8 +987,8 @@ export default function CatalystIPAddressPage() {
           <AlertDialogHeader>
             <AlertDialogTitle>Konfirmasi Hapus Semua Data</AlertDialogTitle>
             <AlertDialogDescription>
-              Apakah Anda yakin ingin menghapus semua data IP Address? Tindakan
-              ini tidak dapat dibatalkan.
+              Apakah Anda yakin ingin menghapus semua data IP Address? Tindakan ini tidak dapat
+              dibatalkan.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -1058,5 +1003,5 @@ export default function CatalystIPAddressPage() {
         </AlertDialogContent>
       </AlertDialog>
     </div>
-  );
+  )
 }

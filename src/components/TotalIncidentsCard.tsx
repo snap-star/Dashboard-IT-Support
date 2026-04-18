@@ -1,35 +1,35 @@
 // components/TotalIncidentsCard.tsx
-"use client";
-import { useEffect, useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import supabase from "@/lib/supabase";
-import { AlertOctagon } from "lucide-react";
-import { motion } from "framer-motion";
+'use client'
+import { useEffect, useState } from 'react'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import supabase from '@/lib/supabase'
+import { AlertOctagon } from 'lucide-react'
+import { motion } from 'framer-motion'
 
 export function TotalIncidentsCard() {
-  const [totalIncidents, setTotalIncidents] = useState<number>(0);
-  const [isLoading, setIsLoading] = useState(true);
-  const [lastUpdated, setLastUpdated] = useState<string>("");
+  const [totalIncidents, setTotalIncidents] = useState<number>(0)
+  const [isLoading, setIsLoading] = useState(true)
+  const [lastUpdated, setLastUpdated] = useState<string>('')
 
   useEffect(() => {
-    fetchTotalIncidents();
-  }, []);
+    fetchTotalIncidents()
+  }, [])
 
   async function fetchTotalIncidents() {
-    setIsLoading(true);
+    setIsLoading(true)
     try {
       const { count, error } = await supabase
-        .from("atm_complaints")
-        .select("*", { count: "exact", head: true });
+        .from('atm_complaints')
+        .select('*', { count: 'exact', head: true })
 
       if (error) {
-        console.error("Error fetching total incidents:", error);
+        console.error('Error fetching total incidents:', error)
       } else {
-        setTotalIncidents(count || 0);
-        setLastUpdated(new Date().toLocaleString());
+        setTotalIncidents(count || 0)
+        setLastUpdated(new Date().toLocaleString())
       }
     } finally {
-      setIsLoading(false);
+      setIsLoading(false)
     }
   }
 
@@ -39,7 +39,7 @@ export function TotalIncidentsCard() {
         initial={{ scale: 0 }}
         animate={{ scale: 1 }}
         transition={{
-          type: "spring",
+          type: 'spring',
           stiffness: 100,
           delay: 0.2,
         }}
@@ -47,8 +47,8 @@ export function TotalIncidentsCard() {
       >
         {value.toLocaleString()}
       </motion.div>
-    );
-  };
+    )
+  }
 
   return (
     <motion.div
@@ -66,9 +66,7 @@ export function TotalIncidentsCard() {
             >
               <AlertOctagon className="h-5 w-5 text-red-500" />
             </motion.div>
-            <CardTitle className="text-sm font-medium">
-              Total ATM Incidents
-            </CardTitle>
+            <CardTitle className="text-sm font-medium">Total ATM Incidents</CardTitle>
           </div>
           <motion.div
             initial={{ scale: 0 }}
@@ -113,5 +111,5 @@ export function TotalIncidentsCard() {
         </CardContent>
       </Card>
     </motion.div>
-  );
+  )
 }

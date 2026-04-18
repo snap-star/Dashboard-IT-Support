@@ -1,7 +1,7 @@
-"use client"
+'use client'
 
-import { useEffect, useState, type FormEvent } from "react"
-import supabase from "@/lib/supabase"
+import { useEffect, useState, type FormEvent } from 'react'
+import supabase from '@/lib/supabase'
 import {
   Table,
   TableBody,
@@ -9,17 +9,17 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table"
-import { Button } from "@/components/ui/button"
+} from '@/components/ui/table'
+import { Button } from '@/components/ui/button'
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
+} from '@/components/ui/dialog'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 
 interface Employee {
   id?: number
@@ -35,10 +35,10 @@ export default function PegawaiPage() {
   const [isOpen, setIsOpen] = useState(false)
   const [loading, setLoading] = useState(true)
   const [formData, setFormData] = useState({
-    nip: "",
-    nama: "",
-    jabatan: "",
-    department: "",
+    nip: '',
+    nama: '',
+    jabatan: '',
+    department: '',
   })
 
   useEffect(() => {
@@ -48,12 +48,12 @@ export default function PegawaiPage() {
   const fetchEmployees = async () => {
     setLoading(true)
     const { data, error } = await supabase
-      .from("employee")
-      .select("id, nip, nama, jabatan, department, created_at")
-      .order("nip", { ascending: true })
+      .from('employee')
+      .select('id, nip, nama, jabatan, department, created_at')
+      .order('nip', { ascending: true })
 
     if (error) {
-      console.error("Gagal memuat data pegawai:", error)
+      console.error('Gagal memuat data pegawai:', error)
     } else if (data) {
       setEmployees(data)
     }
@@ -64,7 +64,7 @@ export default function PegawaiPage() {
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
 
-    const { error } = await supabase.from("employee").insert([
+    const { error } = await supabase.from('employee').insert([
       {
         nip: formData.nip,
         nama: formData.nama,
@@ -74,11 +74,11 @@ export default function PegawaiPage() {
     ])
 
     if (error) {
-      console.error("Gagal menyimpan pegawai:", error)
+      console.error('Gagal menyimpan pegawai:', error)
       return
     }
 
-    setFormData({ nip: "", nama: "", jabatan: "", department: "" })
+    setFormData({ nip: '', nama: '', jabatan: '', department: '' })
     setIsOpen(false)
     void fetchEmployees()
   }
@@ -101,7 +101,7 @@ export default function PegawaiPage() {
                 <Input
                   id="nip"
                   value={formData.nip}
-                  onChange={(e) => setFormData({ ...formData, nip: e.target.value })}
+                  onChange={e => setFormData({ ...formData, nip: e.target.value })}
                 />
               </div>
               <div>
@@ -109,7 +109,7 @@ export default function PegawaiPage() {
                 <Input
                   id="nama"
                   value={formData.nama}
-                  onChange={(e) => setFormData({ ...formData, nama: e.target.value })}
+                  onChange={e => setFormData({ ...formData, nama: e.target.value })}
                 />
               </div>
               <div>
@@ -117,7 +117,7 @@ export default function PegawaiPage() {
                 <Input
                   id="department"
                   value={formData.department}
-                  onChange={(e) => setFormData({ ...formData, department: e.target.value })}
+                  onChange={e => setFormData({ ...formData, department: e.target.value })}
                 />
               </div>
               <div>
@@ -125,7 +125,7 @@ export default function PegawaiPage() {
                 <Input
                   id="jabatan"
                   value={formData.jabatan}
-                  onChange={(e) => setFormData({ ...formData, jabatan: e.target.value })}
+                  onChange={e => setFormData({ ...formData, jabatan: e.target.value })}
                 />
               </div>
               <Button type="submit">Simpan</Button>
@@ -156,8 +156,8 @@ export default function PegawaiPage() {
                 <TableCell>{employee.jabatan}</TableCell>
                 <TableCell>
                   {employee.created_at
-                    ? new Date(employee.created_at).toLocaleDateString("id-ID")
-                    : "-"}
+                    ? new Date(employee.created_at).toLocaleDateString('id-ID')
+                    : '-'}
                 </TableCell>
               </TableRow>
             ))}

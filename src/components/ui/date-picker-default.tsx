@@ -1,21 +1,17 @@
-"use client";
+'use client'
 
-import * as React from "react";
-import { CalendarIcon } from "@radix-ui/react-icons";
-import { format } from "date-fns";
-import { id } from "date-fns/locale";
-import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
-import { Calendar } from "@/components/ui/calendar";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+import * as React from 'react'
+import { CalendarIcon } from '@radix-ui/react-icons'
+import { format } from 'date-fns'
+import { id } from 'date-fns/locale'
+import { cn } from '@/lib/utils'
+import { Button } from '@/components/ui/button'
+import { Calendar } from '@/components/ui/calendar'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 
 interface DatePickerProps {
-  date: Date;
-  setDateAction: (date: Date | undefined) => void;
+  date: Date
+  setDateAction: (date: Date | undefined) => void
 }
 
 export function DatePickerDefault({ date, setDateAction }: DatePickerProps) {
@@ -26,30 +22,26 @@ export function DatePickerDefault({ date, setDateAction }: DatePickerProps) {
         selectedDate.getFullYear(),
         selectedDate.getMonth(),
         selectedDate.getDate(),
-        12  // Set jam ke tengah hari untuk menghindari masalah timezone
-      );
-      setDateAction(adjustedDate);
+        12, // Set jam ke tengah hari untuk menghindari masalah timezone
+      )
+      setDateAction(adjustedDate)
     } else {
-      setDateAction(undefined);
+      setDateAction(undefined)
     }
-  };
+  }
 
   return (
     <Popover>
       <PopoverTrigger asChild>
         <Button
-          variant={"outline"}
+          variant={'outline'}
           className={cn(
-            "w-full justify-start text-left font-normal",
-            !date && "text-muted-foreground",
+            'w-full justify-start text-left font-normal',
+            !date && 'text-muted-foreground',
           )}
         >
           <CalendarIcon className="mr-2 h-4 w-4" />
-          {date ? (
-            format(date, "PPP", { locale: id })
-          ) : (
-            <span>Pilih Tanggal</span>
-          )}
+          {date ? format(date, 'PPP', { locale: id }) : <span>Pilih Tanggal</span>}
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-auto p-0" align="start">
@@ -62,5 +54,5 @@ export function DatePickerDefault({ date, setDateAction }: DatePickerProps) {
         />
       </PopoverContent>
     </Popover>
-  );
+  )
 }

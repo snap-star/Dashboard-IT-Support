@@ -1,12 +1,12 @@
-"use client";
-import { motion } from "framer-motion";
-import Login from "@/components/login";
-import { Button } from "@/components/ui/button";
-import { Moon, Sun } from "lucide-react";
-import { useTheme } from "next-themes";
+'use client'
+import { motion } from 'framer-motion'
+import Login from '@/components/login'
+import { Button } from '@/components/ui/button'
+import { Moon, Sun } from 'lucide-react'
+import { useTheme } from 'next-themes'
 
 export default function Home() {
-  const { theme, setTheme } = useTheme();
+  const { theme, setTheme } = useTheme()
 
   return (
     <div className="min-h-screen relative bg-gradient-to-br from-background to-secondary/20">
@@ -22,7 +22,7 @@ export default function Home() {
             transition={{
               duration: 10,
               repeat: Infinity,
-              repeatType: "reverse",
+              repeatType: 'reverse',
             }}
           />
           <motion.div
@@ -34,7 +34,7 @@ export default function Home() {
             transition={{
               duration: 15,
               repeat: Infinity,
-              repeatType: "reverse",
+              repeatType: 'reverse',
             }}
           />
           <motion.div
@@ -46,7 +46,7 @@ export default function Home() {
             transition={{
               duration: 12,
               repeat: Infinity,
-              repeatType: "reverse",
+              repeatType: 'reverse',
             }}
           />
         </div>
@@ -59,7 +59,7 @@ export default function Home() {
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+            onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
             className="rounded-full hover:bg-accent/10"
           >
             <Sun className="h-5 w-5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
@@ -93,5 +93,5 @@ export default function Home() {
         </footer>
       </div>
     </div>
-  );
+  )
 }

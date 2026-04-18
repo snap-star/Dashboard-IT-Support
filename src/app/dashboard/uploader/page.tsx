@@ -1,9 +1,7 @@
-import ExcelUploader from "@/components/excel-uploader";
+import ExcelUploader from '@/components/excel-uploader'
 
 const DashboardUploaderPage = () => {
-  return (
-    <ExcelUploader />
-  );
-};
+  return <ExcelUploader />
+}
 
-export default DashboardUploaderPage;
+export default DashboardUploaderPage

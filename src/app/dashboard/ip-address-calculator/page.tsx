@@ -1,4 +1,4 @@
-import { IPCalculator } from "@/components/ip-calculator"
+import { IPCalculator } from '@/components/ip-calculator'
 
 export default function Home() {
   return (

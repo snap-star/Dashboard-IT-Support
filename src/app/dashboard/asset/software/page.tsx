@@ -1,6 +1,6 @@
-"use client";
+'use client'
 
-import * as React from "react";
+import * as React from 'react'
 import {
   ColumnDef,
   ColumnFiltersState,
@@ -12,16 +12,11 @@ import {
   getPaginationRowModel,
   getSortedRowModel,
   useReactTable,
-} from "@tanstack/react-table";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardFooter,
-} from "@/components/ui/card";
-import { ArrowUpDown, MoreHorizontal } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+} from '@tanstack/react-table'
+import { Card, CardContent, CardHeader, CardFooter } from '@/components/ui/card'
+import { ArrowUpDown, MoreHorizontal } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import {
   Table,
   TableBody,
@@ -29,20 +24,15 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+} from '@/components/ui/table'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
+} from '@/components/ui/select'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -50,94 +40,89 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import supabase from "@/lib/supabase";
-import * as XLSX from "xlsx";
+} from '@/components/ui/dropdown-menu'
+import supabase from '@/lib/supabase'
+import * as XLSX from 'xlsx'
 
 type Software = {
-  id: number;
-  nama_software: string;
-  jenis: string;
-  versi: string;
-  lisensi: string;
-  tanggal_aktivasi: string;
-  tanggal_expired: string;
-  pengguna: string;
-  lokasi: string;
-  status: string;
-  keterangan: string;
-};
+  id: number
+  nama_software: string
+  jenis: string
+  versi: string
+  lisensi: string
+  tanggal_aktivasi: string
+  tanggal_expired: string
+  pengguna: string
+  lokasi: string
+  status: string
+  keterangan: string
+}
 
 type User = {
-  id: number;
-  user_estim: string;
-  nama: string;
-  ip_address: string;
-  nip: string;
-  jabatan: string;
-};
+  id: number
+  user_estim: string
+  nama: string
+  ip_address: string
+  nip: string
+  jabatan: string
+}
 
 export default function AssetSoftware() {
-  const [software, setSoftware] = React.useState<Software[]>([]);
-  const [globalFilter, setGlobalFilter] = React.useState("");
-  const [sorting, setSorting] = React.useState<SortingState>([]);
-  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
-    [],
-  );
-  const [columnVisibility, setColumnVisibility] =
-    React.useState<VisibilityState>({});
-  const [isDialogOpen, setIsDialogOpen] = React.useState(false);
-  const [editingSoftware, setEditingSoftware] = React.useState<Software | null>(
-    null,
-  );
-  const [lastUpdated, setLastUpdated] = React.useState<string>("");
-  const [users, setUsers] = React.useState<User[]>([]);
-  const [newSoftware, setNewSoftware] = React.useState<Omit<Software, "id">>({
-    nama_software: "",
-    jenis: "",
-    versi: "",
-    lisensi: "",
-    tanggal_aktivasi: "",
-    tanggal_expired: "",
-    pengguna: "",
-    lokasi: "",
-    status: "",
-    keterangan: "",
-  });
+  const [software, setSoftware] = React.useState<Software[]>([])
+  const [globalFilter, setGlobalFilter] = React.useState('')
+  const [sorting, setSorting] = React.useState<SortingState>([])
+  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
+  const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({})
+  const [isDialogOpen, setIsDialogOpen] = React.useState(false)
+  const [editingSoftware, setEditingSoftware] = React.useState<Software | null>(null)
+  const [lastUpdated, setLastUpdated] = React.useState<string>('')
+  const [users, setUsers] = React.useState<User[]>([])
+  const [newSoftware, setNewSoftware] = React.useState<Omit<Software, 'id'>>({
+    nama_software: '',
+    jenis: '',
+    versi: '',
+    lisensi: '',
+    tanggal_aktivasi: '',
+    tanggal_expired: '',
+    pengguna: '',
+    lokasi: '',
+    status: '',
+    keterangan: '',
+  })
 
   React.useEffect(() => {
-    fetchSoftware();
-    fetchUsers();
-  }, []);
+    fetchSoftware()
+    fetchUsers()
+  }, [])
 
   async function fetchSoftware() {
-    const { data, error } = await supabase.from("software").select("*");
+    const { data, error } = await supabase.from('software').select('*')
     if (error) {
-      console.error("Error fetching software:", error);
+      console.error('Error fetching software:', error)
     } else {
-      setSoftware(data || []);
-      setLastUpdated(new Date().toLocaleString());
+      setSoftware(data || [])
+      setLastUpdated(new Date().toLocaleString())
     }
   }
 
   async function fetchUsers() {
     const { data, error } = await supabase
-      .from("users")
-      .select("id, user_estim, nama, ip_address, nip, jabatan");
+      .from('users')
+      .select('id, user_estim, nama, ip_address, nip, jabatan')
     if (error) {
-      console.error("Error fetching users:", error);
+      console.error('Error fetching users:', error)
     } else {
-      setUsers(data || []);
+      setUsers(data || [])
     }
   }
 
   const columns: ColumnDef<Software>[] = [
     {
-      accessorKey: "nama_software",
+      accessorKey: 'nama_software',
       header: ({ column }) => (
         <Button
           variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
         >
           Nama Software
           <ArrowUpDown className="ml-2 h-4 w-4" />
@@ -145,93 +130,93 @@ export default function AssetSoftware() {
       ),
     },
     {
-      accessorKey: "jenis",
-      header: "Jenis",
+      accessorKey: 'jenis',
+      header: 'Jenis',
     },
     {
-      accessorKey: "versi",
-      header: "Versi",
+      accessorKey: 'versi',
+      header: 'Versi',
     },
     {
-      accessorKey: "lisensi",
-      header: "Lisensi",
+      accessorKey: 'lisensi',
+      header: 'Lisensi',
     },
     {
-      accessorKey: "tanggal_aktivasi",
-      header: "Tanggal Aktivasi",
+      accessorKey: 'tanggal_aktivasi',
+      header: 'Tanggal Aktivasi',
     },
     {
-      accessorKey: "tanggal_expired",
-      header: "Tanggal Expired",
+      accessorKey: 'tanggal_expired',
+      header: 'Tanggal Expired',
     },
     {
-      accessorKey: "pengguna",
-      header: "Pengguna",
+      accessorKey: 'pengguna',
+      header: 'Pengguna',
     },
     {
-      accessorKey: "lokasi",
-      header: "Lokasi",
+      accessorKey: 'lokasi',
+      header: 'Lokasi',
     },
     {
-      accessorKey: "status",
-      header: "Status",
+      accessorKey: 'status',
+      header: 'Status',
     },
     {
-      accessorKey: "keterangan",
-      header: "Keterangan",
+      accessorKey: 'keterangan',
+      header: 'Keterangan',
     },
     // ... sisanya sama seperti hardware
-  ];
+  ]
 
   async function handleCreateOrUpdateSoftware() {
     if (editingSoftware) {
       const { error } = await supabase
-        .from("software")
+        .from('software')
         .update(editingSoftware)
-        .eq("id", editingSoftware.id);
+        .eq('id', editingSoftware.id)
       if (error) {
-        console.error("Error updating software:", error);
-        return;
+        console.error('Error updating software:', error)
+        return
       }
     } else {
-      const { error } = await supabase.from("software").insert([newSoftware]);
+      const { error } = await supabase.from('software').insert([newSoftware])
       if (error) {
-        console.error("Error creating software:", error);
-        return;
+        console.error('Error creating software:', error)
+        return
       }
     }
-    fetchSoftware();
-    setIsDialogOpen(false);
-    setEditingSoftware(null);
+    fetchSoftware()
+    setIsDialogOpen(false)
+    setEditingSoftware(null)
     setNewSoftware({
-      nama_software: "",
-      jenis: "",
-      versi: "",
-      lisensi: "",
-      tanggal_aktivasi: "",
-      tanggal_expired: "",
-      pengguna: "",
-      lokasi: "",
-      status: "",
-      keterangan: "",
-    });
+      nama_software: '',
+      jenis: '',
+      versi: '',
+      lisensi: '',
+      tanggal_aktivasi: '',
+      tanggal_expired: '',
+      pengguna: '',
+      lokasi: '',
+      status: '',
+      keterangan: '',
+    })
   }
 
   async function handleDeleteSoftware(id: number) {
-    const { error } = await supabase.from("software").delete().eq("id", id);
+    const { error } = await supabase.from('software').delete().eq('id', id)
     if (error) {
-      console.error("Error deleting software:", error);
-      return;
+      console.error('Error deleting software:', error)
+      return
     }
-    fetchSoftware();
+    fetchSoftware()
   }
 
   const exportToExcel = () => {
-    const worksheet = XLSX.utils.json_to_sheet(software);
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Software Assets");
-    XLSX.writeFile(workbook, "Data_Aset_Software.xlsx");
-  };
+    const worksheet = XLSX.utils.json_to_sheet(software)
+    const workbook = XLSX.utils.book_new()
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Software Assets')
+    XLSX.writeFile(workbook, 'Data_Aset_Software.xlsx')
+  }
 
   const table = useReactTable({
     data: software,
@@ -249,7 +234,7 @@ export default function AssetSoftware() {
     getFilteredRowModel: getFilteredRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
-  });
+  })
 
   return (
     <div className="w-full">
@@ -257,35 +242,27 @@ export default function AssetSoftware() {
         <Input
           placeholder="Filter semua kolom..."
           value={globalFilter}
-          onChange={(e) => setGlobalFilter(e.target.value)}
+          onChange={e => setGlobalFilter(e.target.value)}
           className="max-w-sm"
         />
         <div className="flex gap-2">
           <Button variant="outline" onClick={exportToExcel}>
             Export Excel
           </Button>
-          <Button onClick={() => setIsDialogOpen(true)}>
-            Tambah Software Baru
-          </Button>
+          <Button onClick={() => setIsDialogOpen(true)}>Tambah Software Baru</Button>
         </div>
       </div>
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>
-              {editingSoftware ? "Edit Software" : "Tambah Software Baru"}
-            </DialogTitle>
+            <DialogTitle>{editingSoftware ? 'Edit Software' : 'Tambah Software Baru'}</DialogTitle>
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <Input
               placeholder="Nama Software"
-              value={
-                editingSoftware
-                  ? editingSoftware.nama_software
-                  : newSoftware.nama_software
-              }
-              onChange={(e) =>
+              value={editingSoftware ? editingSoftware.nama_software : newSoftware.nama_software}
+              onChange={e =>
                 editingSoftware
                   ? setEditingSoftware({
                       ...editingSoftware,
@@ -298,10 +275,8 @@ export default function AssetSoftware() {
               }
             />
             <Select
-              value={
-                editingSoftware ? editingSoftware.jenis : newSoftware.jenis
-              }
-              onValueChange={(value) =>
+              value={editingSoftware ? editingSoftware.jenis : newSoftware.jenis}
+              onValueChange={value =>
                 editingSoftware
                   ? setEditingSoftware({ ...editingSoftware, jenis: value })
                   : setNewSoftware({ ...newSoftware, jenis: value })
@@ -311,25 +286,19 @@ export default function AssetSoftware() {
                 <SelectValue placeholder="Pilih Jenis Software" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="operating-system">
-                  Operating System
-                </SelectItem>
+                <SelectItem value="operating-system">Operating System</SelectItem>
                 <SelectItem value="office-suite">Office Suite</SelectItem>
                 <SelectItem value="antivirus">Antivirus</SelectItem>
                 <SelectItem value="design-software">Design Software</SelectItem>
-                <SelectItem value="development-tools">
-                  Development Tools
-                </SelectItem>
+                <SelectItem value="development-tools">Development Tools</SelectItem>
                 <SelectItem value="utility">Utility</SelectItem>
                 <SelectItem value="lainnya">Lainnya</SelectItem>
               </SelectContent>
             </Select>
             <Input
               placeholder="Versi"
-              value={
-                editingSoftware ? editingSoftware.versi : newSoftware.versi
-              }
-              onChange={(e) =>
+              value={editingSoftware ? editingSoftware.versi : newSoftware.versi}
+              onChange={e =>
                 editingSoftware
                   ? setEditingSoftware({
                       ...editingSoftware,
@@ -339,10 +308,8 @@ export default function AssetSoftware() {
               }
             />
             <Select
-              value={
-                editingSoftware ? editingSoftware.lisensi : newSoftware.lisensi
-              }
-              onValueChange={(value) =>
+              value={editingSoftware ? editingSoftware.lisensi : newSoftware.lisensi}
+              onValueChange={value =>
                 editingSoftware
                   ? setEditingSoftware({ ...editingSoftware, lisensi: value })
                   : setNewSoftware({ ...newSoftware, lisensi: value })
@@ -362,11 +329,9 @@ export default function AssetSoftware() {
               type="date"
               placeholder="Tanggal Aktivasi"
               value={
-                editingSoftware
-                  ? editingSoftware.tanggal_aktivasi
-                  : newSoftware.tanggal_aktivasi
+                editingSoftware ? editingSoftware.tanggal_aktivasi : newSoftware.tanggal_aktivasi
               }
-              onChange={(e) =>
+              onChange={e =>
                 editingSoftware
                   ? setEditingSoftware({
                       ...editingSoftware,
@@ -382,11 +347,9 @@ export default function AssetSoftware() {
               type="date"
               placeholder="Tanggal Expired"
               value={
-                editingSoftware
-                  ? editingSoftware.tanggal_expired
-                  : newSoftware.tanggal_expired
+                editingSoftware ? editingSoftware.tanggal_expired : newSoftware.tanggal_expired
               }
-              onChange={(e) =>
+              onChange={e =>
                 editingSoftware
                   ? setEditingSoftware({
                       ...editingSoftware,
@@ -399,12 +362,8 @@ export default function AssetSoftware() {
               }
             />
             <Select
-              value={
-                editingSoftware
-                  ? editingSoftware.pengguna
-                  : newSoftware.pengguna
-              }
-              onValueChange={(value) =>
+              value={editingSoftware ? editingSoftware.pengguna : newSoftware.pengguna}
+              onValueChange={value =>
                 editingSoftware
                   ? setEditingSoftware({ ...editingSoftware, pengguna: value })
                   : setNewSoftware({ ...newSoftware, pengguna: value })
@@ -414,21 +373,16 @@ export default function AssetSoftware() {
                 <SelectValue placeholder="Pilih Pengguna" />
               </SelectTrigger>
               <SelectContent>
-                {users.map((user) => (
-                  <SelectItem
-                    key={user.id}
-                    value={user.user_estim || `user-${user.id}`}
-                  >
+                {users.map(user => (
+                  <SelectItem key={user.id} value={user.user_estim || `user-${user.id}`}>
                     {user.nama} - {user.user_estim} ({user.jabatan})
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
             <Select
-              value={
-                editingSoftware ? editingSoftware.lokasi : newSoftware.lokasi
-              }
-              onValueChange={(value) =>
+              value={editingSoftware ? editingSoftware.lokasi : newSoftware.lokasi}
+              onValueChange={value =>
                 editingSoftware
                   ? setEditingSoftware({ ...editingSoftware, lokasi: value })
                   : setNewSoftware({ ...newSoftware, lokasi: value })
@@ -446,10 +400,8 @@ export default function AssetSoftware() {
               </SelectContent>
             </Select>
             <Select
-              value={
-                editingSoftware ? editingSoftware.status : newSoftware.status
-              }
-              onValueChange={(value) =>
+              value={editingSoftware ? editingSoftware.status : newSoftware.status}
+              onValueChange={value =>
                 editingSoftware
                   ? setEditingSoftware({ ...editingSoftware, status: value })
                   : setNewSoftware({ ...newSoftware, status: value })
@@ -467,12 +419,8 @@ export default function AssetSoftware() {
             </Select>
             <Input
               placeholder="Keterangan"
-              value={
-                editingSoftware
-                  ? editingSoftware.keterangan
-                  : newSoftware.keterangan
-              }
-              onChange={(e) =>
+              value={editingSoftware ? editingSoftware.keterangan : newSoftware.keterangan}
+              onChange={e =>
                 editingSoftware
                   ? setEditingSoftware({
                       ...editingSoftware,
@@ -486,7 +434,7 @@ export default function AssetSoftware() {
             />
           </div>
           <Button onClick={handleCreateOrUpdateSoftware}>
-            {editingSoftware ? "Update Software" : "Tambah Software"}
+            {editingSoftware ? 'Update Software' : 'Tambah Software'}
           </Button>
         </DialogContent>
       </Dialog>
@@ -498,14 +446,11 @@ export default function AssetSoftware() {
         <CardContent>
           <Table>
             <TableHeader>
-              {table.getHeaderGroups().map((headerGroup) => (
+              {table.getHeaderGroups().map(headerGroup => (
                 <TableRow key={headerGroup.id}>
-                  {headerGroup.headers.map((header) => (
+                  {headerGroup.headers.map(header => (
                     <TableHead key={header.id}>
-                      {flexRender(
-                        header.column.columnDef.header,
-                        header.getContext(),
-                      )}
+                      {flexRender(header.column.columnDef.header, header.getContext())}
                     </TableHead>
                   ))}
                 </TableRow>
@@ -513,24 +458,18 @@ export default function AssetSoftware() {
             </TableHeader>
             <TableBody>
               {table.getRowModel().rows.length ? (
-                table.getRowModel().rows.map((row) => (
+                table.getRowModel().rows.map(row => (
                   <TableRow key={row.id}>
-                    {row.getVisibleCells().map((cell) => (
+                    {row.getVisibleCells().map(cell => (
                       <TableCell key={cell.id}>
-                        {flexRender(
-                          cell.column.columnDef.cell,
-                          cell.getContext(),
-                        )}
+                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
                       </TableCell>
                     ))}
                   </TableRow>
                 ))
               ) : (
                 <TableRow>
-                  <TableCell
-                    colSpan={columns.length}
-                    className="h-24 text-center"
-                  >
+                  <TableCell colSpan={columns.length} className="h-24 text-center">
                     Tidak ada data
                   </TableCell>
                 </TableRow>
@@ -539,9 +478,7 @@ export default function AssetSoftware() {
           </Table>
         </CardContent>
         <CardFooter className="flex items-center justify-between">
-          <p className="text-sm text-muted-foreground">
-            Last updated: {lastUpdated}
-          </p>
+          <p className="text-sm text-muted-foreground">Last updated: {lastUpdated}</p>
           <div className="flex items-center space-x-2">
             <Button
               variant="outline"
@@ -563,5 +500,5 @@ export default function AssetSoftware() {
         </CardFooter>
       </Card>
     </div>
-  );
+  )
 }

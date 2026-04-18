@@ -2,11 +2,14 @@
 
 ## Scope
 
-This policy applies to the Dashboard IT Support project maintained in this repository. It covers application security, dependency security, secrets handling, and responsible vulnerability reporting.
+This policy applies to the Dashboard IT Support project maintained in this repository. It covers
+application security, dependency security, secrets handling, and responsible vulnerability
+reporting.
 
 ## Supported Versions
 
-This repository does not maintain multiple supported release lines. Security support is provided for the current development branch and production branch in active use.
+This repository does not maintain multiple supported release lines. Security support is provided for
+the current development branch and production branch in active use.
 
 - `master` — active deployment branch
 - `Development` — active development branch
@@ -29,7 +32,8 @@ The following values should be stored securely and never committed to the reposi
 
 ## Reporting a Vulnerability
 
-If you discover a security issue in this project, report it immediately to the repository owner or project maintainer.
+If you discover a security issue in this project, report it immediately to the repository owner or
+project maintainer.
 
 Preferred reporting methods:
 
@@ -46,9 +50,11 @@ Please include:
 ## Response Expectations
 
 - Acknowledgement of the report should occur within 48 hours.
-- Critical issues affecting confidentiality, integrity, or availability should be addressed as a priority.
+- Critical issues affecting confidentiality, integrity, or availability should be addressed as a
+  priority.
 - Fixes should be validated in development before deployment.
 
 ## Additional Notes
 
-This project uses Supabase for authentication, database access, and storage. Protect Supabase keys as sensitive credentials, and do not expose them in public repos or browser debug output.
+This project uses Supabase for authentication, database access, and storage. Protect Supabase keys
+as sensitive credentials, and do not expose them in public repos or browser debug output.

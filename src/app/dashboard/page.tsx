@@ -1,8 +1,8 @@
-import { ITIncidentOverviewCard } from "@/components/ITIncidentOverviewCard";
-import DashboardOverview from "@/components/total-users";
-import { TotalIncidentsCard } from "@/components/TotalIncidentsCard";
-import { Card } from "@/components/ui/card";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import { ITIncidentOverviewCard } from '@/components/ITIncidentOverviewCard'
+import DashboardOverview from '@/components/total-users'
+import { TotalIncidentsCard } from '@/components/TotalIncidentsCard'
+import { Card } from '@/components/ui/card'
+import { ScrollArea } from '@/components/ui/scroll-area'
 
 export default function Dashboard() {
   return (
@@ -10,9 +10,7 @@ export default function Dashboard() {
       <div className="flex flex-col gap-6">
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-bold">Dashboard Overview</h1>
-          <div className="flex items-center gap-2">
-            {/* Add any actions/filters here */}
-          </div>
+          <div className="flex items-center gap-2">{/* Add any actions/filters here */}</div>
         </div>
 
         {/* Stats Grid */}
@@ -47,5 +45,5 @@ export default function Dashboard() {
         </Card>
       </div>
     </ScrollArea>
-  );
+  )
 }

@@ -1,82 +1,82 @@
 // FILEPATH: e:/work-report/dev/reportapp/src/components/login.tsx
-"use client";
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import { Session } from "@supabase/supabase-js";
-import supabase from "@/lib/supabase";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
-import { motion } from "framer-motion";
-import { Eye, EyeOff, Lock, Mail, Moon, Sun } from "lucide-react";
-import { useTheme } from "next-themes";
+'use client'
+import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { Session } from '@supabase/supabase-js'
+import supabase from '@/lib/supabase'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert'
+import { motion } from 'framer-motion'
+import { Eye, EyeOff, Lock, Mail, Moon, Sun } from 'lucide-react'
+import { useTheme } from 'next-themes'
 
-const idleTimeout = 30 * 60 * 1000; // 30 minutes
+const idleTimeout = 30 * 60 * 1000 // 30 minutes
 
 export default function Login() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
-  const router = useRouter();
-  const [session, setSession] = useState<Session | null>(null);
-  const [idle, setIdle] = useState(false);
-  const { theme, setTheme } = useTheme();
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [errorMessage, setErrorMessage] = useState<string | null>(null)
+  const [loading, setLoading] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
+  const router = useRouter()
+  const [session, setSession] = useState<Session | null>(null)
+  const [idle, setIdle] = useState(false)
+  const { theme, setTheme } = useTheme()
 
   useEffect(() => {
     const interval = setInterval(() => {
-      const now = new Date().getTime();
-      const lastActivity = localStorage.getItem("lastActivity");
+      const now = new Date().getTime()
+      const lastActivity = localStorage.getItem('lastActivity')
       if (lastActivity) {
-        const idleTime = now - parseInt(lastActivity);
+        const idleTime = now - parseInt(lastActivity)
         if (idleTime > idleTimeout) {
-          setIdle(true);
+          setIdle(true)
         }
       }
-    }, 1000);
-    return () => clearInterval(interval);
-  }, []);
+    }, 1000)
+    return () => clearInterval(interval)
+  }, [])
 
   useEffect(() => {
     if (idle) {
-      handleLogout();
+      handleLogout()
     }
-  }, [idle]);
+  }, [idle])
 
   const handleLogout = async () => {
-    await supabase.auth.signOut();
-    setSession(null);
-    router.push("/");
-  };
+    await supabase.auth.signOut()
+    setSession(null)
+    router.push('/')
+  }
 
   const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    setErrorMessage(null);
+    e.preventDefault()
+    setLoading(true)
+    setErrorMessage(null)
 
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
-      });
+      })
 
-      if (error) throw error;
+      if (error) throw error
 
-      setSession(data.session);
-      localStorage.setItem("lastActivity", new Date().getTime().toString());
-      router.push("/dashboard");
+      setSession(data.session)
+      localStorage.setItem('lastActivity', new Date().getTime().toString())
+      router.push('/dashboard')
     } catch (error: any) {
-      setErrorMessage("Invalid email or password. Please try again.");
-      console.error("Error logging in:", error.message);
+      setErrorMessage('Invalid email or password. Please try again.')
+      console.error('Error logging in:', error.message)
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   const handleActivity = () => {
-    localStorage.setItem("lastActivity", new Date().getTime().toString());
-  };
+    localStorage.setItem('lastActivity', new Date().getTime().toString())
+  }
 
   return (
     <div className="flex items-center justify-center bg-background">
@@ -84,7 +84,7 @@ export default function Login() {
         <Button
           variant="ghost"
           size="icon"
-          onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+          onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
           className="rounded-full"
         >
           <Sun className="h-5 w-5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
@@ -109,16 +109,11 @@ export default function Login() {
             className="text-center space-y-2"
           >
             <h1 className="text-3xl font-bold text-foreground">Welcome Back</h1>
-            <p className="text-muted-foreground text-sm">
-              Silahkan login untuk melanjutkan
-            </p>
+            <p className="text-muted-foreground text-sm">Silahkan login untuk melanjutkan</p>
           </motion.div>
 
           {errorMessage && (
-            <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-            >
+            <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }}>
               <Alert variant="destructive">
                 <AlertTitle>Error</AlertTitle>
                 <AlertDescription>{errorMessage}</AlertDescription>
@@ -133,7 +128,7 @@ export default function Login() {
                 type="email"
                 placeholder="Email"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={e => setEmail(e.target.value)}
                 className="pl-10 pr-4 py-2 w-full bg-background/50 focus:bg-background transition-colors"
                 required
               />
@@ -142,10 +137,10 @@ export default function Login() {
             <div className="relative">
               <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-5 w-5" />
               <Input
-                type={showPassword ? "text" : "password"}
+                type={showPassword ? 'text' : 'password'}
                 placeholder="Password"
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={e => setPassword(e.target.value)}
                 className="pl-10 pr-12 py-2 w-full bg-background/50 focus:bg-background transition-colors"
                 required
               />
@@ -154,11 +149,7 @@ export default function Login() {
                 onClick={() => setShowPassword(!showPassword)}
                 className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
               >
-                {showPassword ? (
-                  <EyeOff className="h-5 w-5" />
-                ) : (
-                  <Eye className="h-5 w-5" />
-                )}
+                {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
               </button>
             </div>
           </div>
@@ -171,25 +162,22 @@ export default function Login() {
             {loading ? (
               <motion.div
                 animate={{ rotate: 360 }}
-                transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
                 className="w-5 h-5 border-2 border-primary-foreground border-t-transparent rounded-full"
               />
             ) : (
-              "Login"
+              'Login'
             )}
           </Button>
 
           <p className="text-sm text-center text-muted-foreground">
-            Tidak punya akun?{" "}
-            <a
-              href="/register"
-              className="text-primary hover:underline font-medium"
-            >
+            Tidak punya akun?{' '}
+            <a href="/register" className="text-primary hover:underline font-medium">
               Daftar Akun
             </a>
           </p>
         </form>
       </motion.div>
     </div>
-  );
+  )
 }

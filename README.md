@@ -1,6 +1,8 @@
 # Dashboard IT Support
 
-Dashboard IT Support is a modern Next.js application designed to help IT teams manage support operations, incidents, asset inventories, ATM monitoring, overtime submissions, employee records, and reporting in one centralized interface.
+Dashboard IT Support is a modern Next.js application designed to help IT teams manage support
+operations, incidents, asset inventories, ATM monitoring, overtime submissions, employee records,
+and reporting in one centralized interface.
 
 ## Key Features
 
@@ -83,12 +85,14 @@ If you add other Supabase keys or custom secrets for deployment, include those i
 
 ## Deployment
 
-This project is compatible with Vercel, Netlify, or any Node.js hosting provider that supports Next.js.
+This project is compatible with Vercel, Netlify, or any Node.js hosting provider that supports
+Next.js.
 
 For Vercel, simply connect the repository, configure environment variables, and deploy.
 
 ## Notes
 
 - Supabase is used for database access and storage services.
-- The app supports rich IT support workflows across incidents, asset tracking, ATM reporting, and employee management.
+- The app supports rich IT support workflows across incidents, asset tracking, ATM reporting, and
+  employee management.
 - Customize the workflow and Supabase schema as needed for your organization.

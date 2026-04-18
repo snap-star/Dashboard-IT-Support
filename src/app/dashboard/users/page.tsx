@@ -1,13 +1,13 @@
-"use client";
+'use client'
 
-import { useEffect, useState } from "react";
-import supabase from "@/lib/supabase";
+import { useEffect, useState } from 'react'
+import supabase from '@/lib/supabase'
 import {
   ColumnDef,
   useReactTable,
   getCoreRowModel,
   getPaginationRowModel,
-} from "@tanstack/react-table";
+} from '@tanstack/react-table'
 import {
   Table,
   TableBody,
@@ -15,92 +15,90 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
-import { toast } from "sonner";
-import * as XLSX from "xlsx";
+} from '@/components/ui/table'
+import { toast } from 'sonner'
+import * as XLSX from 'xlsx'
 
 type User = {
-  id: number;
-  created_at: string;
-  user_estim: string;
-  ip_address: string | null;
-  nama: string | null;
-  nip: string | null;
-  jabatan: string | null;
-  unit_kerja: string | null;
-  cab: string | null;
-  status_user: string | null;
-  display: string | null;
-  updated_at: string | null;
-  mac_address: string | null;
-  multi: string | null;
-};
+  id: number
+  created_at: string
+  user_estim: string
+  ip_address: string | null
+  nama: string | null
+  nip: string | null
+  jabatan: string | null
+  unit_kerja: string | null
+  cab: string | null
+  status_user: string | null
+  display: string | null
+  updated_at: string | null
+  mac_address: string | null
+  multi: string | null
+}
 
 export default function DataTable() {
-  const [data, setData] = useState<User[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [data, setData] = useState<User[]>([])
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     const fetchData = async () => {
-      const { data: users, error } = await supabase.from("users").select("*");
+      const { data: users, error } = await supabase.from('users').select('*')
       if (error) {
-        console.error(error);
-        toast.error("Gagal memuat data!");
+        console.error(error)
+        toast.error('Gagal memuat data!')
       } else {
-        const uniqueData = removeDuplicates(users); // Filter duplikasi
-        setData(uniqueData);
-        toast.success("Data berhasil dimuat!");
+        const uniqueData = removeDuplicates(users) // Filter duplikasi
+        setData(uniqueData)
+        toast.success('Data berhasil dimuat!')
       }
-      setLoading(false);
-    };
+      setLoading(false)
+    }
 
-    fetchData();
-  }, []);
+    fetchData()
+  }, [])
 
   const removeDuplicates = (users: User[]) => {
-    const seen: Set<string> = new Set();
-    return users.filter((user) => {
+    const seen: Set<string> = new Set()
+    return users.filter(user => {
       if (seen.has(user.user_estim)) {
-        return false; // Skip duplikasi
+        return false // Skip duplikasi
       }
-      seen.add(user.user_estim);
-      return true;
-    });
-  };
+      seen.add(user.user_estim)
+      return true
+    })
+  }
 
   const exportToExcel = () => {
-    const worksheet = XLSX.utils.json_to_sheet(data);
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Users");
-    XLSX.writeFile(workbook, "users.xlsx");
-    toast.success("Data berhasil diekspor ke Excel!");
-  };
+    const worksheet = XLSX.utils.json_to_sheet(data)
+    const workbook = XLSX.utils.book_new()
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Users')
+    XLSX.writeFile(workbook, 'users.xlsx')
+    toast.success('Data berhasil diekspor ke Excel!')
+  }
 
   const columns: ColumnDef<User>[] = [
-    { accessorKey: "id", header: "ID" },
-    { accessorKey: "user_estim", header: "User ESTIM" },
+    { accessorKey: 'id', header: 'ID' },
+    { accessorKey: 'user_estim', header: 'User ESTIM' },
     {
-      accessorKey: "nama",
-      header: "Pemegang",
-      cell: ({ row }) => (
-        <TableCell colSpan={2}>{row.original.nama || "Tidak Ada"}</TableCell>
-      ),
+      accessorKey: 'nama',
+      header: 'Pemegang',
+      cell: ({ row }) => <TableCell colSpan={2}>{row.original.nama || 'Tidak Ada'}</TableCell>,
     },
-    { accessorKey: "jabatan", header: "Jabatan" },
-    { accessorKey: "unit_kerja", header: "Unit Kerja" },
-    { accessorKey: "cab", header: "Cabang" },
-    { accessorKey: "status_user", header: "Status" },
-    { accessorKey: "updated_at", header: "Last Updated" },
-  ];
+    { accessorKey: 'jabatan', header: 'Jabatan' },
+    { accessorKey: 'unit_kerja', header: 'Unit Kerja' },
+    { accessorKey: 'cab', header: 'Cabang' },
+    { accessorKey: 'status_user', header: 'Status' },
+    { accessorKey: 'updated_at', header: 'Last Updated' },
+  ]
 
   const table = useReactTable({
     data,
     columns,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
-  });
+  })
 
-  if (loading) return <p>Loading...</p>;
+  if (loading) return <p>Loading...</p>
 
   return (
     <div className="p-4">
@@ -115,11 +113,11 @@ export default function DataTable() {
       </div>
       <Table>
         <TableHeader>
-          {table.getHeaderGroups().map((headerGroup) => (
+          {table.getHeaderGroups().map(headerGroup => (
             <TableRow key={headerGroup.id}>
-              {headerGroup.headers.map((header) => (
+              {headerGroup.headers.map(header => (
                 <TableHead key={header.id}>
-                  {typeof header.column.columnDef.header === "function"
+                  {typeof header.column.columnDef.header === 'function'
                     ? header.column.columnDef.header(header.getContext()) // Panggil fungsi header
                     : header.column.columnDef.header || null}
                 </TableHead>
@@ -128,9 +126,9 @@ export default function DataTable() {
           ))}
         </TableHeader>
         <TableBody>
-          {table.getRowModel().rows.map((row) => (
+          {table.getRowModel().rows.map(row => (
             <TableRow key={row.id}>
-              {row.getVisibleCells().map((cell) => (
+              {row.getVisibleCells().map(cell => (
                 <TableCell key={cell.id}>{cell.getValue() as string}</TableCell>
               ))}
             </TableRow>
@@ -146,8 +144,7 @@ export default function DataTable() {
           Previous
         </button>
         <span>
-          Halaman {table.getState().pagination.pageIndex + 1} dari{" "}
-          {table.getPageCount()}
+          Halaman {table.getState().pagination.pageIndex + 1} dari {table.getPageCount()}
         </span>
         <button
           onClick={() => table.nextPage()}
@@ -158,5 +155,5 @@ export default function DataTable() {
         </button>
       </div>
     </div>
-  );
+  )
 }

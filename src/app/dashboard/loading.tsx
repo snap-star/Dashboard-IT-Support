@@ -1,5 +1,5 @@
-import { Skeleton } from "@/components/ui/skeleton";
-import { Card } from "@/components/ui/card";
+import { Skeleton } from '@/components/ui/skeleton'
+import { Card } from '@/components/ui/card'
 
 export default function DashboardLoading() {
   return (
@@ -29,5 +29,5 @@ export default function DashboardLoading() {
         <Skeleton className="h-[300px]" />
       </Card>
     </div>
-  );
+  )
 }

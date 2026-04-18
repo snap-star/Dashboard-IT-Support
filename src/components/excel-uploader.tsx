@@ -1,60 +1,67 @@
-"use client"
+'use client'
 
-import React, { useState } from 'react';
-import * as XLSX from 'xlsx';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Upload } from 'lucide-react';
-import supabase  from '@/lib/supabase';
+import React, { useState } from 'react'
+import * as XLSX from 'xlsx'
+import { Input } from '@/components/ui/input'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Alert, AlertDescription } from '@/components/ui/alert'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
+import { Upload } from 'lucide-react'
+import supabase from '@/lib/supabase'
 
 const ExcelUploader = () => {
-  const [data, setData] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [success, setSuccess] = useState(false);
+  const [data, setData] = useState([])
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState(null)
+  const [success, setSuccess] = useState(false)
 
-  const processExcel = (file:any) => {
-    const reader = new FileReader();
-    reader.onload = async (e:any) => {
+  const processExcel = (file: any) => {
+    const reader = new FileReader()
+    reader.onload = async (e: any) => {
       try {
-        setLoading(true);
-        setError(null);
-        
-        const workbook = XLSX.read(e.target.result, { type: 'binary' });
-        const sheetName = workbook.SheetNames[0];
-        const worksheet = workbook.Sheets[sheetName];
-        const jsonData:any = XLSX.utils.sheet_to_json(worksheet);
-        
-        setData(jsonData);
+        setLoading(true)
+        setError(null)
+
+        const workbook = XLSX.read(e.target.result, { type: 'binary' })
+        const sheetName = workbook.SheetNames[0]
+        const worksheet = workbook.Sheets[sheetName]
+        const jsonData: any = XLSX.utils.sheet_to_json(worksheet)
+
+        setData(jsonData)
 
         // Upload data ke Supabase
         const { error: uploadError } = await supabase
           .from('excel_data') // Ganti dengan nama tabel Anda
-          .insert(jsonData);
+          .insert(jsonData)
 
-        if (uploadError) throw uploadError;
-        
-        setSuccess(true);
-        setTimeout(() => setSuccess(false), 3000);
-      } catch (err:any) {
-        setError(err.message);
+        if (uploadError) throw uploadError
+
+        setSuccess(true)
+        setTimeout(() => setSuccess(false), 3000)
+      } catch (err: any) {
+        setError(err.message)
       } finally {
-        setLoading(false);
+        setLoading(false)
       }
-    };
-    
-    reader.readAsBinaryString(file);
-  };
-
-  const handleFileUpload = (event:any) => {
-    const file = event.target.files[0];
-    if (file) {
-      processExcel(file);
     }
-  };
+
+    reader.readAsBinaryString(file)
+  }
+
+  const handleFileUpload = (event: any) => {
+    const file = event.target.files[0]
+    if (file) {
+      processExcel(file)
+    }
+  }
 
   return (
     <Card className="w-full max-w-6xl mx-auto">
@@ -79,9 +86,7 @@ const ExcelUploader = () => {
 
           {loading && (
             <Alert>
-              <AlertDescription>
-                Sedang memproses file...
-              </AlertDescription>
+              <AlertDescription>Sedang memproses file...</AlertDescription>
             </Alert>
           )}
 
@@ -93,9 +98,7 @@ const ExcelUploader = () => {
 
           {success && (
             <Alert variant="default">
-              <AlertDescription>
-                Data berhasil diupload ke database!
-              </AlertDescription>
+              <AlertDescription>Data berhasil diupload ke database!</AlertDescription>
             </Alert>
           )}
 
@@ -104,7 +107,7 @@ const ExcelUploader = () => {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    {Object.keys(data[0]).map((header) => (
+                    {Object.keys(data[0]).map(header => (
                       <TableHead key={header}>{header}</TableHead>
                     ))}
                   </TableRow>
@@ -112,7 +115,7 @@ const ExcelUploader = () => {
                 <TableBody>
                   {data.map((row, index) => (
                     <TableRow key={index}>
-                      {Object.values(row).map((cell:any, cellIndex) => (
+                      {Object.values(row).map((cell: any, cellIndex) => (
                         <TableCell key={cellIndex}>{cell}</TableCell>
                       ))}
                     </TableRow>
@@ -124,7 +127,7 @@ const ExcelUploader = () => {
         </div>
       </CardContent>
     </Card>
-  );
-};
+  )
+}
 
-export default ExcelUploader;
+export default ExcelUploader
