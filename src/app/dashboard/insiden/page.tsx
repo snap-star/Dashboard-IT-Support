@@ -72,6 +72,8 @@ export default function ITIncidentManagement() {
   const [editingIncident, setEditingIncident] = React.useState<Incident | null>(null)
   const [isDialogOpen, setIsDialogOpen] = React.useState(false)
   const [globalFilter, setGlobalFilter] = React.useState('')
+  const [statusFilter, setStatusFilter] = React.useState('')
+  const [priorityFilter, setPriorityFilter] = React.useState('')
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
   const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({})
@@ -134,6 +136,14 @@ export default function ITIncidentManagement() {
       return
     }
     fetchIncidents()
+  }
+
+  const updateColumnFilter = (id: string, value: string) => {
+    setPageIndex(0)
+    setColumnFilters(prev => {
+      const filtered = prev.filter(filter => filter.id !== id)
+      return value ? [...filtered, { id, value }] : filtered
+    })
   }
 
   const getStatusColor = (status: string) => {
@@ -489,12 +499,50 @@ export default function ITIncidentManagement() {
         <CardContent>
           <div className="space-y-6">
             <div className="flex flex-col sm:flex-row items-center gap-3 mb-4">
-              <Input
-                placeholder="Cari insiden..."
-                value={globalFilter}
-                onChange={e => setGlobalFilter(e.target.value)}
-                className="max-w-sm"
-              />
+              <div className="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto">
+                <Input
+                  placeholder="Cari insiden..."
+                  value={globalFilter}
+                  onChange={e => setGlobalFilter(e.target.value)}
+                  className="max-w-sm"
+                />
+                <Select
+                  value={statusFilter}
+                  onValueChange={value => {
+                    setStatusFilter(value)
+                    updateColumnFilter('status', value)
+                  }}
+                >
+                  <SelectTrigger className="w-44">
+                    <SelectValue placeholder="Filter Status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">All Status</SelectItem>
+                    <SelectItem value="Open">Open</SelectItem>
+                    <SelectItem value="In Progress">In Progress</SelectItem>
+                    <SelectItem value="Resolved">Resolved</SelectItem>
+                    <SelectItem value="Closed">Closed</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Select
+                  value={priorityFilter}
+                  onValueChange={value => {
+                    setPriorityFilter(value)
+                    updateColumnFilter('priority', value)
+                  }}
+                >
+                  <SelectTrigger className="w-44">
+                    <SelectValue placeholder="Filter Priority" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">All Priority</SelectItem>
+                    <SelectItem value="Low">Low</SelectItem>
+                    <SelectItem value="Medium">Medium</SelectItem>
+                    <SelectItem value="High">High</SelectItem>
+                    <SelectItem value="Critical">Critical</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
 
               <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto sm:ml-auto">
                 <Popover>
