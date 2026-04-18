@@ -19,6 +19,13 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { Input } from '@/components/ui/input'
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import {
   Dialog,
   DialogContent,
   DialogHeader,
@@ -96,6 +103,7 @@ const EmployeeAS400Management = () => {
   const [duplicatePegawai, setDuplicatePegawai] = useState<Pegawai[]>([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
+  const [departmentFilter, setDepartmentFilter] = useState('')
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
   const [newPegawai, setNewPegawai] = useState({
     nip: '',
@@ -128,12 +136,17 @@ const EmployeeAS400Management = () => {
   // Gunakan debounce untuk searchTerm
   const debouncedSearchTerm = useDebounce(searchTerm, 500)
 
-  // Modifikasi useEffect untuk menggunakan debouncedSearchTerm
+  // Get unique departments for filter options
+  const departmentOptions = Array.from(
+    new Set(pegawai.map(emp => emp.department).filter(Boolean)),
+  ).sort()
+
+  // Modifikasi useEffect untuk menggunakan debouncedSearchTerm dan departmentFilter
   useEffect(() => {
-    //reset ke halaman pertama ketika search
+    //reset ke halaman pertama ketika search atau filter department berubah
     setCurrentPage(1)
     fetchPegawai()
-  }, [debouncedSearchTerm]) // Ganti searchTerm dengan debouncedSearchTerm
+  }, [debouncedSearchTerm, departmentFilter]) // Tambahkan departmentFilter
 
   // Fungsi untuk sorting
   const handleSort = (key: SortConfig['key']) => {
@@ -356,10 +369,8 @@ const EmployeeAS400Management = () => {
   const fetchPegawai = async () => {
     setLoading(true)
     try {
-      const { data, error } = await supabase
-        .from('employees')
-        .select(
-          `
+      let query = supabase.from('employees').select(
+        `
           *,
           as400_users (
             id,
@@ -369,8 +380,19 @@ const EmployeeAS400Management = () => {
             mac_address
           )
         `,
-        )
-        .ilike('name', `%${debouncedSearchTerm}%`)
+      )
+
+      // Apply search filter
+      if (debouncedSearchTerm) {
+        query = query.ilike('name', `%${debouncedSearchTerm}%`)
+      }
+
+      // Apply department filter
+      if (departmentFilter && departmentFilter !== 'all') {
+        query = query.eq('department', departmentFilter)
+      }
+
+      const { data, error } = await query
 
       if (error) throw error
       setPegawai(data || [])
@@ -722,64 +744,87 @@ const EmployeeAS400Management = () => {
   )
 
   return (
-    <div className="p-8">
+    <div className="p-4 sm:p-8">
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <h1 className="text-2xl font-bold">Daftar Pemegang User ESTIM</h1>
 
-        <div className="flex flex-wrap items-center gap-2">
-          <div className="relative flex-1 sm:flex-initial">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              placeholder="Cari Nama Pegawai..."
-              value={searchTerm}
-              onChange={e => setSearchTerm(e.target.value)}
-              className="pl-9"
-            />
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="relative flex-1 sm:flex-initial min-w-0">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                placeholder="Cari Nama Pegawai..."
+                value={searchTerm}
+                onChange={e => setSearchTerm(e.target.value)}
+                className="pl-9 w-full sm:w-64"
+              />
+            </div>
+
+            <Select value={departmentFilter || 'all'} onValueChange={setDepartmentFilter}>
+              <SelectTrigger className="w-full sm:w-48">
+                <SelectValue placeholder="Filter Department" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Semua</SelectItem>
+                {departmentOptions.map(department => (
+                  <SelectItem key={department} value={department}>
+                    {department}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button variant="outline" onClick={filterDuplicatePegawai}>
+                    <Filter className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Filter Data Duplikat</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button variant="outline" onClick={resetFilter}>
+                    <ArrowLeft className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Reset Filter</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           </div>
 
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button variant="outline" onClick={filterDuplicatePegawai}>
-                  <Filter className="h-4 w-4" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>Filter Data Duplikat</TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
+          <div className="flex flex-wrap items-center gap-2">
+            <Button
+              variant="outline"
+              onClick={() => setIsUploadDialogOpen(true)}
+              className="flex-1 sm:flex-initial"
+            >
+              <Upload className="mr-2 h-4 w-4" />
+              <span className="hidden sm:inline">Upload</span>
+            </Button>
 
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button variant="outline" onClick={resetFilter}>
-                  <ArrowLeft className="h-4 w-4" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>Reset Filter</TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
+            <Button variant="outline" onClick={exportToExcel} className="flex-1 sm:flex-initial">
+              <Download className="mr-2 h-4 w-4" />
+              <span className="hidden sm:inline">Export</span>
+            </Button>
 
-          <Button variant="outline" onClick={() => setIsUploadDialogOpen(true)}>
-            <Upload className="mr-2 h-4 w-4" />
-            Upload
-          </Button>
-
-          <Button variant="outline" onClick={exportToExcel}>
-            <Download className="mr-2 h-4 w-4" />
-            Export
-          </Button>
-
-          <Button onClick={() => setIsAddDialogOpen(true)}>
-            <Plus className="mr-2 h-4 w-4" />
-            Tambah
-          </Button>
+            <Button onClick={() => setIsAddDialogOpen(true)} className="flex-1 sm:flex-initial">
+              <Plus className="mr-2 h-4 w-4" />
+              <span className="hidden sm:inline">Tambah</span>
+            </Button>
+          </div>
         </div>
       </div>
 
       <div className="border rounded-lg shadow-xl dark:border-white dark:shadow-white dark:shadow-sm">
         <Card className="overflow-hidden">
           <CardContent className="p-0">
-            <div className="overflow-x-auto">
+            {/* Desktop Table View */}
+            <div className="hidden md:block overflow-x-auto">
               <Table>
                 <TableHeader className="bg-muted/50 sticky top-0">
                   <TableRow>
@@ -1176,6 +1221,110 @@ const EmployeeAS400Management = () => {
                   )}
                 </TableBody>
               </Table>
+            </div>
+
+            {/* Mobile Card View */}
+            <div className="md:hidden">
+              {loading ? (
+                <div className="p-4 space-y-4">
+                  {[...Array(3)].map((_, i) => (
+                    <div key={i} className="animate-pulse">
+                      <div className="bg-muted h-32 rounded-lg"></div>
+                    </div>
+                  ))}
+                </div>
+              ) : currentItems.length === 0 ? (
+                <div className="p-8 text-center">
+                  <Search className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                  <p className="text-muted-foreground">Tidak ada data ditemukan</p>
+                </div>
+              ) : (
+                <div className="p-4 space-y-4">
+                  {currentItems.map(pegawai => (
+                    <Card key={pegawai.id} className="p-4">
+                      <div className="space-y-3">
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <h3 className="font-semibold capitalize">{pegawai.name}</h3>
+                            <p className="text-sm text-muted-foreground">NIP: {pegawai.nip}</p>
+                          </div>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" className="h-8 w-8 p-0">
+                                <span className="sr-only">Open menu</span>
+                                <MoreVertical className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem onClick={() => handleEditPegawai(pegawai)}>
+                                <Pencil className="mr-2 h-4 w-4" />
+                                Edit Pegawai
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => handleDeletePegawai(pegawai)}>
+                                <Trash className="mr-2 h-4 w-4" />
+                                Delete Pegawai
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => handleAddAS400User(pegawai)}>
+                                <Plus className="mr-2 h-4 w-4" />
+                                Tambah User ESTIM
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-2 text-sm">
+                          <div>
+                            <span className="font-medium">Jabatan:</span>
+                            <p className="capitalize">{pegawai.jabatan}</p>
+                          </div>
+                          <div>
+                            <span className="font-medium">Department:</span>
+                            <p className="capitalize">{pegawai.department}</p>
+                          </div>
+                        </div>
+
+                        {(pegawai.as400_users || []).length > 0 && (
+                          <div className="border-t pt-3">
+                            <h4 className="font-medium mb-2">User ESTIM:</h4>
+                            <div className="space-y-2">
+                              {(pegawai.as400_users || []).map(user => (
+                                <div key={user.id} className="bg-muted/50 p-2 rounded text-xs">
+                                  <div className="flex justify-between items-center mb-1">
+                                    <span className="font-medium uppercase">{user.username}</span>
+                                    <div className="flex gap-1">
+                                      <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() => handleEditAS400User(user)}
+                                        className="h-6 w-6 p-0"
+                                      >
+                                        <Pencil className="h-3 w-3" />
+                                      </Button>
+                                      <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() => handleDeleteAS400User(user)}
+                                        className="h-6 w-6 p-0"
+                                      >
+                                        <Trash className="h-3 w-3" />
+                                      </Button>
+                                    </div>
+                                  </div>
+                                  <div className="grid grid-cols-1 gap-1 text-xs text-muted-foreground">
+                                    <div>Display: {user.display_user}</div>
+                                    <div className="font-mono">IP: {user.ip_address}</div>
+                                    <div className="font-mono">MAC: {user.mac_address}</div>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </Card>
+                  ))}
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>

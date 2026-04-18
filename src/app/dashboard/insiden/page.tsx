@@ -71,6 +71,8 @@ export default function ITIncidentManagement() {
   })
   const [editingIncident, setEditingIncident] = React.useState<Incident | null>(null)
   const [isDialogOpen, setIsDialogOpen] = React.useState(false)
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = React.useState(false)
+  const [deleteIncidentId, setDeleteIncidentId] = React.useState<number | null>(null)
   const [globalFilter, setGlobalFilter] = React.useState('')
   const [statusFilter, setStatusFilter] = React.useState('')
   const [priorityFilter, setPriorityFilter] = React.useState('')
@@ -265,7 +267,10 @@ export default function ITIncidentManagement() {
           <Button
             variant="destructive"
             size="sm"
-            onClick={() => handleDelete(row.original.id)}
+            onClick={() => {
+              setDeleteIncidentId(row.original.id)
+              setIsDeleteDialogOpen(true)
+            }}
             className="h-8 px-2 lg:px-3"
           >
             <Trash className="h-4 w-4" />
@@ -486,6 +491,40 @@ export default function ITIncidentManagement() {
           <Button onClick={handleCreateOrUpdate}>
             {editingIncident ? 'Update Incident' : 'Create Incident'}
           </Button>
+        </DialogContent>
+      </Dialog>
+      <Dialog
+        open={isDeleteDialogOpen}
+        onOpenChange={open => {
+          setIsDeleteDialogOpen(open)
+          if (!open) setDeleteIncidentId(null)
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Hapus Insiden</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <p>
+              Apakah Anda yakin ingin menghapus insiden ini? Tindakan ini tidak dapat dibatalkan.
+            </p>
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)}>
+                Batal
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={() => {
+                  if (deleteIncidentId !== null) {
+                    handleDelete(deleteIncidentId)
+                  }
+                  setIsDeleteDialogOpen(false)
+                }}
+              >
+                Hapus
+              </Button>
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
       <Card className="w-full overflow-hidden mx-auto max-w-[100vw] h-full">

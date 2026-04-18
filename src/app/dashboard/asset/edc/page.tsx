@@ -60,6 +60,18 @@ import supabase from '@/lib/supabase'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { format } from 'date-fns'
 import * as XLSX from 'xlsx'
+import {
+  ColumnDef,
+  ColumnFiltersState,
+  SortingState,
+  VisibilityState,
+  flexRender,
+  getCoreRowModel,
+  getFilteredRowModel,
+  getPaginationRowModel,
+  getSortedRowModel,
+  useReactTable,
+} from '@tanstack/react-table'
 
 // Schema validasi form
 const formSchema = z.object({
@@ -103,6 +115,13 @@ export default function EDCAssetPage() {
   const [isDeleteAlertOpen, setIsDeleteAlertOpen] = useState(false)
   const [selectedAsset, setSelectedAsset] = useState<EDCAsset | null>(null)
   const [isEditing, setIsEditing] = useState(false)
+  const [sorting, setSorting] = useState<SortingState>([])
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
+  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
+  const [pageIndex, setPageIndex] = useState(0)
+  const [pageSize, setPageSize] = useState(10)
+  const [globalFilter, setGlobalFilter] = useState('')
+  const [locationFilter, setLocationFilter] = useState('')
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -115,6 +134,153 @@ export default function EDCAssetPage() {
       status: '',
       description: '',
     },
+  })
+
+  const updateColumnFilter = (id: string, value: string) => {
+    setPageIndex(0)
+    setColumnFilters(prev => {
+      const filtered = prev.filter(filter => filter.id !== id)
+      return value && value !== 'all' ? [...filtered, { id, value }] : filtered
+    })
+  }
+
+  const handleEdit = (asset: EDCAsset) => {
+    setSelectedAsset(asset)
+    setIsEditing(true)
+    form.reset(asset)
+    setIsDialogOpen(true)
+  }
+
+  const handleDelete = (asset: EDCAsset) => {
+    setSelectedAsset(asset)
+    setIsDeleteAlertOpen(true)
+  }
+
+  const columns: ColumnDef<EDCAsset>[] = [
+    {
+      accessorKey: 'tid',
+      header: 'TID',
+      cell: ({ row }) => <div className="font-medium">{row.getValue('tid')}</div>,
+    },
+    {
+      accessorKey: 'mid',
+      header: 'MID',
+      cell: ({ row }) => <div>{row.getValue('mid')}</div>,
+    },
+    {
+      accessorKey: 'merchant_name',
+      header: 'Merchant',
+      cell: ({ row }) => <div>{row.getValue('merchant_name')}</div>,
+    },
+    {
+      accessorKey: 'location',
+      header: 'Lokasi',
+      cell: ({ row }) => <div>{row.getValue('location')}</div>,
+    },
+    {
+      accessorKey: 'serial_number',
+      header: 'Serial Number',
+      cell: ({ row }) => <div>{row.getValue('serial_number')}</div>,
+    },
+    {
+      accessorKey: 'ip_address',
+      header: 'IP Address',
+      cell: ({ row }) => <div>{row.getValue('ip_address')}</div>,
+    },
+    {
+      accessorKey: 'status',
+      header: 'Status',
+      cell: ({ row }) => {
+        const status = row.getValue('status') as string
+        return (
+          <div
+            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+            ${
+              status === 'Aktif'
+                ? 'bg-green-100 text-green-800'
+                : status === 'Rusak'
+                  ? 'bg-red-100 text-red-800'
+                  : status === 'Maintenance'
+                    ? 'bg-yellow-100 text-yellow-800'
+                    : 'bg-gray-100 text-gray-800'
+            }`}
+          >
+            {status}
+          </div>
+        )
+      },
+    },
+    {
+      accessorKey: 'description',
+      header: 'Keterangan',
+      cell: ({ row }) => (
+        <div className="max-w-[200px] truncate">{row.getValue('description')}</div>
+      ),
+    },
+    {
+      id: 'actions',
+      header: 'Aksi',
+      cell: ({ row }) => (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" className="h-8 w-8 p-0">
+              <MoreHorizontal className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuLabel>Aksi</DropdownMenuLabel>
+            <DropdownMenuItem onClick={() => handleEdit(row.original)} className="cursor-pointer">
+              <Pencil className="mr-2 h-4 w-4" />
+              Edit
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() => handleDelete(row.original)}
+              className="cursor-pointer text-red-600"
+            >
+              <Trash className="mr-2 h-4 w-4" />
+              Hapus
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      ),
+    },
+  ]
+
+  const table = useReactTable({
+    data: assets,
+    columns,
+    state: {
+      sorting,
+      columnFilters,
+      columnVisibility,
+      globalFilter,
+      pagination: {
+        pageIndex,
+        pageSize,
+      },
+    },
+    onPaginationChange: updater => {
+      const newState = typeof updater === 'function' ? updater({ pageIndex, pageSize }) : updater
+      setPageIndex(newState.pageIndex)
+      setPageSize(newState.pageSize)
+    },
+    onSortingChange: setSorting,
+    onColumnFiltersChange: setColumnFilters,
+    onColumnVisibilityChange: setColumnVisibility,
+    onGlobalFilterChange: setGlobalFilter,
+    globalFilterFn: (row, columnId, filterValue) => {
+      const tid = row.getValue('tid') as string
+      const mid = row.getValue('mid') as string
+      return (
+        tid.toLowerCase().includes(filterValue.toLowerCase()) ||
+        mid.toLowerCase().includes(filterValue.toLowerCase())
+      )
+    },
+    getCoreRowModel: getCoreRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+    manualPagination: false,
   })
 
   // Fetch data dari Supabase
@@ -192,18 +358,6 @@ export default function EDCAssetPage() {
       description: '',
     })
     setIsDialogOpen(true)
-  }
-
-  const handleEdit = (asset: EDCAsset) => {
-    setSelectedAsset(asset)
-    setIsEditing(true)
-    form.reset(asset)
-    setIsDialogOpen(true)
-  }
-
-  const handleDelete = (asset: EDCAsset) => {
-    setSelectedAsset(asset)
-    setIsDeleteAlertOpen(true)
   }
 
   const confirmDelete = async () => {
@@ -444,87 +598,120 @@ export default function EDCAssetPage() {
               </Dialog>
             </div>
           </div>
+          <div className="flex flex-col sm:flex-row items-center gap-3 mb-4">
+            <div className="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto">
+              <Input
+                placeholder="Cari berdasarkan TID atau MID..."
+                value={globalFilter}
+                onChange={e => {
+                  setGlobalFilter(e.target.value)
+                  setPageIndex(0)
+                }}
+                className="max-w-sm"
+              />
+              <Select
+                value={locationFilter || 'all'}
+                onValueChange={value => {
+                  setLocationFilter(value === 'all' ? '' : value)
+                  updateColumnFilter('location', value)
+                }}
+              >
+                <SelectTrigger className="w-44">
+                  <SelectValue placeholder="Filter Lokasi" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Semua Lokasi</SelectItem>
+                  {locationOptions.map(location => (
+                    <SelectItem key={location} value={location}>
+                      {location}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
         </CardHeader>
         <CardContent>
           <div className="rounded-md border">
             <Table>
               <TableHeader>
-                <TableRow className="bg-muted/50">
-                  <TableHead className="font-semibold">TID</TableHead>
-                  <TableHead className="font-semibold">MID</TableHead>
-                  <TableHead className="font-semibold">Merchant</TableHead>
-                  <TableHead className="font-semibold">Lokasi</TableHead>
-                  <TableHead className="font-semibold">Serial Number</TableHead>
-                  <TableHead className="font-semibold">IP Address</TableHead>
-                  <TableHead className="font-semibold">Status</TableHead>
-                  <TableHead className="font-semibold">Keterangan</TableHead>
-                  <TableHead className="w-[70px] font-semibold">Aksi</TableHead>
-                </TableRow>
+                {table.getHeaderGroups().map(headerGroup => (
+                  <TableRow key={headerGroup.id} className="bg-muted/50">
+                    {headerGroup.headers.map(header => (
+                      <TableHead key={header.id} className="font-semibold">
+                        {flexRender(header.column.columnDef.header, header.getContext())}
+                      </TableHead>
+                    ))}
+                  </TableRow>
+                ))}
               </TableHeader>
               <TableBody>
-                {assets.length === 0 ? (
+                {table.getRowModel().rows.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={8} className="text-center h-32 text-muted-foreground">
+                    <TableCell
+                      colSpan={columns.length}
+                      className="text-center h-32 text-muted-foreground"
+                    >
                       Tidak ada data EDC
                     </TableCell>
                   </TableRow>
                 ) : (
-                  assets.map(asset => (
-                    <TableRow key={asset.id} className="hover:bg-muted/50">
-                      <TableCell className="font-medium">{asset.tid}</TableCell>
-                      <TableCell>{asset.mid}</TableCell>
-                      <TableCell>{asset.merchant_name}</TableCell>
-                      <TableCell>{asset.location}</TableCell>
-                      <TableCell>{asset.serial_number}</TableCell>
-                      <TableCell>{asset.ip_address}</TableCell>
-                      <TableCell>
-                        <div
-                          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
-                          ${
-                            asset.status === 'Aktif'
-                              ? 'bg-green-100 text-green-800'
-                              : asset.status === 'Rusak'
-                                ? 'bg-red-100 text-red-800'
-                                : asset.status === 'Maintenance'
-                                  ? 'bg-yellow-100 text-yellow-800'
-                                  : 'bg-gray-100 text-gray-800'
-                          }`}
-                        >
-                          {asset.status}
-                        </div>
-                      </TableCell>
-                      <TableCell className="max-w-[200px] truncate">{asset.description}</TableCell>
-                      <TableCell>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" className="h-8 w-8 p-0">
-                              <MoreHorizontal className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuLabel>Aksi</DropdownMenuLabel>
-                            <DropdownMenuItem
-                              onClick={() => handleEdit(asset)}
-                              className="cursor-pointer"
-                            >
-                              <Pencil className="mr-2 h-4 w-4" />
-                              Edit
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              onClick={() => handleDelete(asset)}
-                              className="cursor-pointer text-red-600"
-                            >
-                              <Trash className="mr-2 h-4 w-4" />
-                              Hapus
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </TableCell>
+                  table.getRowModel().rows.map(row => (
+                    <TableRow key={row.id} className="hover:bg-muted/50">
+                      {row.getVisibleCells().map(cell => (
+                        <TableCell key={cell.id}>
+                          {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                        </TableCell>
+                      ))}
                     </TableRow>
                   ))
                 )}
               </TableBody>
             </Table>
+          </div>
+
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mt-4">
+            <span className="text-sm text-muted-foreground">
+              Total {table.getFilteredRowModel().rows.length} asset EDC
+            </span>
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-sm text-muted-foreground">
+                Halaman {table.getState().pagination.pageIndex + 1} dari {table.getPageCount()}
+              </span>
+              <Select
+                value={String(pageSize)}
+                onValueChange={value => {
+                  setPageSize(Number(value))
+                  setPageIndex(0)
+                }}
+              >
+                <SelectTrigger className="w-24">
+                  <SelectValue placeholder="Rows" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="10">10</SelectItem>
+                  <SelectItem value="20">20</SelectItem>
+                  <SelectItem value="50">50</SelectItem>
+                  <SelectItem value="100">100</SelectItem>
+                </SelectContent>
+              </Select>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => table.previousPage()}
+                disabled={!table.getCanPreviousPage()}
+              >
+                Previous
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => table.nextPage()}
+                disabled={!table.getCanNextPage()}
+              >
+                Next
+              </Button>
+            </div>
           </div>
         </CardContent>
       </Card>
