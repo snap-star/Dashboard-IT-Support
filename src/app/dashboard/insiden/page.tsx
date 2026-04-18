@@ -75,6 +75,8 @@ export default function ITIncidentManagement() {
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
   const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({})
+  const [pageIndex, setPageIndex] = React.useState(0)
+  const [pageSize, setPageSize] = React.useState(10)
   const [dateRange, setDateRange] = React.useState<DateRange | undefined>()
   const [isExporting, setIsExporting] = React.useState(false)
 
@@ -271,6 +273,15 @@ export default function ITIncidentManagement() {
       sorting,
       columnFilters,
       columnVisibility,
+      pagination: {
+        pageIndex,
+        pageSize,
+      },
+    },
+    onPaginationChange: updater => {
+      const newState = typeof updater === 'function' ? updater({ pageIndex, pageSize }) : updater
+      setPageIndex(newState.pageIndex)
+      setPageSize(newState.pageSize)
     },
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
@@ -279,6 +290,7 @@ export default function ITIncidentManagement() {
     getFilteredRowModel: getFilteredRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
+    manualPagination: false,
   })
 
   const downloadExcel = async (filtered = false) => {
@@ -589,11 +601,31 @@ export default function ITIncidentManagement() {
               </Table>
             </div>
 
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <span className="text-sm text-muted-foreground">
                 Total {table.getFilteredRowModel().rows.length} insiden
               </span>
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-sm text-muted-foreground">
+                  Halaman {table.getState().pagination.pageIndex + 1} dari {table.getPageCount()}
+                </span>
+                <Select
+                  value={String(pageSize)}
+                  onValueChange={value => {
+                    setPageSize(Number(value))
+                    setPageIndex(0)
+                  }}
+                >
+                  <SelectTrigger className="w-24">
+                    <SelectValue placeholder="Rows" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="10">10</SelectItem>
+                    <SelectItem value="20">20</SelectItem>
+                    <SelectItem value="50">50</SelectItem>
+                    <SelectItem value="100">100</SelectItem>
+                  </SelectContent>
+                </Select>
                 <Button
                   variant="outline"
                   size="sm"
