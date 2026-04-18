@@ -140,9 +140,10 @@ export default function ITIncidentManagement() {
 
   const updateColumnFilter = (id: string, value: string) => {
     setPageIndex(0)
+    const normalizedValue = value === 'all' ? '' : value
     setColumnFilters(prev => {
       const filtered = prev.filter(filter => filter.id !== id)
-      return value ? [...filtered, { id, value }] : filtered
+      return normalizedValue ? [...filtered, { id, value: normalizedValue }] : filtered
     })
   }
 
@@ -507,9 +508,9 @@ export default function ITIncidentManagement() {
                   className="max-w-sm"
                 />
                 <Select
-                  value={statusFilter}
+                  value={statusFilter || 'all'}
                   onValueChange={value => {
-                    setStatusFilter(value)
+                    setStatusFilter(value === 'all' ? '' : value)
                     updateColumnFilter('status', value)
                   }}
                 >
@@ -517,7 +518,7 @@ export default function ITIncidentManagement() {
                     <SelectValue placeholder="Filter Status" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All Status</SelectItem>
+                    <SelectItem value="all">All Status</SelectItem>
                     <SelectItem value="Open">Open</SelectItem>
                     <SelectItem value="In Progress">In Progress</SelectItem>
                     <SelectItem value="Resolved">Resolved</SelectItem>
@@ -525,9 +526,9 @@ export default function ITIncidentManagement() {
                   </SelectContent>
                 </Select>
                 <Select
-                  value={priorityFilter}
+                  value={priorityFilter || 'all'}
                   onValueChange={value => {
-                    setPriorityFilter(value)
+                    setPriorityFilter(value === 'all' ? '' : value)
                     updateColumnFilter('priority', value)
                   }}
                 >
@@ -535,7 +536,7 @@ export default function ITIncidentManagement() {
                     <SelectValue placeholder="Filter Priority" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All Priority</SelectItem>
+                    <SelectItem value="all">All Priority</SelectItem>
                     <SelectItem value="Low">Low</SelectItem>
                     <SelectItem value="Medium">Medium</SelectItem>
                     <SelectItem value="High">High</SelectItem>
