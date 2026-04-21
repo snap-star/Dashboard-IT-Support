@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback, useRef } from 'react'
 import { useForm } from 'react-hook-form'
 import * as z from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -80,8 +80,8 @@ const formSchema = z.object({
   subnet: z.string().regex(/^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$/, 'Format Subnet tidak valid'),
   gateway: z.string().regex(/^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$/, 'Format Gateway tidak valid'),
   description: z.string().optional(),
-  user_estim: z.string().optional(),
-  display_estim: z.string().optional(),
+  username: z.string().optional(),
+  display_user: z.string().optional(),
 })
 
 // Update interface untuk menyesuaikan dengan Supabase
@@ -93,8 +93,8 @@ interface IPAddress {
   subnet: string
   gateway: string
   description: string
-  user_estim?: string
-  display_estim?: string
+  username: string
+  display_user?: string
 }
 
 const locationOptions = [
@@ -211,7 +211,7 @@ const IPCalculator = ({ onGenerate }: IPCalculatorProps) => {
       </div>
       {error && <p className="text-sm text-destructive">{error}</p>}
       <Button onClick={handleCalculate} disabled={!network || !subnetMask || !location}>
-        Generate IP Addresses
+        Generate IP Address
       </Button>
     </div>
   )
@@ -224,8 +224,11 @@ type SortConfig = {
 } | null
 
 export default function CatalystIPAddressPage() {
-  // Pindahkan state sortConfig ke dalam komponen
-  const [sortConfig, setSortConfig] = useState<SortConfig>(null)
+  // Pindahkan state sortConfig ke dalam komponen - default sort by ip_address ascending
+  const [sortConfig, setSortConfig] = useState<SortConfig>({
+    column: 'ip_address',
+    direction: 'asc',
+  })
   const [ipAddresses, setIpAddresses] = useState<IPAddress[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
@@ -235,120 +238,141 @@ export default function CatalystIPAddressPage() {
   const [calculatedIPs, setCalculatedIPs] = useState<string[]>([])
   const [showIPCalculator, setShowIPCalculator] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
+  const [selectedLocation, setSelectedLocation] = useState<string>('all')
   const [currentPage, setCurrentPage] = useState(1)
   const [totalPages, setTotalPages] = useState(0)
   const [isPurgeAlertOpen, setIsPurgeAlertOpen] = useState(false)
+  const [totalCount, setTotalCount] = useState(0)
+  const [isFetching, setIsFetching] = useState(false)
 
   const PAGE_SIZE = 10
 
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      auth: {
-        persistSession: true,
+  // Initialize Supabase client outside render to avoid recreation
+  const supabaseRef = useRef(
+    createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        auth: {
+          persistSession: true,
+        },
       },
-    },
+    ),
   )
+  const supabase = supabaseRef.current
 
-  // Fetch data dari Supabase
-  const fetchIpAddresses = async () => {
+  // Fetch data dari Supabase dengan optimasi
+  const fetchIpAddresses = useCallback(async () => {
     try {
-      setIsLoading(true)
+      setIsFetching(true)
 
-      // Count total rows dengan search filter
-      let countQuery = supabase.from('ip_addresses').select('*', { count: 'exact' })
+      // Build the base query with search filter, location filter, and sorting
+      const buildQuery = () => {
+        let query = supabase.from('ip_addresses').select('*', { count: 'exact' })
 
-      if (searchQuery) {
-        countQuery = countQuery.or(
-          `ip_address.ilike.%${searchQuery}%,` +
-            `location.ilike.%${searchQuery}%,` +
-            `description.ilike.%${searchQuery}%`,
-        )
+        if (selectedLocation && selectedLocation !== 'all') {
+          query = query.eq('location', selectedLocation)
+        }
+
+        if (searchQuery) {
+          query = query.or(
+            `ip_address.ilike.%${searchQuery}%,` +
+              `location.ilike.%${searchQuery}%,` +
+              `description.ilike.%${searchQuery}%`,
+          )
+        }
+
+        // Apply sorting
+        if (sortConfig) {
+          query = query.order(sortConfig.column, {
+            ascending: sortConfig.direction === 'asc',
+          })
+        } else {
+          query = query.order('ip_address', { ascending: true })
+        }
+
+        return query
       }
 
+      // First query: get count
+      const countQuery = buildQuery()
       const { count, error: countError } = await countQuery
 
       if (countError) throw countError
 
-      setTotalPages(Math.ceil((count || 0) / PAGE_SIZE))
+      const total = count || 0
+      setTotalCount(total)
+      setTotalPages(Math.ceil(total / PAGE_SIZE))
 
-      // Fetch data dengan pagination, search, dan sorting
-      let dataQuery = supabase
-        .from('ip_addresses')
-        .select('*')
-        .range((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE - 1)
-
-      if (searchQuery) {
-        dataQuery = dataQuery.or(
-          `ip_address.ilike.%${searchQuery}%,` +
-            `location.ilike.%${searchQuery}%,` +
-            `description.ilike.%${searchQuery}%`,
-        )
-      }
-
-      // Tambahkan sorting jika ada
-      if (sortConfig) {
-        dataQuery = dataQuery.order(sortConfig.column, {
-          ascending: sortConfig.direction === 'asc',
-        })
-      } else {
-        // Default sort
-        dataQuery = dataQuery.order('created_at', { ascending: false })
-      }
+      // Second query: get paginated data
+      const dataQuery = buildQuery().range(
+        (currentPage - 1) * PAGE_SIZE,
+        currentPage * PAGE_SIZE - 1,
+      )
 
       const { data, error: dataError } = await dataQuery
 
       if (dataError) throw dataError
 
       setIpAddresses(data || [])
+      setIsLoading(false)
     } catch (error: any) {
-      console.error('Error detail:', error)
+      console.error('Error fetching IP addresses:', error)
       toast.error(error.message || 'Gagal memuat data IP Address')
       setIpAddresses([])
       setTotalPages(0)
-    } finally {
+      setTotalCount(0)
       setIsLoading(false)
+    } finally {
+      setIsFetching(false)
     }
-  }
+  }, [supabase, searchQuery, sortConfig, currentPage, selectedLocation])
 
-  // Tambahkan fungsi untuk handle sorting
-  const handleSort = (column: string) => {
-    setSortConfig(current => {
-      if (current?.column === column) {
-        // Jika kolom yang sama, ubah direction
-        return {
-          column,
-          direction: current.direction === 'asc' ? 'desc' : 'asc',
-        }
-      }
-      // Jika kolom berbeda, set ke ascending
+  // Handle sorting dengan reset ke halaman 1
+  const handleSort = useCallback((column: string) => {
+    setSortConfig((current): SortConfig => {
+      const newDirection: 'asc' | 'desc' =
+        current?.column === column && current.direction === 'asc' ? 'desc' : 'asc'
       return {
         column,
-        direction: 'asc',
+        direction: newDirection,
       }
     })
-  }
+    setCurrentPage(1) // Reset to first page when sorting changes
+  }, [])
 
-  // Tambahkan useEffect untuk search
+  // Consolidated useEffect untuk fetch data dengan proper dependencies
   useEffect(() => {
-    const debounceSearch = setTimeout(() => {
-      setCurrentPage(1) // Reset ke halaman pertama saat search
-      fetchIpAddresses()
-    }, 300)
+    // Set loading state immediately when params change
+    setIsLoading(true)
 
-    return () => clearTimeout(debounceSearch)
-  }, [searchQuery])
+    // Reset to first page when location or search changes
+    if (searchQuery !== '' || selectedLocation !== 'all') {
+      setCurrentPage(1)
+    }
 
-  // Tambahkan useEffect untuk pagination
+    // Debounce search queries
+    const debounceTimer =
+      searchQuery !== ''
+        ? setTimeout(() => {
+            fetchIpAddresses()
+          }, 300)
+        : (fetchIpAddresses(), null)
+
+    if (!debounceTimer) {
+      // If not debouncing (search is empty), fetch immediately
+      return
+    }
+
+    return () => {
+      if (debounceTimer) clearTimeout(debounceTimer)
+    }
+  }, [searchQuery, selectedLocation, fetchIpAddresses])
+
+  // Fetch when pagination or sorting changes (no debounce needed)
   useEffect(() => {
     fetchIpAddresses()
-  }, [currentPage])
-
-  // Update useEffect untuk merefresh data saat sorting berubah
-  useEffect(() => {
-    fetchIpAddresses()
-  }, [currentPage, searchQuery, sortConfig])
+  }, [currentPage, sortConfig, fetchIpAddresses])
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -405,8 +429,8 @@ export default function CatalystIPAddressPage() {
             subnet: values.subnet,
             gateway: values.gateway,
             description: values.description,
-            user_estim: values.user_estim,
-            display_estim: values.display_estim,
+            username: values.username,
+            display_user: values.display_user,
           })
           .eq('id', selectedIp.id)
 
@@ -421,8 +445,8 @@ export default function CatalystIPAddressPage() {
             subnet: values.subnet,
             gateway: values.gateway,
             description: values.description,
-            user_estim: values.user_estim,
-            display_estim: values.display_estim,
+            username: values.username,
+            display_user: values.display_user,
           },
         ])
 
@@ -438,43 +462,46 @@ export default function CatalystIPAddressPage() {
     }
   }
 
-  const handleEdit = (ip: IPAddress) => {
-    setSelectedIp(ip)
-    setIsEditing(true)
-    form.reset({
-      location: ip.location,
-      ipAddress: ip.ip_address,
-      subnet: ip.subnet,
-      gateway: ip.gateway,
-      description: ip.description || '',
-      user_estim: ip.user_estim || '',
-      display_estim: ip.display_estim || '',
-    })
-    setIsDialogOpen(true)
-  }
+  const handleEdit = useCallback(
+    (ip: IPAddress) => {
+      setSelectedIp(ip)
+      setIsEditing(true)
+      form.reset({
+        location: ip.location,
+        ipAddress: ip.ip_address,
+        subnet: ip.subnet,
+        gateway: ip.gateway,
+        description: ip.description || '',
+        username: ip.username || '',
+        display_user: ip.display_user || '',
+      })
+      setIsDialogOpen(true)
+    },
+    [form],
+  )
 
-  const handleDelete = (ip: IPAddress) => {
+  const handleDelete = useCallback((ip: IPAddress) => {
     setSelectedIp(ip)
     setIsDeleteAlertOpen(true)
-  }
+  }, [])
 
-  const confirmDelete = async () => {
+  const confirmDelete = useCallback(async () => {
     if (selectedIp) {
       try {
         const { error } = await supabase.from('ip_addresses').delete().eq('id', selectedIp.id)
 
         if (error) throw error
         toast.success('IP Address berhasil dihapus')
-        fetchIpAddresses() // Refresh data
+        await fetchIpAddresses() // Refresh data
       } catch (error) {
         console.error('Error deleting IP address:', error)
         toast.error('Gagal menghapus IP Address')
       }
     }
     setIsDeleteAlertOpen(false)
-  }
+  }, [selectedIp, supabase, fetchIpAddresses])
 
-  const handleCloseDialog = () => {
+  const handleCloseDialog = useCallback(() => {
     setIsDialogOpen(false)
     setIsEditing(false)
     setSelectedIp(null)
@@ -485,9 +512,9 @@ export default function CatalystIPAddressPage() {
       gateway: '',
       description: '',
     })
-  }
+  }, [form])
 
-  const handleAddNew = () => {
+  const handleAddNew = useCallback(() => {
     setIsEditing(false)
     setSelectedIp(null)
     form.reset({
@@ -498,39 +525,42 @@ export default function CatalystIPAddressPage() {
       description: '',
     })
     setIsDialogOpen(true)
-  }
+  }, [form])
 
-  const handleGenerateIPs = async (
-    generatedIPs: Array<{
-      location: string
-      ip_address: string
-      subnet: string
-      gateway: string
-    }>,
-  ) => {
-    try {
-      const newIPs = generatedIPs.map(ip => ({
-        ...ip,
-        description: '', // Kolom description kosong untuk diisi manual nanti
-        user_estim: '',
-        display_estim: '',
-      }))
+  const handleGenerateIPs = useCallback(
+    async (
+      generatedIPs: Array<{
+        location: string
+        ip_address: string
+        subnet: string
+        gateway: string
+      }>,
+    ) => {
+      try {
+        const newIPs = generatedIPs.map(ip => ({
+          ...ip,
+          description: '', // Kolom description kosong untuk diisi manual nanti
+          username: '',
+          display_user: '',
+        }))
 
-      const { error } = await supabase.from('ip_addresses').insert(newIPs)
+        const { error } = await supabase.from('ip_addresses').insert(newIPs)
 
-      if (error) throw error
+        if (error) throw error
 
-      toast.success(`${newIPs.length} IP Addresses berhasil ditambahkan`)
-      await fetchIpAddresses()
-      setShowIPCalculator(false)
-    } catch (error: any) {
-      console.error('Error adding IP addresses:', error)
-      toast.error(error.message || 'Gagal menambahkan IP Addresses')
-    }
-  }
+        toast.success(`${newIPs.length} IP Addresses berhasil ditambahkan`)
+        await fetchIpAddresses()
+        setShowIPCalculator(false)
+      } catch (error: any) {
+        console.error('Error adding IP addresses:', error)
+        toast.error(error.message || 'Gagal menambahkan IP Addresses')
+      }
+    },
+    [supabase, fetchIpAddresses],
+  )
 
   // Tambahkan fungsi untuk purge data
-  const handlePurgeData = async () => {
+  const handlePurgeData = useCallback(async () => {
     try {
       // Hapus semua data tanpa pengecualian
       const { error } = await supabase
@@ -551,7 +581,7 @@ export default function CatalystIPAddressPage() {
     } finally {
       setIsPurgeAlertOpen(false)
     }
-  }
+  }, [supabase, fetchIpAddresses])
 
   // Tambahkan loading state di table
   if (isLoading) {
@@ -574,7 +604,7 @@ export default function CatalystIPAddressPage() {
             <div className="flex items-center gap-2">
               <Button variant="outline" onClick={() => setShowIPCalculator(true)}>
                 <Calculator className="mr-2 h-4 w-4" />
-                IP Calculator
+                IP Address Generator
               </Button>
               <Button variant="destructive" onClick={() => setIsPurgeAlertOpen(true)}>
                 <Trash2 className="mr-2 h-4 w-4" />
@@ -661,10 +691,10 @@ export default function CatalystIPAddressPage() {
                       <div className="grid grid-cols-2 gap-4">
                         <FormField
                           control={form.control}
-                          name="user_estim"
+                          name="username"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>User Estim</FormLabel>
+                              <FormLabel>Username</FormLabel>
                               <FormControl>
                                 <Input placeholder="user estim..." {...field} />
                               </FormControl>
@@ -675,10 +705,10 @@ export default function CatalystIPAddressPage() {
 
                         <FormField
                           control={form.control}
-                          name="display_estim"
+                          name="display_user"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>Display Estim</FormLabel>
+                              <FormLabel>Display User Estim</FormLabel>
                               <FormControl>
                                 <Input placeholder="display estim..." {...field} />
                               </FormControl>
@@ -713,33 +743,51 @@ export default function CatalystIPAddressPage() {
           </div>
         </CardHeader>
         <CardContent>
-          <div className="flex items-center justify-between mb-4">
-            <div className="relative w-72">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-              <Input
-                placeholder="Cari IP Address, lokasi..."
-                value={searchQuery}
-                onChange={e => setSearchQuery(e.target.value)}
-                className="pl-9"
-              />
+          <div className="flex items-center gap-3 justify-between mb-4">
+            <div className="flex items-center gap-3">
+              <div className="relative w-72">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                <Input
+                  placeholder="Cari IP Address, lokasi..."
+                  value={searchQuery}
+                  onChange={e => setSearchQuery(e.target.value)}
+                  className="pl-9"
+                  disabled={isFetching}
+                />
+              </div>
+              <Select value={selectedLocation} onValueChange={setSelectedLocation}>
+                <SelectTrigger className="w-56">
+                  <SelectValue placeholder="Filter Lokasi" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Semua Lokasi</SelectItem>
+                  {locationOptions.map(location => (
+                    <SelectItem key={location} value={location}>
+                      {location}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <div className="flex items-center gap-2">
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                disabled={currentPage === 1 || isLoading}
+                disabled={currentPage === 1 || isLoading || isFetching}
               >
                 Previous
               </Button>
-              <span className="text-sm text-muted-foreground">
+              <span className="text-sm text-muted-foreground whitespace-nowrap">
                 Halaman {currentPage} dari {totalPages}
+                {totalCount > 0 && ` (${totalCount} total)`}
+                {isFetching && <span className="ml-2 inline-block animate-pulse">●</span>}
               </span>
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                disabled={currentPage === totalPages || isLoading}
+                disabled={currentPage === totalPages || isLoading || isFetching}
               >
                 Next
               </Button>
@@ -916,8 +964,8 @@ export default function CatalystIPAddressPage() {
                       <TableCell>{ip.ip_address}</TableCell>
                       <TableCell>{ip.subnet}</TableCell>
                       <TableCell>{ip.gateway}</TableCell>
-                      <TableCell>{ip.user_estim}</TableCell>
-                      <TableCell>{ip.display_estim}</TableCell>
+                      <TableCell>{ip.username}</TableCell>
+                      <TableCell>{ip.display_user}</TableCell>
                       <TableCell>{ip.description}</TableCell>
                       <TableCell>
                         <DropdownMenu>
