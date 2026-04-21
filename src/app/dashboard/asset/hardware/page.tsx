@@ -58,12 +58,8 @@ type Hardware = {
 }
 
 type User = {
-  id: number
-  user_estim: string
-  nama: string
-  ip_address: string
-  nip: string
-  jabatan: string
+  id: string
+  name: string
 }
 
 export default function AssetHardware() {
@@ -87,11 +83,23 @@ export default function AssetHardware() {
     keterangan: '',
   })
   const [users, setUsers] = React.useState<User[]>([])
+  const [penggunaSearch, setPenggunaSearch] = React.useState<string>('')
+  const [showPenggunaDropdown, setShowPenggunaDropdown] = React.useState(false)
 
   React.useEffect(() => {
     fetchHardware()
     fetchUsers()
   }, [])
+
+  // Set pengguna search when editing
+  React.useEffect(() => {
+    if (editingHardware?.pengguna) {
+      const selectedUser = users.find(u => u.id === editingHardware.pengguna)
+      if (selectedUser) {
+        setPenggunaSearch(selectedUser.name)
+      }
+    }
+  }, [editingHardware?.pengguna, users])
 
   async function fetchHardware() {
     const { data, error } = await supabase.from('hardware').select('*')
@@ -104,9 +112,7 @@ export default function AssetHardware() {
   }
 
   async function fetchUsers() {
-    const { data, error } = await supabase
-      .from('users')
-      .select('id, user_estim, nama, ip_address, nip, jabatan')
+    const { data, error } = await supabase.from('employees').select('id, name')
 
     if (error) {
       console.error('Error fetching users:', error)
@@ -135,6 +141,7 @@ export default function AssetHardware() {
     fetchHardware()
     setIsDialogOpen(false)
     setEditingHardware(null)
+    setPenggunaSearch('')
     setNewHardware({
       nama_aset: '',
       jenis: '',
@@ -155,6 +162,23 @@ export default function AssetHardware() {
       return
     }
     fetchHardware()
+  }
+
+  function handleResetForm() {
+    setEditingHardware(null)
+    setPenggunaSearch('')
+    setShowPenggunaDropdown(false)
+    setNewHardware({
+      nama_aset: '',
+      jenis: '',
+      merk: '',
+      serial_number: '',
+      tahun: '',
+      pengguna: '',
+      lokasi: '',
+      status: '',
+      keterangan: '',
+    })
   }
 
   const exportToExcel = () => {
@@ -269,11 +293,27 @@ export default function AssetHardware() {
           <Button variant="outline" onClick={exportToExcel}>
             Export Excel
           </Button>
-          <Button onClick={() => setIsDialogOpen(true)}>Tambah Aset Baru</Button>
+          <Button
+            onClick={() => {
+              handleResetForm()
+              setIsDialogOpen(true)
+            }}
+          >
+            Tambah Aset Baru
+          </Button>
         </div>
       </div>
 
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+      <Dialog
+        open={isDialogOpen}
+        onOpenChange={isOpen => {
+          setIsDialogOpen(isOpen)
+          if (!isOpen) {
+            setPenggunaSearch('')
+            setShowPenggunaDropdown(false)
+          }
+        }}
+      >
         <DialogContent>
           <DialogHeader>
             <DialogTitle>{editingHardware ? 'Edit Aset' : 'Tambah Aset Baru'}</DialogTitle>
@@ -345,25 +385,54 @@ export default function AssetHardware() {
                   : setNewHardware({ ...newHardware, tahun: e.target.value })
               }
             />
-            <Select
-              value={editingHardware ? editingHardware.pengguna : newHardware.pengguna}
-              onValueChange={value =>
-                editingHardware
-                  ? setEditingHardware({ ...editingHardware, pengguna: value })
-                  : setNewHardware({ ...newHardware, pengguna: value })
-              }
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Pilih Pengguna" />
-              </SelectTrigger>
-              <SelectContent>
-                {users.map(user => (
-                  <SelectItem key={user.id} value={user.user_estim || `user-${user.id}`}>
-                    {user.nama} - {user.user_estim} ({user.jabatan})
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <div className="relative">
+              <Input
+                placeholder="Cari Pengguna..."
+                value={penggunaSearch}
+                onChange={e => {
+                  setPenggunaSearch(e.target.value)
+                  setShowPenggunaDropdown(true)
+                }}
+                onFocus={() => setShowPenggunaDropdown(true)}
+                onBlur={() => setTimeout(() => setShowPenggunaDropdown(false), 200)}
+              />
+              {editingHardware?.pengguna || newHardware.pengguna ? (
+                <div className="mt-1 text-sm text-gray-600">
+                  Dipilih:{' '}
+                  {users.find(u => u.name === (editingHardware?.pengguna || newHardware.pengguna))
+                    ?.name || 'Unknown'}
+                </div>
+              ) : null}
+              {showPenggunaDropdown && (
+                <div className="absolute top-full left-0 right-0 mt-1 border bg-zinc-800 border-gray-300 rounded-md shadow-lg z-10 max-h-48 overflow-y-auto">
+                  {users
+                    .filter(user => user.name.toLowerCase().includes(penggunaSearch.toLowerCase()))
+                    .map(user => (
+                      <button
+                        key={user.name}
+                        type="button"
+                        className="w-full text-left px-4 py-2 hover:bg-gray-500 transition-colors"
+                        onClick={() => {
+                          if (editingHardware) {
+                            setEditingHardware({ ...editingHardware, pengguna: user.name })
+                          } else {
+                            setNewHardware({ ...newHardware, pengguna: user.name })
+                          }
+                          setPenggunaSearch(user.name)
+                          setShowPenggunaDropdown(false)
+                        }}
+                      >
+                        {user.name}
+                      </button>
+                    ))}
+                  {users.filter(user =>
+                    user.name.toLowerCase().includes(penggunaSearch.toLowerCase()),
+                  ).length === 0 && (
+                    <div className="px-4 py-2 text-gray-500 text-sm">Tidak ada hasil</div>
+                  )}
+                </div>
+              )}
+            </div>
             <Select
               value={editingHardware ? editingHardware.lokasi : newHardware.lokasi}
               onValueChange={value =>
@@ -376,11 +445,11 @@ export default function AssetHardware() {
                 <SelectValue placeholder="Pilih Lokasi" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="cabang-ponorogo">Cabang Ponorogo</SelectItem>
-                <SelectItem value="capem-sumoroto">Capem Sumoroto</SelectItem>
-                <SelectItem value="capem-jetis">Capem Jetis</SelectItem>
-                <SelectItem value="capem-pulung">Capem Pulung</SelectItem>
-                <SelectItem value="capem-balong">Capem Balong</SelectItem>
+                <SelectItem value="Cabang Ponorogo">Cabang Ponorogo</SelectItem>
+                <SelectItem value="Capem Sumoroto">Capem Sumoroto</SelectItem>
+                <SelectItem value="Capem Jetis">Capem Jetis</SelectItem>
+                <SelectItem value="Capem Pulung">Capem Pulung</SelectItem>
+                <SelectItem value="Capem Balong">Capem Balong</SelectItem>
               </SelectContent>
             </Select>
             <Select
