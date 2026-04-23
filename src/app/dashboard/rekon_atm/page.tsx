@@ -85,7 +85,7 @@ export default function ATMReconciliationPage() {
       const { data, error } = await supabase
         .from('atm_machines')
         .select('*')
-        .order('tid', { ascending: true })
+        .order('ATMID', { ascending: true })
 
       if (error) {
         console.error('Supabase error:', error)
@@ -109,7 +109,7 @@ export default function ATMReconciliationPage() {
       lines.forEach(line => {
         // Sesuaikan dengan format EJ file masing-masing vendor
         // Ini hanya contoh parsing sederhana
-        const match = line.match(/WITHDRAW|DEPOSIT/i)
+        const match = line.match(/CASH REQUEST|AMOUNT/i)
         if (match) {
           const type = match[0].toUpperCase()
           const amount = parseFloat(line.match(/\d+/)?.[0] || '0')
@@ -158,7 +158,7 @@ export default function ATMReconciliationPage() {
     const selectedAtm = atms.find(a => a.id === form.getValues('atmId'))
 
     const summaryData = [
-      ['ATM', `${selectedAtm?.tid} - ${selectedAtm?.location} (${selectedAtm?.type})`],
+      ['ATM', `${selectedAtm?.ATMID} - ${selectedAtm?.LOCATION} (${selectedAtm?.type})`],
       ['Tanggal', form.getValues('date')],
       [''],
       ['Denominasi', 'Masuk', 'Keluar', 'Selisih'],
@@ -183,7 +183,7 @@ export default function ATMReconciliationPage() {
     XLSX.utils.book_append_sheet(wb, ws1, 'Ringkasan')
     XLSX.utils.book_append_sheet(wb, ws2, 'Detail Transaksi')
 
-    XLSX.writeFile(wb, `rekonsiliasi_${selectedAtm?.tid}_${form.getValues('date')}.xlsx`)
+    XLSX.writeFile(wb, `rekonsiliasi_${selectedAtm?.ATMID}_${form.getValues('date')}.xlsx`)
   }
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
@@ -210,11 +210,11 @@ export default function ATMReconciliationPage() {
     switch (type) {
       case 'NCR':
         return 'bg-green-100 text-green-600'
-      case 'Hyosung':
+      case 'HYOSUNG':
         return 'bg-blue-100 text-blue-600'
-      case 'Wincor':
+      case 'WINCOR':
         return 'bg-purple-100 text-purple-600'
-      case 'Oki':
+      case 'OKI':
         return 'bg-orange-100 text-orange-600'
       default:
         return 'bg-gray-100 text-gray-600'
@@ -259,9 +259,9 @@ export default function ATMReconciliationPage() {
                             >
                               <div className="flex items-center justify-between w-full">
                                 <div className="flex flex-col">
-                                  <span className="font-medium text-base">{atm.tid}</span>
+                                  <span className="font-medium text-base">{atm.ATMID}</span>
                                   <span className="text-sm text-muted-foreground">
-                                    {atm.location}
+                                    {atm.LOCATION}
                                   </span>
                                 </div>
                                 <span
