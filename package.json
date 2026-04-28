@@ -1,6 +1,6 @@
 {
   "name": "dashboard-it-support",
-  "version": "1.1.0",
+  "version": "1.8.0",
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "next lint",
     "format": "biome format --write",
-    "format:check": "biome check --write"
+    "format:check": "biome check --write",
+    "packageManager": "pnpm@10.23.0"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
