@@ -1,10 +1,10 @@
 // components/ITIncidentOverviewCard.tsx
 'use client'
+import { motion } from 'framer-motion'
+import { AlertCircle, CheckCircle2, Clock, XCircle } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import supabase from '@/lib/supabase'
-import { AlertCircle, CheckCircle2, Clock, XCircle } from 'lucide-react'
-import { motion } from 'framer-motion'
 
 type IncidentCounts = {
   total: number

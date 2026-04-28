@@ -1,8 +1,14 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import * as XLSX from 'xlsx'
+import { zodResolver } from '@hookform/resolvers/zod'
 import FileSaver from 'file-saver'
+import { Download, FileSpreadsheet, Trash, Upload } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { useForm } from 'react-hook-form'
+import { toast } from 'sonner'
+import * as XLSX from 'xlsx'
+import * as z from 'zod'
+import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import {
@@ -13,6 +19,8 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import {
   Select,
   SelectContent,
@@ -20,15 +28,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
-import { Label } from '@/components/ui/label'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import * as z from 'zod'
-import { Upload, FileSpreadsheet, Download, Trash } from 'lucide-react'
-import { toast } from 'sonner'
-import { Badge } from '@/components/ui/badge'
 
 // Schema untuk form konfigurasi
 const configSchema = z.object({
@@ -270,7 +270,7 @@ End Sub`,
 const generatePreviewMacro = (values: z.infer<typeof configSchema>, data: any[]) => {
   if (data.length === 0) return ''
 
-  const waitTime = parseInt(values.waitTime)
+  const waitTime = Number.parseInt(values.waitTime)
   const previewData = data.slice(0, 3) // Preview 3 data pertama
   const selectedType = macroTypes.find(type => type.value === values.macroType)
 
@@ -296,7 +296,8 @@ Sub Main
       .join('\n')}
     ' ... dan seterusnya untuk ${data.length - 3} data lainnya
 End Sub`
-  } else if (selectedType?.template) {
+  }
+  if (selectedType?.template) {
     return selectedType
       .template(previewData, waitTime)
       .replace('End Sub', `    ' ... dan seterusnya untuk ${data.length - 3} data lainnya\nEnd Sub`)
@@ -360,8 +361,8 @@ export default function MacroGeneratorPage() {
     }
 
     try {
-      const startRow = parseInt(values.startRow) - 1
-      const waitTime = parseInt(values.waitTime)
+      const startRow = Number.parseInt(values.startRow) - 1
+      const waitTime = Number.parseInt(values.waitTime)
       const data = excelData.slice(startRow)
 
       let macroContent = ''

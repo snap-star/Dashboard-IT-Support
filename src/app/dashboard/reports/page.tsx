@@ -1,10 +1,38 @@
 'use client'
 
-import { useState, useEffect, useCallback, useRef } from 'react'
-import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
+import imageCompression from 'browser-image-compression'
+import { id } from 'date-fns/locale'
+import { format, toZonedTime } from 'date-fns-tz'
+import html2canvas from 'html2canvas'
+import jsPDF from 'jspdf'
+import {
+  AlertTriangle,
+  Calendar as CalendarIcon,
+  Camera,
+  Check,
+  Download,
+  Droplets,
+  Printer,
+  Shield,
+  Thermometer,
+} from 'lucide-react'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import type { DateRange } from 'react-day-picker'
+import { useForm } from 'react-hook-form'
+import { toast } from 'sonner'
+import * as XLSX from 'xlsx'
 import * as z from 'zod'
+import { Button } from '@/components/ui/button'
+import { Calendar } from '@/components/ui/calendar'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Checkbox } from '@/components/ui/checkbox'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 import {
   Form,
   FormControl,
@@ -13,6 +41,8 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form'
+import { Input } from '@/components/ui/input'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import {
   Select,
   SelectContent,
@@ -20,39 +50,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Input } from '@/components/ui/input'
-import { Button } from '@/components/ui/button'
-import { Checkbox } from '@/components/ui/checkbox'
 import { Textarea } from '@/components/ui/textarea'
-import { format, toZonedTime } from 'date-fns-tz'
-import { id } from 'date-fns/locale'
-import { toast } from 'sonner'
-import {
-  Thermometer,
-  Droplets,
-  Check,
-  Camera,
-  Shield,
-  AlertTriangle,
-  Download,
-  Printer,
-} from 'lucide-react'
-import * as XLSX from 'xlsx'
-import { DateRange } from 'react-day-picker'
-import { Calendar as CalendarIcon } from 'lucide-react'
-import { cn } from '@/lib/utils'
-import { Calendar } from '@/components/ui/calendar'
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
-import imageCompression from 'browser-image-compression'
-import html2canvas from 'html2canvas'
-import jsPDF from 'jspdf'
 import supabase from '@/lib/supabase'
+import { cn } from '@/lib/utils'
 
 // Schema untuk form checklist
 const checklistSchema = z.object({
@@ -341,8 +341,8 @@ export default function RoomChecklistPage() {
           {
             room_id: values.room_id,
             checked_by: values.checked_by,
-            temperature: parseFloat(values.temperature),
-            humidity: parseFloat(values.humidity),
+            temperature: Number.parseFloat(values.temperature),
+            humidity: Number.parseFloat(values.humidity),
             is_clean: values.is_clean,
             is_secure: values.is_secure,
             equipment_status: values.equipment_status,

@@ -1,12 +1,17 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { createClient } from '@supabase/supabase-js'
-import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import * as z from 'zod'
-import * as XLSX from 'xlsx'
+import { createClient } from '@supabase/supabase-js'
+import { format } from 'date-fns'
 import { id } from 'date-fns/locale'
+import { CalendarIcon, Download, Upload } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { useForm } from 'react-hook-form'
+import { toast } from 'sonner'
+import * as XLSX from 'xlsx'
+import * as z from 'zod'
+import { Button } from '@/components/ui/button'
+import { Calendar } from '@/components/ui/calendar'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import {
   Form,
@@ -16,6 +21,8 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form'
+import { Input } from '@/components/ui/input'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import {
   Select,
   SelectContent,
@@ -23,13 +30,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Input } from '@/components/ui/input'
-import { Button } from '@/components/ui/button'
-import { toast } from 'sonner'
-import { Download, Upload, CalendarIcon } from 'lucide-react'
-import { format } from 'date-fns'
-import { Calendar } from '@/components/ui/calendar'
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 
 const formSchema = z.object({
   atmId: z.string().min(1, 'ATM harus dipilih'),
@@ -112,7 +112,7 @@ export default function ATMReconciliationPage() {
         const match = line.match(/CASH REQUEST|AMOUNT/i)
         if (match) {
           const type = match[0].toUpperCase()
-          const amount = parseFloat(line.match(/\d+/)?.[0] || '0')
+          const amount = Number.parseFloat(line.match(/\d+/)?.[0] || '0')
           const denomination = amount >= 100000 ? 100000 : 50000
           const quantity = Math.floor(amount / denomination)
 

@@ -1,15 +1,15 @@
 // FILEPATH: e:/work-report/dev/reportapp/src/components/login.tsx
 'use client'
-import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { Session } from '@supabase/supabase-js'
-import supabase from '@/lib/supabase'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert'
+import type { Session } from '@supabase/supabase-js'
 import { motion } from 'framer-motion'
 import { Eye, EyeOff, Lock, Mail, Moon, Sun } from 'lucide-react'
+import { useRouter } from 'next/navigation'
 import { useTheme } from 'next-themes'
+import { useEffect, useState } from 'react'
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import supabase from '@/lib/supabase'
 
 const idleTimeout = 30 * 60 * 1000 // 30 minutes
 
@@ -29,7 +29,7 @@ export default function Login() {
       const now = new Date().getTime()
       const lastActivity = localStorage.getItem('lastActivity')
       if (lastActivity) {
-        const idleTime = now - parseInt(lastActivity)
+        const idleTime = now - Number.parseInt(lastActivity)
         if (idleTime > idleTimeout) {
           setIdle(true)
         }
@@ -162,7 +162,7 @@ export default function Login() {
             {loading ? (
               <motion.div
                 animate={{ rotate: 360 }}
-                transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+                transition={{ duration: 1, repeat: Number.POSITIVE_INFINITY, ease: 'linear' }}
                 className="w-5 h-5 border-2 border-primary-foreground border-t-transparent rounded-full"
               />
             ) : (

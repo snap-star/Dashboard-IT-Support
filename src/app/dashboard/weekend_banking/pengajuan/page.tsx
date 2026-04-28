@@ -1,16 +1,14 @@
 'use client'
 
-import { useForm, useFieldArray } from 'react-hook-form'
 import Image from 'next/image'
-import { useState, useRef, useEffect } from 'react'
-import { Table, TableBody, TableRow, TableCell, TableHeader } from '@/components/ui/table'
-import { Label } from '@/components/ui/label'
-import { Input } from '@/components/ui/input'
-import { Textarea } from '@/components/ui/textarea'
+import { useEffect, useRef, useState } from 'react'
+import { useFieldArray, useForm } from 'react-hook-form'
+import WeekendLayout from '@/app/dashboard/weekend_banking/layout'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
-import supabase from '@/lib/supabase'
-import WeekendLayout from '@/app/dashboard/weekend_banking/layout'
+import { DatePicker } from '@/components/ui/date-picker'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import {
   Select,
   SelectContent,
@@ -18,7 +16,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { DatePicker } from '@/components/ui/date-picker'
+import { Table, TableBody, TableCell, TableHeader, TableRow } from '@/components/ui/table'
+import { Textarea } from '@/components/ui/textarea'
+import supabase from '@/lib/supabase'
 
 type User = {
   user_estim: string
@@ -649,14 +649,14 @@ export default function Home() {
                     </TableCell>
                   </TableRow>
                   <TableRow>
-                    <TableCell className="border px-2 py-9 text-center"></TableCell>
-                    <TableCell className="border px-2 py-9 text-center"></TableCell>
-                    <TableCell className="border px-2 py-9 text-center"></TableCell>
-                    <TableCell className="border px-2 py-9 text-center"></TableCell>
+                    <TableCell className="border px-2 py-9 text-center" />
+                    <TableCell className="border px-2 py-9 text-center" />
+                    <TableCell className="border px-2 py-9 text-center" />
+                    <TableCell className="border px-2 py-9 text-center" />
                   </TableRow>
                   <TableRow>
-                    <TableCell className="border px-2 py-2 text-center"></TableCell>
-                    <TableCell className="border px-2 py-2 text-center"></TableCell>
+                    <TableCell className="border px-2 py-2 text-center" />
+                    <TableCell className="border px-2 py-2 text-center" />
                     <TableCell className="border px-1 py-1 text-center text-xs">
                       <Input
                         aria-placeholder="Nama Atasan"
@@ -709,12 +709,12 @@ export default function Home() {
                       </TableCell>
                     </TableRow>
                     <TableRow>
-                      <TableCell className="border px-2 py-12 text-center"></TableCell>
-                      <TableCell className="border px-2 py-12 text-center"></TableCell>
+                      <TableCell className="border px-2 py-12 text-center" />
+                      <TableCell className="border px-2 py-12 text-center" />
                     </TableRow>
                     <TableRow>
-                      <TableCell className="border px-2 py-4 text-center"></TableCell>
-                      <TableCell className="border px-2 py-4 text-center"></TableCell>
+                      <TableCell className="border px-2 py-4 text-center" />
+                      <TableCell className="border px-2 py-4 text-center" />
                     </TableRow>
                   </TableBody>
                 </Table>

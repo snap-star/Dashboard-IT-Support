@@ -1,13 +1,16 @@
 import { PersonIcon } from '@radix-ui/react-icons'
-import { Computer, FileWarning, LucideIcon, Video } from 'lucide-react'
 import {
-  LayoutDashboard,
-  FileText,
-  Users,
   Calendar,
-  HardDrive,
-  Wrench,
+  Computer,
   CreditCard,
+  FileText,
+  FileWarning,
+  HardDrive,
+  LayoutDashboard,
+  type LucideIcon,
+  Users,
+  Video,
+  Wrench,
 } from 'lucide-react'
 import { title } from 'process'
 

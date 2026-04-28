@@ -1,11 +1,12 @@
 'use client'
 
+import { Upload } from 'lucide-react'
 import React, { useState } from 'react'
 import * as XLSX from 'xlsx'
-import { Input } from '@/components/ui/input'
+import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Alert, AlertDescription } from '@/components/ui/alert'
+import { Input } from '@/components/ui/input'
 import {
   Table,
   TableBody,
@@ -14,7 +15,6 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import { Upload } from 'lucide-react'
 import supabase from '@/lib/supabase'
 
 const ExcelUploader = () => {

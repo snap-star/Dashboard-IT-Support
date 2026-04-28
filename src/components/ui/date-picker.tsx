@@ -1,14 +1,13 @@
 'use client'
 
-import * as React from 'react'
 import { format } from 'date-fns'
-
-import { cn } from '@/lib/utils'
+import { id } from 'date-fns/locale'
+import * as React from 'react'
 import { Button } from '@/components/ui/button'
 import { Calendar } from '@/components/ui/calendar'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area'
-import { id } from 'date-fns/locale'
+import { cn } from '@/lib/utils'
 
 export function DatePicker() {
   const [date, setDate] = React.useState<Date>()
@@ -25,9 +24,9 @@ export function DatePicker() {
     if (date) {
       const newDate = new Date(date)
       if (type === 'hour') {
-        newDate.setHours(parseInt(value, 10))
+        newDate.setHours(Number.parseInt(value, 10))
       } else if (type === 'minute') {
-        newDate.setMinutes(parseInt(value, 10))
+        newDate.setMinutes(Number.parseInt(value, 10))
       }
       setDate(newDate)
     }

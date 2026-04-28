@@ -1,8 +1,7 @@
 'use client'
 
+import { type ColumnDef, getCoreRowModel, useReactTable } from '@tanstack/react-table'
 import { useEffect, useState } from 'react'
-import supabase from '@/lib/supabase'
-import { ColumnDef, useReactTable, getCoreRowModel } from '@tanstack/react-table'
 import {
   Table,
   TableBody,
@@ -11,6 +10,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import supabase from '@/lib/supabase'
 
 type User = {
   id: number
