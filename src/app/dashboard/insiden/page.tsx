@@ -1,22 +1,32 @@
 'use client'
 
-import * as React from 'react'
 import {
-  ColumnDef,
-  ColumnFiltersState,
-  SortingState,
-  VisibilityState,
+  type ColumnDef,
+  type ColumnFiltersState,
   flexRender,
   getCoreRowModel,
   getFilteredRowModel,
   getPaginationRowModel,
   getSortedRowModel,
+  type SortingState,
   useReactTable,
+  type VisibilityState,
 } from '@tanstack/react-table'
+import { format } from 'date-fns'
+import { id } from 'date-fns/locale/id'
+import { CalendarIcon, Download, Pencil, Plus, Trash } from 'lucide-react'
+import * as React from 'react'
+import type { DateRange } from 'react-day-picker'
+import { toast } from 'sonner'
+import * as XLSX from 'xlsx'
+import ReportLayout from '@/app/dashboard/reports/layout'
+import { Button } from '@/components/ui/button'
+import { Calendar } from '@/components/ui/calendar'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { DatePickerDefault } from '@/components/ui/date-picker-default'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
-import { Button } from '@/components/ui/button'
-import { Textarea } from '@/components/ui/textarea'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import {
   Select,
   SelectContent,
@@ -24,8 +34,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { CalendarIcon, Download } from 'lucide-react'
-import { format } from 'date-fns'
 import {
   Table,
   TableBody,
@@ -34,18 +42,9 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
+import { Textarea } from '@/components/ui/textarea'
 import supabase from '@/lib/supabase'
-import ReportLayout from '@/app/dashboard/reports/layout'
-import { Pencil, Trash, Plus } from 'lucide-react'
-import { id } from 'date-fns/locale/id'
 import { cn } from '@/lib/utils'
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
-import { Calendar } from '@/components/ui/calendar'
-import * as XLSX from 'xlsx'
-import { toast } from 'sonner'
-import { DateRange } from 'react-day-picker'
-import { DatePickerDefault } from '@/components/ui/date-picker-default'
 
 type Incident = {
   id: number

@@ -1,13 +1,14 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import supabase from '@/lib/supabase'
 import {
-  ColumnDef,
-  useReactTable,
+  type ColumnDef,
   getCoreRowModel,
   getPaginationRowModel,
+  useReactTable,
 } from '@tanstack/react-table'
+import { useEffect, useState } from 'react'
+import { toast } from 'sonner'
+import * as XLSX from 'xlsx'
 import {
   Table,
   TableBody,
@@ -16,8 +17,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import { toast } from 'sonner'
-import * as XLSX from 'xlsx'
+import supabase from '@/lib/supabase'
 
 type User = {
   id: number

@@ -1,12 +1,17 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { createClient } from '@supabase/supabase-js'
-import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import * as z from 'zod'
-import * as XLSX from 'xlsx'
+import { createClient } from '@supabase/supabase-js'
+import { format } from 'date-fns'
 import { id } from 'date-fns/locale'
+import { CalendarIcon, Download, Upload } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { useForm } from 'react-hook-form'
+import { toast } from 'sonner'
+import * as XLSX from 'xlsx'
+import * as z from 'zod'
+import { Button } from '@/components/ui/button'
+import { Calendar } from '@/components/ui/calendar'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import {
   Form,
@@ -16,6 +21,8 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form'
+import { Input } from '@/components/ui/input'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import {
   Select,
   SelectContent,
@@ -23,13 +30,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Input } from '@/components/ui/input'
-import { Button } from '@/components/ui/button'
-import { toast } from 'sonner'
-import { Download, Upload, CalendarIcon } from 'lucide-react'
-import { format } from 'date-fns'
-import { Calendar } from '@/components/ui/calendar'
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 
 const formSchema = z.object({
   atmId: z.string().min(1, 'ATM harus dipilih'),
@@ -85,7 +85,7 @@ export default function ATMReconciliationPage() {
       const { data, error } = await supabase
         .from('atm_machines')
         .select('*')
-        .order('tid', { ascending: true })
+        .order('ATMID', { ascending: true })
 
       if (error) {
         console.error('Supabase error:', error)
@@ -109,10 +109,10 @@ export default function ATMReconciliationPage() {
       lines.forEach(line => {
         // Sesuaikan dengan format EJ file masing-masing vendor
         // Ini hanya contoh parsing sederhana
-        const match = line.match(/WITHDRAW|DEPOSIT/i)
+        const match = line.match(/CASH REQUEST|AMOUNT/i)
         if (match) {
           const type = match[0].toUpperCase()
-          const amount = parseFloat(line.match(/\d+/)?.[0] || '0')
+          const amount = Number.parseFloat(line.match(/\d+/)?.[0] || '0')
           const denomination = amount >= 100000 ? 100000 : 50000
           const quantity = Math.floor(amount / denomination)
 
@@ -158,7 +158,7 @@ export default function ATMReconciliationPage() {
     const selectedAtm = atms.find(a => a.id === form.getValues('atmId'))
 
     const summaryData = [
-      ['ATM', `${selectedAtm?.tid} - ${selectedAtm?.location} (${selectedAtm?.type})`],
+      ['ATM', `${selectedAtm?.ATMID} - ${selectedAtm?.LOCATION} (${selectedAtm?.type})`],
       ['Tanggal', form.getValues('date')],
       [''],
       ['Denominasi', 'Masuk', 'Keluar', 'Selisih'],
@@ -183,7 +183,7 @@ export default function ATMReconciliationPage() {
     XLSX.utils.book_append_sheet(wb, ws1, 'Ringkasan')
     XLSX.utils.book_append_sheet(wb, ws2, 'Detail Transaksi')
 
-    XLSX.writeFile(wb, `rekonsiliasi_${selectedAtm?.tid}_${form.getValues('date')}.xlsx`)
+    XLSX.writeFile(wb, `rekonsiliasi_${selectedAtm?.ATMID}_${form.getValues('date')}.xlsx`)
   }
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
@@ -210,11 +210,11 @@ export default function ATMReconciliationPage() {
     switch (type) {
       case 'NCR':
         return 'bg-green-100 text-green-600'
-      case 'Hyosung':
+      case 'HYOSUNG':
         return 'bg-blue-100 text-blue-600'
-      case 'Wincor':
+      case 'WINCOR':
         return 'bg-purple-100 text-purple-600'
-      case 'Oki':
+      case 'OKI':
         return 'bg-orange-100 text-orange-600'
       default:
         return 'bg-gray-100 text-gray-600'
@@ -259,9 +259,9 @@ export default function ATMReconciliationPage() {
                             >
                               <div className="flex items-center justify-between w-full">
                                 <div className="flex flex-col">
-                                  <span className="font-medium text-base">{atm.tid}</span>
+                                  <span className="font-medium text-base">{atm.ATMID}</span>
                                   <span className="text-sm text-muted-foreground">
-                                    {atm.location}
+                                    {atm.LOCATION}
                                   </span>
                                 </div>
                                 <span

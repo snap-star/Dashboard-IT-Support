@@ -27,11 +27,11 @@ export function calculateSubnetInfo(network: string, subnetMask: string) {
 
   // Hitung jumlah host bits
   const hostBits = subnetBinary.split('0').length - 1
-  const totalHosts = Math.pow(2, hostBits) - 2 // Kurangi network & broadcast
+  const totalHosts = 2 ** hostBits - 2 // Kurangi network & broadcast
 
   // Generate usable IP addresses
   const usableHosts: string[] = []
-  const networkInt = parseInt(networkBinary, 2)
+  const networkInt = Number.parseInt(networkBinary, 2)
 
   for (let i = 1; i < totalHosts + 1; i++) {
     const hostInt = networkInt + i

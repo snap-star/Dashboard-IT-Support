@@ -1,18 +1,18 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { Input } from '@/components/ui/input'
-import { Button } from '@/components/ui/button'
-import { Checkbox } from '@/components/ui/checkbox'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Textarea } from '@/components/ui/textarea'
-import { ScrollArea } from '@/components/ui/scroll-area'
-import { PlusCircle, Trash2, Save, Pencil, Download } from 'lucide-react'
-import supabase from '@/lib/supabase'
-import { toast } from 'sonner'
 import { Dialog, DialogContent, DialogTitle } from '@radix-ui/react-dialog'
-import { DialogHeader } from './ui/dialog'
 import { Popover } from '@radix-ui/react-popover'
+import { Download, Pencil, PlusCircle, Save, Trash2 } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { toast } from 'sonner'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Checkbox } from '@/components/ui/checkbox'
+import { Input } from '@/components/ui/input'
+import { ScrollArea } from '@/components/ui/scroll-area'
+import { Textarea } from '@/components/ui/textarea'
+import supabase from '@/lib/supabase'
+import { DialogHeader } from './ui/dialog'
 
 export default function NotesTask() {
   const [noteContent, setNoteContent] = useState('')
@@ -260,7 +260,7 @@ export default function NotesTask() {
       <Card>
         <CardHeader>
           <CardTitle>Daftar Tugas</CardTitle>
-          <CardDescription></CardDescription>
+          <CardDescription />
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex gap-2">

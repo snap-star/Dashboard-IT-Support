@@ -1,10 +1,10 @@
 // components/TotalIncidentsCard.tsx
 'use client'
+import { motion } from 'framer-motion'
+import { AlertOctagon } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import supabase from '@/lib/supabase'
-import { AlertOctagon } from 'lucide-react'
-import { motion } from 'framer-motion'
 
 export function TotalIncidentsCard() {
   const [totalIncidents, setTotalIncidents] = useState<number>(0)

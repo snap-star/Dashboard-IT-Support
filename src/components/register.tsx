@@ -1,12 +1,12 @@
 'use client'
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import supabase from '@/lib/supabase'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert'
 import { motion } from 'framer-motion'
 import { Eye, EyeOff, Lock, Mail, User } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { useState } from 'react'
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import supabase from '@/lib/supabase'
 
 export default function Register() {
   const [name, setName] = useState('')
@@ -157,7 +157,7 @@ export default function Register() {
             {loading ? (
               <motion.div
                 animate={{ rotate: 360 }}
-                transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+                transition={{ duration: 1, repeat: Number.POSITIVE_INFINITY, ease: 'linear' }}
                 className="w-5 h-5 border-2 border-primary-foreground border-t-transparent rounded-full"
               />
             ) : (

@@ -1,9 +1,9 @@
 'use client'
 import { motion } from 'framer-motion'
-import Login from '@/components/login'
-import { Button } from '@/components/ui/button'
 import { Moon, Sun } from 'lucide-react'
 import { useTheme } from 'next-themes'
+import Login from '@/components/login'
+import { Button } from '@/components/ui/button'
 
 export default function Home() {
   const { theme, setTheme } = useTheme()
@@ -21,7 +21,7 @@ export default function Home() {
             }}
             transition={{
               duration: 10,
-              repeat: Infinity,
+              repeat: Number.POSITIVE_INFINITY,
               repeatType: 'reverse',
             }}
           />
@@ -33,7 +33,7 @@ export default function Home() {
             }}
             transition={{
               duration: 15,
-              repeat: Infinity,
+              repeat: Number.POSITIVE_INFINITY,
               repeatType: 'reverse',
             }}
           />
@@ -45,7 +45,7 @@ export default function Home() {
             }}
             transition={{
               duration: 12,
-              repeat: Infinity,
+              repeat: Number.POSITIVE_INFINITY,
               repeatType: 'reverse',
             }}
           />

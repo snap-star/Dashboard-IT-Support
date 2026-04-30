@@ -1,10 +1,10 @@
 'use client'
 
+import { motion } from 'framer-motion'
+import { Network, Users } from 'lucide-react'
 import * as React from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import supabase from '@/lib/supabase'
-import { Users, Network } from 'lucide-react'
-import { motion } from 'framer-motion'
 
 export default function DashboardOverview() {
   const [totalIpAddress, setTotalIpAddress] = React.useState(0)

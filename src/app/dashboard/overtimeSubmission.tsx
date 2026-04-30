@@ -1,6 +1,7 @@
-import React, { useState } from 'react'
 import jsPDF from 'jspdf'
 import autoTable from 'jspdf-autotable'
+import type React from 'react'
+import { useState } from 'react'
 
 interface OvertimeDate {
   tanggal: string
@@ -37,7 +38,7 @@ const OvertimeSubmission: React.FC = () => {
 
   const handleChange = (entryIndex: number, field: keyof FormEntry, value: string) => {
     const newEntries = [...entries]
-    // @ts-ignore
+    // @ts-expect-error
     newEntries[entryIndex][field] = value
     setEntries(newEntries)
   }
@@ -165,7 +166,7 @@ const OvertimeSubmission: React.FC = () => {
     })
 
     // Konfigurasi untuk merge cells
-    const didParseCell = function (data: any) {
+    const didParseCell = (data: any) => {
       const row = data.row.index
       const col = data.column.index
 
@@ -430,7 +431,7 @@ const OvertimeSubmission: React.FC = () => {
                   onChange={e => handleChange(entryIndex, 'keterangan', e.target.value)}
                   required
                   className="w-full border px-3 py-2"
-                ></textarea>
+                />
               </div>
               <div>
                 <label className="block">Alasan</label>

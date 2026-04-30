@@ -1,8 +1,18 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { zodResolver } from '@hookform/resolvers/zod'
 import { format } from 'date-fns'
 import { id } from 'date-fns/locale'
+import { Download, Edit, Loader2, Plus, Trash2 } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { useForm } from 'react-hook-form'
+import { CartesianGrid, Legend, Line, LineChart, Tooltip, XAxis, YAxis } from 'recharts'
+import { toast } from 'sonner'
+import * as XLSX from 'xlsx'
+import { z } from 'zod'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { type ChartConfig, ChartContainer } from '@/components/ui/chart'
 import {
   Dialog,
   DialogContent,
@@ -12,32 +22,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
-import { toast } from 'sonner'
-import { Loader2, Download, Plus, Edit, Trash2 } from 'lucide-react'
-import * as XLSX from 'xlsx'
-import { z } from 'zod'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import supabase from '@/lib/supabase'
 import {
   Form,
   FormControl,
@@ -46,8 +30,24 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form'
-import { LineChart, Line, CartesianGrid, XAxis, YAxis, Tooltip, Legend } from 'recharts'
-import { ChartConfig, ChartContainer } from '@/components/ui/chart'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
+import supabase from '@/lib/supabase'
 
 // Interface untuk data transaksi
 interface TransaksiATM {
@@ -197,7 +197,7 @@ export default function RekapTransaksiATM() {
       const { data, error } = await supabase
         .from('rekap_transaksi_atm')
         .select('*')
-        .eq('tahun', parseInt(selectedYear))
+        .eq('tahun', Number.parseInt(selectedYear))
         .order('atm_id', { ascending: true })
         .order('bulan', { ascending: true })
 
@@ -210,12 +210,12 @@ export default function RekapTransaksiATM() {
         const existingData = acc.find(item => item.bulan === curr.bulan)
         if (existingData) {
           existingData.total_transaksi += curr.jumlah_transaksi
-          existingData.total_nominal += parseFloat(curr.total_nominal)
+          existingData.total_nominal += Number.parseFloat(curr.total_nominal)
         } else {
           acc.push({
             bulan: curr.bulan,
             total_transaksi: curr.jumlah_transaksi,
-            total_nominal: parseFloat(curr.total_nominal),
+            total_nominal: Number.parseFloat(curr.total_nominal),
           })
         }
         return acc
@@ -233,7 +233,7 @@ export default function RekapTransaksiATM() {
       if (!uniqueYears.includes(selectedYear)) {
         uniqueYears.push(selectedYear)
       }
-      setYears(uniqueYears.sort((a, b) => parseInt(b) - parseInt(a)))
+      setYears(uniqueYears.sort((a, b) => Number.parseInt(b) - Number.parseInt(a)))
     } catch (error: any) {
       console.error('Error:', error)
       toast.error('Gagal memuat data')
@@ -261,11 +261,13 @@ export default function RekapTransaksiATM() {
 
       const dataToSubmit = {
         atm_id: values.atm_id,
-        tahun: parseInt(values.tahun),
+        tahun: Number.parseInt(values.tahun),
         bulan: values.bulan,
-        jumlah_transaksi: parseInt(values.jumlah_transaksi),
-        total_nominal: parseFloat(values.total_nominal),
-        rata_rata_harian: parseFloat((parseInt(values.jumlah_transaksi) / 30).toFixed(2)), // Simplified average
+        jumlah_transaksi: Number.parseInt(values.jumlah_transaksi),
+        total_nominal: Number.parseFloat(values.total_nominal),
+        rata_rata_harian: Number.parseFloat(
+          (Number.parseInt(values.jumlah_transaksi) / 30).toFixed(2),
+        ), // Simplified average
         keterangan: values.keterangan || null,
       }
 
@@ -411,7 +413,7 @@ export default function RekapTransaksiATM() {
   useEffect(() => {
     const checkCompletion = async () => {
       const completion = await checkMonthlyCompletion(
-        parseInt(selectedYear),
+        Number.parseInt(selectedYear),
         bulanOptions[new Date().getMonth()],
       )
       if (completion) {

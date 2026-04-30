@@ -1,8 +1,5 @@
 'use client'
 
-import * as React from 'react'
-import { useRouter } from 'next/navigation'
-import supabase from '@/lib/supabase'
 import {
   AudioWaveform,
   BookOpen,
@@ -16,8 +13,12 @@ import {
   Settings2,
   SquareTerminal,
 } from 'lucide-react'
+import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import * as React from 'react'
 
 import { NavMain } from '@/components/nav-main'
+import { Button } from '@/components/ui/button'
 import {
   Sidebar,
   SidebarContent,
@@ -26,10 +27,9 @@ import {
   SidebarRail,
 } from '@/components/ui/sidebar'
 import { navMain, singleNavMain } from '@/config/menuItems'
+import supabase from '@/lib/supabase'
 import { cn } from '@/lib/utils'
-import { Button } from '@/components/ui/button'
 import { ModeToggle } from './ui/darkmode'
-import Link from 'next/link'
 import { Label } from './ui/label'
 
 // This is sample data.

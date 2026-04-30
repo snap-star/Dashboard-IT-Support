@@ -1,8 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import supabase from '@/lib/supabase'
 import { toast } from 'sonner'
+import supabase from '@/lib/supabase'
 
 type UserFormProps = {
   onSuccessAction: () => void

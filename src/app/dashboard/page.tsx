@@ -1,6 +1,6 @@
 import { ITIncidentOverviewCard } from '@/components/ITIncidentOverviewCard'
-import DashboardOverview from '@/components/total-users'
 import { TotalIncidentsCard } from '@/components/TotalIncidentsCard'
+import DashboardOverview from '@/components/total-users'
 import { Card } from '@/components/ui/card'
 import { ScrollArea } from '@/components/ui/scroll-area'
 

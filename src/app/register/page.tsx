@@ -1,9 +1,9 @@
 'use client'
 import { motion } from 'framer-motion'
-import Register from '@/components/register'
-import { Button } from '@/components/ui/button'
 import { Moon, Sun } from 'lucide-react'
 import { useTheme } from 'next-themes'
+import Register from '@/components/register'
+import { Button } from '@/components/ui/button'
 
 export default function RegisterPage() {
   const { theme, setTheme } = useTheme()
@@ -21,7 +21,7 @@ export default function RegisterPage() {
             }}
             transition={{
               duration: 10,
-              repeat: Infinity,
+              repeat: Number.POSITIVE_INFINITY,
               repeatType: 'reverse',
             }}
           />
@@ -33,7 +33,7 @@ export default function RegisterPage() {
             }}
             transition={{
               duration: 15,
-              repeat: Infinity,
+              repeat: Number.POSITIVE_INFINITY,
               repeatType: 'reverse',
             }}
           />
@@ -45,7 +45,7 @@ export default function RegisterPage() {
             }}
             transition={{
               duration: 12,
-              repeat: Infinity,
+              repeat: Number.POSITIVE_INFINITY,
               repeatType: 'reverse',
             }}
           />

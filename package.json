@@ -1,14 +1,15 @@
 {
   "name": "dashboard-it-support",
-  "version": "1.1.0",
+  "version": "1.8.0",
+  "packageManager": "pnpm@10.23.0",
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
-    "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "lint": "biome lint --write",
+    "format": "biome format --write",
+    "check": "biome check"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
@@ -59,13 +60,13 @@
     "zod": "^3.24.1"
   },
   "devDependencies": {
+    "@biomejs/biome": "2.4.13",
     "@types/file-saver": "^2.0.7",
     "@types/jest": "^29.5.14",
     "@types/node": "^20.17.12",
     "@types/react": "^19.0.4",
     "@types/react-dom": "^19.0.2",
-    "postcss": "^8.4.49",
-    "prettier": "3.4.2",
+    "postcss": "^8.5.12",
     "tailwindcss": "^3.4.17",
     "typescript": "^5.7.3"
   }

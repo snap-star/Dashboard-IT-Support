@@ -1,12 +1,12 @@
 'use client'
 
 import { useState } from 'react'
-import { Input } from '@/components/ui/input'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Label } from '@/components/ui/label'
 import { any } from 'zod'
 import { Alert, AlertDescription } from '@/components/ui/alert'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 
 export function IPCalculator() {
   const [ipAddress, setIpAddress] = useState('')
@@ -66,13 +66,13 @@ export function IPCalculator() {
 
       // Hitung first dan last usable address
       const firstUsable: any = networkAddress.split('.')
-      firstUsable[3] = parseInt(firstUsable[3]) + 1
+      firstUsable[3] = Number.parseInt(firstUsable[3]) + 1
 
       const lastUsable: any = broadcastAddress.split('.')
-      lastUsable[3] = parseInt(lastUsable[3]) - 1
+      lastUsable[3] = Number.parseInt(lastUsable[3]) - 1
 
       // Hitung total host
-      const totalHosts = Math.pow(2, maskBinary.split('0').length - 1) - 2
+      const totalHosts = 2 ** (maskBinary.split('0').length - 1) - 2
 
       setResult({
         networkAddress,
@@ -89,7 +89,7 @@ export function IPCalculator() {
   // Helper function untuk konversi binary ke decimal
   const binaryToDecimal = (binary: string) => {
     const octets = binary.match(/.{8}/g) || []
-    return octets.map(x => parseInt(x, 2)).join('.')
+    return octets.map(x => Number.parseInt(x, 2)).join('.')
   }
 
   return (

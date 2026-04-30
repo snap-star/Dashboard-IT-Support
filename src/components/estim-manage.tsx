@@ -1,16 +1,31 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
-import * as XLSX from 'xlsx'
-import supabase from '@/lib/supabase'
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table'
+  ArrowLeft,
+  ChevronDown,
+  ChevronUp,
+  Download,
+  DownloadIcon,
+  Filter,
+  Loader2,
+  MoreVertical,
+  Pencil,
+  Plus,
+  Search,
+  Trash,
+  Upload,
+} from 'lucide-react'
+import type React from 'react'
+import { useEffect, useState } from 'react'
+import { toast } from 'sonner'
+import * as XLSX from 'xlsx'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -26,40 +41,26 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog'
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
+import { useDebounce } from '@/hooks/use-debounce'
+import supabase from '@/lib/supabase'
+import { Button } from './ui/button'
+import { Card, CardContent } from './ui/card'
 import {
   Pagination,
   PaginationContent,
   PaginationItem,
+  PaginationLink,
   PaginationNext,
   PaginationPrevious,
-  PaginationLink,
 } from './ui/pagination'
-import {
-  Search,
-  Download,
-  MoreVertical,
-  Plus,
-  Loader2,
-  Pencil,
-  Upload,
-  DownloadIcon,
-  Trash,
-  Filter,
-  ChevronDown,
-  ChevronUp,
-  ArrowLeft,
-} from 'lucide-react'
-import { Button } from './ui/button'
-import { toast } from 'sonner'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/tooltip'
-import { Card, CardContent } from './ui/card'
-import { useDebounce } from '@/hooks/use-debounce'
 
 // Define types
 type As400User = {
@@ -680,7 +681,7 @@ const EmployeeAS400Management = () => {
       }
     }
 
-    for (let i of range) {
+    for (const i of range) {
       if (l) {
         if (i - l === 2) {
           rangeWithDots.push(l + 1)
@@ -1229,7 +1230,7 @@ const EmployeeAS400Management = () => {
                 <div className="p-4 space-y-4">
                   {[...Array(3)].map((_, i) => (
                     <div key={i} className="animate-pulse">
-                      <div className="bg-muted h-32 rounded-lg"></div>
+                      <div className="bg-muted h-32 rounded-lg" />
                     </div>
                   ))}
                 </div>
