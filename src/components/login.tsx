@@ -1,17 +1,15 @@
 // FILEPATH: e:/work-report/dev/reportapp/src/components/login.tsx
 'use client'
-import type { Session } from '@supabase/supabase-js'
+
 import { motion } from 'framer-motion'
 import { Eye, EyeOff, Lock, Mail, Moon, Sun } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useTheme } from 'next-themes'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import supabase from '@/lib/supabase'
-
-const idleTimeout = 30 * 60 * 1000 // 30 minutes
+import { createClient } from '@/lib/supabase/client'
 
 export default function Login() {
   const [email, setEmail] = useState('')
@@ -20,35 +18,7 @@ export default function Login() {
   const [loading, setLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
   const router = useRouter()
-  const [session, setSession] = useState<Session | null>(null)
-  const [idle, setIdle] = useState(false)
   const { theme, setTheme } = useTheme()
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      const now = new Date().getTime()
-      const lastActivity = localStorage.getItem('lastActivity')
-      if (lastActivity) {
-        const idleTime = now - Number.parseInt(lastActivity)
-        if (idleTime > idleTimeout) {
-          setIdle(true)
-        }
-      }
-    }, 1000)
-    return () => clearInterval(interval)
-  }, [])
-
-  useEffect(() => {
-    if (idle) {
-      handleLogout()
-    }
-  }, [idle])
-
-  const handleLogout = async () => {
-    await supabase.auth.signOut()
-    setSession(null)
-    router.push('/')
-  }
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -56,26 +26,23 @@ export default function Login() {
     setErrorMessage(null)
 
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
+      const supabase = createClient()
+      const { error } = await supabase.auth.signInWithPassword({
         email,
         password,
       })
 
       if (error) throw error
 
-      setSession(data.session)
-      localStorage.setItem('lastActivity', new Date().getTime().toString())
       router.push('/dashboard')
+      router.refresh() // Refresh server components to pick up new session
+    // biome-ignore lint/suspicious/noExplicitAny: We want to catch any error and display a generic message
     } catch (error: any) {
       setErrorMessage('Invalid email or password. Please try again.')
-      console.error('Error logging in:', error.message)
+      console.error('Error logging in:', error.Message)
     } finally {
       setLoading(false)
     }
-  }
-
-  const handleActivity = () => {
-    localStorage.setItem('lastActivity', new Date().getTime().toString())
   }
 
   return (

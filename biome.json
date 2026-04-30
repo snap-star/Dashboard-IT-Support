@@ -39,6 +39,15 @@
   "linter": {
     "enabled": true,
     "rules": {
+      "suspicious": {
+        "useIterableCallbackReturn": "warn"
+      },
+      "correctness": {
+        "noUnusedVariables": {
+          "level": "error",
+          "fix": "none"
+        }
+      },
       "recommended": true,
       "style": {
         "noInferrableTypes": "error",
@@ -50,7 +59,15 @@
         "useEnumInitializers": "error",
         "useNumberNamespace": "error",
         "useSelfClosingElements": "error",
-        "useSingleVarDeclarator": "error"
+        "useSingleVarDeclarator": "error",
+        "useConst": {
+          "level": "warn",
+          "fix": "unsafe"
+        },
+         "useTemplate": {
+          "level": "warn",
+          "fix": "safe"
+        }
       }
     }
   },
