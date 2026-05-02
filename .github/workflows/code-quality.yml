@@ -15,7 +15,7 @@ jobs:
     name: Security Audit
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: ./.github/actions/setup
       - name: Audit dependencies
         run: pnpm audit --audit-level=moderate
@@ -25,7 +25,7 @@ jobs:
     name: Check Unused Dependencies
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: ./.github/actions/setup
       - name: Run depcheck
         run: pnpm exec depcheck
