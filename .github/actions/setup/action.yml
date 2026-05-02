@@ -9,8 +9,8 @@ runs:
 
     - name: Setup pnpm
       uses: pnpm/action-setup@v4
+      # Removed 'version' — reads from packageManager field in package.json
       with:
-        version: 9
         run_install: false
 
     - name: Setup Node.js
