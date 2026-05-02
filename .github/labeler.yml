@@ -1,0 +1,102 @@
+# Frontend / UI
+frontend:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'app/**/*'
+          - 'src/app/**/*'
+          - 'components/**/*'
+          - 'src/components/**/*'
+          - 'hooks/**/*'
+          - 'src/hooks/**/*'
+          - 'lib/**/*'
+          - 'src/lib/**/*'
+          - 'public/**/*'
+
+# API / Backend routes
+api:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'app/api/**/*'
+          - 'src/app/api/**/*'
+          - 'pages/api/**/*'
+          - 'src/pages/api/**/*'
+
+# Database / Supabase
+database:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'supabase/**/*'
+          - '**/supabase/**/*'
+          - '**/*supabase*'
+          - 'prisma/**/*'
+          - 'drizzle/**/*'
+          - 'migrations/**/*'
+
+# Styles / CSS / Tailwind
+styles:
+  - changed-files:
+      - any-glob-to-any-file:
+          - '**/*.css'
+          - '**/*.scss'
+          - '**/*.sass'
+          - '**/*.less'
+          - 'tailwind.config.*'
+          - 'postcss.config.*'
+
+# Configuration / Tooling
+config:
+  - changed-files:
+      - any-glob-to-any-file:
+          - '.github/**/*'
+          - '*.config.*'
+          - 'tsconfig.json'
+          - 'jsconfig.json'
+          - '.env*'
+          - 'next.config.*'
+          - 'middleware.*'
+
+# Biome / Linting
+biome:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'biome.json'
+          - 'biome.jsonc'
+          - '.biomeignore'
+
+# Dependencies
+dependencies:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'package.json'
+          - 'pnpm-lock.yaml'
+          - 'pnpm-workspace.yaml'
+          - '.npmrc'
+
+# Documentation
+documentation:
+  - changed-files:
+      - any-glob-to-any-file:
+          - '**/*.md'
+          - '**/*.mdx'
+          - 'docs/**/*'
+
+# Tests
+tests:
+  - changed-files:
+      - any-glob-to-any-file:
+          - '**/*.test.*'
+          - '**/*.spec.*'
+          - '**/__tests__/**/*'
+          - 'playwright.config.*'
+          - 'vitest.config.*'
+          - 'jest.config.*'
+          - 'cypress/**/*'
+          - 'e2e/**/*'
+
+# Deployment / Vercel
+deployment:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'vercel.json'
+          - '.vercelignore'
+          - '.github/workflows/deploy.yml'

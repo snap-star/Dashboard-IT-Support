@@ -2,40 +2,31 @@ name: Code Quality
 
 on:
   push:
-    branches: [master, Development]
+    branches: [master, main, Development]
   pull_request:
-    branches: [master, Development]
+    branches: [master, main, Development]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
-  code-quality:
+  security-audit:
+    name: Security Audit
     runs-on: ubuntu-latest
-
-    strategy:
-      matrix:
-        node-version: [20.x]
-
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v2
-        with:
-          version: 8
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ matrix.node-version }}
-          cache: 'pnpm'
-
-      - name: Install dependencies
-        run: pnpm install
-
-      - name: Run security vulnerabilities check
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup
+      - name: Audit dependencies
         run: pnpm audit --audit-level=moderate
         continue-on-error: true
 
-      - name: Check for unused dependencies
+  unused-deps:
+    name: Check Unused Dependencies
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup
+      - name: Run depcheck
         run: pnpm exec depcheck
         continue-on-error: true
