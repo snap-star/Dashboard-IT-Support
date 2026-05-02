@@ -1,0 +1,64 @@
+# Dependabot configuration for Dashboard-IT-Support
+# Docs: https://docs.github.com/code-security/dependabot/dependabot-version-updates/configuration-options-for-the-dependabot.yml-file
+
+version: 2
+updates:
+  # 1. NPM / pnpm dependencies (package.json, pnpm-lock.yaml)
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "Asia/Jakarta"  # adjust to your timezone
+    open-pull-requests-limit: 10
+    reviewers:
+      - "snap-star"
+    assignees:
+      - "snap-star"
+    labels:
+      - "dependencies"
+      - "npm"
+    commit-message:
+      prefix: "chore(deps)"
+      include: "scope"
+    groups:
+      # Group minor & patch updates together to reduce PR noise
+      minor-patch-dependencies:
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+          - "patch"
+      # Group major updates separately so they get individual review
+      major-dependencies:
+        patterns:
+          - "*"
+        update-types:
+          - "major"
+    ignore:
+      # Optional: ignore specific packages if they break often
+      # - dependency-name: "some-package"
+      #   versions: [">=2.0.0"]
+
+  # 2. GitHub Actions (if you use workflows in .github/workflows)
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "Asia/Jakarta"
+    open-pull-requests-limit: 5
+    reviewers:
+      - "snap-star"
+    labels:
+      - "dependencies"
+      - "github-actions"
+    commit-message:
+      prefix: "chore(ci)"
+      include: "scope"
+    groups:
+      github-actions:
+        patterns:
+          - "*"
