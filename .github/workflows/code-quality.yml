@@ -28,5 +28,5 @@ jobs:
       - uses: actions/checkout@v6
       - uses: ./.github/actions/setup
       - name: Run depcheck
-        run: pnpm exec depcheck
+        run: pnpm dlx depcheck
         continue-on-error: true
