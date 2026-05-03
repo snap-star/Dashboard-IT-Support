@@ -1,0 +1,39 @@
+name: "Semantic PR"
+
+on:
+  pull_request_target:
+    types:
+      - opened
+      - edited
+      - synchronize
+      - reopened
+
+permissions:
+  pull-requests: read
+  statuses: write        # <-- REQUIRED for commit status API
+
+jobs:
+  main:
+    name: Validate PR title
+    runs-on: ubuntu-latest
+    steps:
+      - uses: amannn/action-semantic-pull-request@v6
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          types: |
+            fix
+            feat
+            docs
+            style
+            refactor
+            perf
+            test
+            chore
+            ci
+            revert
+          requireScope: false
+          subjectPattern: ^(?!.*\.$).+$
+          subjectPatternError: |
+            The subject "{subject}" found in the pull request title "{title}" is invalid. It must not end with a period.
+          wip: true
