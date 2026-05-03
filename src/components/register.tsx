@@ -1,6 +1,6 @@
 'use client'
 import { motion } from 'framer-motion'
-import { Eye, EyeOff, Lock, Mail, User } from 'lucide-react'
+import { Eye, EyeOff, IdCardIcon, Lock, Mail, PhoneCallIcon, SmartphoneIcon, TagIcon, User } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
@@ -10,6 +10,9 @@ import supabase from '@/lib/supabase'
 
 export default function Register() {
   const [name, setName] = useState('')
+  const [nip, setNip] = useState('')
+  const [nohp, setNohp] = useState('')
+  const [jabatan, setJabatan] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
@@ -37,13 +40,16 @@ export default function Register() {
         options: {
           data: {
             name: name,
+            nip: nip,
+            nohp: nohp,
+            jabatan: jabatan,
           },
         },
       })
 
       if (error) throw error
 
-      router.push('/login')
+      router.push('/')
     } catch (error: any) {
       setErrorMessage(error.message)
       console.error('Error registering:', error.message)
@@ -62,7 +68,7 @@ export default function Register() {
       >
         <form
           onSubmit={handleRegister}
-          className="bg-card/50 backdrop-blur-sm rounded-2xl shadow-xl p-8 space-y-6 border"
+          className="bg-card/50 backdrop-blur-sm rounded-2xl shadow-xl p-8 space-y-6 border hover:border-red-500 dark:hover:border-white"
         >
           <motion.div
             initial={{ opacity: 0 }}
@@ -96,6 +102,42 @@ export default function Register() {
                 className="pl-10 pr-4 py-2 w-full bg-background/50 focus:bg-background transition-colors"
                 required
               />
+            </div>
+
+            <div className='relative'>
+              <IdCardIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-5 w-5" />
+              <Input
+                type="text"
+                placeholder="Nip 8 Digit"
+                value={nip}
+                onChange={e => setNip(e.target.value)}
+                className="pl-10 pr-4 py-2 w-full bg-background/50 focus:bg-background transition-colors"
+                required
+                />
+            </div>
+
+            <div className='relative'>
+              <SmartphoneIcon className='absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-5 w-5' />
+              <Input
+                type='text'
+                placeholder='Nomor HP'
+                value={nohp}
+                onChange={e => setNohp(e.target.value)}
+                className='pl-10 pr-4 py-2 w-full bg-background/50 focus:bg-background transition-colors'
+                required
+                />
+            </div>
+
+            <div className='relative'>
+              <TagIcon className='absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-5 w-5' />
+              <Input
+                type='text'
+                placeholder='Jabatan'
+                value={jabatan}
+                onChange={e => setJabatan(e.target.value)}
+                className='pl-10 pr-4 py-2 w-full bg-background/50 focus:bg-background transition-colors'
+                required
+                />
             </div>
 
             <div className="relative">
@@ -161,7 +203,7 @@ export default function Register() {
                 className="w-5 h-5 border-2 border-primary-foreground border-t-transparent rounded-full"
               />
             ) : (
-              'Daftar Akun'
+              'Daftar'
             )}
           </Button>
 
