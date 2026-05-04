@@ -1,6 +1,6 @@
 'use client'
 import { motion } from 'framer-motion'
-import { Eye, EyeOff, IdCardIcon, Lock, Mail, SmartphoneIcon, TagIcon, User } from 'lucide-react'
+import { BuildingIcon, Eye, EyeOff, IdCardIcon, LampDeskIcon, Lock, Mail, SmartphoneIcon, TagIcon, User } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
@@ -13,6 +13,8 @@ export default function Register() {
   const [nip, setNip] = useState('')
   const [nohp, setNohp] = useState('')
   const [jabatan, setJabatan] = useState('')
+  const [departement_unit, setDepartementUnit] = useState('')
+  const [branch_office, setBranchOffice] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
@@ -39,10 +41,12 @@ export default function Register() {
         password,
         options: {
           data: {
-            name: full_name,
+            full_name: full_name,
             nip: nip,
             nohp: nohp,
             jabatan: jabatan,
+            departement_unit: departement_unit,
+            branch_office: branch_office,
           },
         },
       })
@@ -135,6 +139,30 @@ export default function Register() {
                 placeholder='Jabatan'
                 value={jabatan}
                 onChange={e => setJabatan(e.target.value)}
+                className='pl-10 pr-4 py-2 w-full bg-background/50 focus:bg-background transition-colors'
+                required
+                />
+            </div>
+
+            <div className='relative'>
+              <LampDeskIcon className='absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-5 w-5' />
+              <Input
+                type='text'
+                placeholder='Departement Unit'
+                value={departement_unit}
+                onChange={e => setDepartementUnit(e.target.value)}
+                className='pl-10 pr-4 py-2 w-full bg-background/50 focus:bg-background transition-colors'
+                required
+                />
+            </div>
+
+            <div className='relative'>
+              <BuildingIcon className='absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-5 w-5' />
+              <Input
+                type='text'
+                placeholder='Branch Office'
+                value={branch_office}
+                onChange={e => setBranchOffice(e.target.value)}
                 className='pl-10 pr-4 py-2 w-full bg-background/50 focus:bg-background transition-colors'
                 required
                 />
