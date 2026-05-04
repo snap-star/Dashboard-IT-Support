@@ -1,6 +1,6 @@
 'use client'
 import { motion } from 'framer-motion'
-import { Eye, EyeOff, IdCardIcon, Lock, Mail, PhoneCallIcon, SmartphoneIcon, TagIcon, User } from 'lucide-react'
+import { Eye, EyeOff, IdCardIcon, Lock, Mail, SmartphoneIcon, TagIcon, User } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input'
 import supabase from '@/lib/supabase'
 
 export default function Register() {
-  const [name, setName] = useState('')
+  const [full_name, setFullName] = useState('')
   const [nip, setNip] = useState('')
   const [nohp, setNohp] = useState('')
   const [jabatan, setJabatan] = useState('')
@@ -34,12 +34,12 @@ export default function Register() {
     }
 
     try {
-      const { data, error } = await supabase.auth.signUp({
+      const { error } = await supabase.auth.signUp({
         email,
         password,
         options: {
           data: {
-            name: name,
+            name: full_name,
             nip: nip,
             nohp: nohp,
             jabatan: jabatan,
@@ -97,8 +97,8 @@ export default function Register() {
               <Input
                 type="text"
                 placeholder="Nama Lengkap"
-                value={name}
-                onChange={e => setName(e.target.value)}
+                value={full_name}
+                onChange={e => setFullName(e.target.value)}
                 className="pl-10 pr-4 py-2 w-full bg-background/50 focus:bg-background transition-colors"
                 required
               />
