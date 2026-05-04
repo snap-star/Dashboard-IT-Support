@@ -13,7 +13,7 @@ export default function Register() {
   const [nip, setNip] = useState('')
   const [nohp, setNohp] = useState('')
   const [jabatan, setJabatan] = useState('')
-  const [departement_unit, setDepartementUnit] = useState('')
+  const [department_unit, setDepartmentUnit] = useState('')
   const [branch_office, setBranchOffice] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -45,7 +45,7 @@ export default function Register() {
             nip: nip,
             nohp: nohp,
             jabatan: jabatan,
-            departement_unit: departement_unit,
+            department_unit: department_unit,
             branch_office: branch_office,
           },
         },
@@ -148,9 +148,9 @@ export default function Register() {
               <LampDeskIcon className='absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-5 w-5' />
               <Input
                 type='text'
-                placeholder='Departement Unit'
-                value={departement_unit}
-                onChange={e => setDepartementUnit(e.target.value)}
+                placeholder='Department Unit'
+                value={department_unit}
+                onChange={e => setDepartmentUnit(e.target.value)}
                 className='pl-10 pr-4 py-2 w-full bg-background/50 focus:bg-background transition-colors'
                 required
                 />
