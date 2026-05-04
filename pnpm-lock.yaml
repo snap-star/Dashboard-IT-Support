@@ -144,8 +144,8 @@ importers:
         specifier: https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz
         version: https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz
       zod:
-        specifier: ^3.24.1
-        version: 3.24.1
+        specifier: ^4.4.2
+        version: 4.4.2
     devDependencies:
       '@biomejs/biome':
         specifier: 2.4.14
@@ -2201,8 +2201,11 @@ packages:
     engines: {node: '>= 14.6'}
     hasBin: true
 
-  zod@3.24.1:
-    resolution: {integrity: sha512-muH7gBL9sI1nciMZV67X5fTKKBLtwpZ5VBp1vsOQzj1MhrBZ4wlVCm3gedKZWLp0Oyel8sIGfeiz54Su+OVT+A==}
+  zod@3.25.76:
+    resolution: {integrity: sha512-gzUt/qt81nXsFGKIFcC3YnfEAx5NkunCfnDlvuBSSFS02bcXu4Lmea0AFIUwbLWxWPx3d9p8S5QoaujKcNQxcQ==}
+
+  zod@4.4.2:
+    resolution: {integrity: sha512-IynmDyxsEsb9RKzO3J9+4SxXnl2FTFSzNBaKKaMV6tsSk0rw9gYw9gs+JFCq/qk2LCZ78KDwyj+Z289TijSkUw==}
 
 snapshots:
 
@@ -2973,7 +2976,7 @@ snapshots:
       node-fetch: 3.3.2
       ora: 6.3.1
       prompts: 2.4.2
-      zod: 3.24.1
+      zod: 3.25.76
 
   '@sinclair/typebox@0.27.8': {}
 
@@ -4150,4 +4153,6 @@ snapshots:
 
   yaml@2.8.3: {}
 
-  zod@3.24.1: {}
+  zod@3.25.76: {}
+
+  zod@4.4.2: {}
