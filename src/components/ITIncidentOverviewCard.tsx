@@ -26,7 +26,7 @@ export function ITIncidentOverviewCard() {
 
   useEffect(() => {
     fetchIncidentCounts()
-  }, [])
+  })
 
   async function fetchIncidentCounts() {
     setIsLoading(true)

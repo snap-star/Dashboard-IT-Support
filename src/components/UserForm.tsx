@@ -4,9 +4,21 @@ import { useState } from 'react'
 import { toast } from 'sonner'
 import supabase from '@/lib/supabase'
 
+// ✅ Fix: Define the proper User type instead of `string`
+type User = {
+  id: string
+  user_estim: string
+  ip_address: string
+  nama: string
+  jabatan: string
+  unit_kerja: string
+  cab: string
+  status_user: string
+}
+
 type UserFormProps = {
   onSuccessAction: () => void
-  user?: any // Optional untuk edit data
+  user?: User // Optional untuk edit data // ✅ Was `string`, now `User`
 }
 
 export default function UserForm({ onSuccessAction, user }: UserFormProps) {
@@ -47,25 +59,29 @@ export default function UserForm({ onSuccessAction, user }: UserFormProps) {
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
-        <label className="block text-sm font-medium">User ESTIM</label>
-        <input
-          type="text"
-          placeholder="User ESTIM"
-          value={formData.user_estim}
-          onChange={e => setFormData({ ...formData, user_estim: e.target.value })}
-          className="input"
-          required
-        />
+        <label className="block text-sm font-medium">
+          User ESTIM
+          <input
+            type="text"
+            placeholder="User ESTIM"
+            value={formData.user_estim}
+            onChange={e => setFormData({ ...formData, user_estim: e.target.value })}
+            className="input"
+            required
+          />
+        </label>
       </div>
       <div>
-        <label className="block text-sm font-medium">Nama</label>
-        <input
-          type="text"
-          placeholder="Nama"
-          value={formData.nama}
-          onChange={e => setFormData({ ...formData, nama: e.target.value })}
-          className="input"
-        />
+        <label className="block text-sm font-medium">
+          Nama
+          <input
+            type="text"
+            placeholder="Nama"
+            value={formData.nama}
+            onChange={e => setFormData({ ...formData, nama: e.target.value })}
+            className="input"
+          />
+        </label>
       </div>
       {/* Tambahkan field lainnya */}
       <button type="submit" className="btn btn-primary">
