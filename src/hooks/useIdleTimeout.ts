@@ -1,4 +1,3 @@
-/** biome-ignore-all lint/suspicious/useIterableCallbackReturn:. */
 'use client'
 
 import { useRouter } from 'next/navigation'
@@ -12,23 +11,12 @@ export function useIdleTimeout() {
   const idleTimerRef = useRef<NodeJS.Timeout | null>(null)
   const warningTimerRef = useRef<NodeJS.Timeout | null>(null)
   const [showWarning, setShowWarning] = useState(false)
+  // ✅ Fix 1: Removed unused `isLoggedIn`
 
   const logout = useCallback(async () => {
     await fetch('/api/auth/logout', { method: 'POST' })
     router.push('/login')
   }, [router])
-
-  // biome-ignore lint/correctness/useExhaustiveDependencies: The dependencies are correctly specified for the intended behavior of this hook, and adding more dependencies could lead to unintended consequences or performance issues.
-  const extendSession = useCallback(async () => {
-    // Call server action to refresh token and reset idle
-    const res = await fetch('/api/auth/refresh', { method: 'POST' })
-    if (!res.ok) {
-      logout()
-      return
-    }
-    setShowWarning(false)
-    resetTimers()
-  }, [logout])
 
   const resetTimers = useCallback(() => {
     if (idleTimerRef.current) clearTimeout(idleTimerRef.current)
@@ -43,18 +31,28 @@ export function useIdleTimeout() {
     }, IDLE_TIMEOUT)
   }, [logout])
 
-  useEffect(() => {
-    const events = ['mousedown', 'keydown', 'touchstart', 'scroll']
+  const extendSession = useCallback(async () => {
+    const res = await fetch('/api/auth/refresh', { method: 'POST' })
+    if (!res.ok) {
+      logout()
+      return
+    }
+    setShowWarning(false)
+    resetTimers()
+  }, [logout, resetTimers]) // ✅ Fix 2: Added `resetTimers` to deps
 
+  useEffect(() => {
     const handleActivity = () => {
       resetTimers()
     }
 
-    events.forEach(event => window.addEventListener(event, handleActivity))
+    const events = ['mousedown', 'keydown', 'touchstart', 'scroll']
+    // ✅ Fix 3 & 4: Renamed shadowed `events` param to `event`
+    events.forEach(event => { window.addEventListener(event, handleActivity) })
     resetTimers()
 
     return () => {
-      events.forEach(event => window.removeEventListener(event, handleActivity))
+      events.forEach(event => { window.removeEventListener(event, handleActivity) })
       if (idleTimerRef.current) clearTimeout(idleTimerRef.current)
       if (warningTimerRef.current) clearTimeout(warningTimerRef.current)
     }

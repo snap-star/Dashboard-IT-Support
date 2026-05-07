@@ -1,7 +1,8 @@
 'use client'
 import { motion } from 'framer-motion'
 import { BuildingIcon, Eye, EyeOff, IdCardIcon, LampDeskIcon, Lock, Mail, SmartphoneIcon, TagIcon, User } from 'lucide-react'
-import { useRouter } from 'next/navigation'
+// @ts-ignore
+import {useRouter} from 'next/navigation'
 import { useState } from 'react'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'

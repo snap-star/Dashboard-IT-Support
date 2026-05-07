@@ -5,7 +5,7 @@ import { useTheme } from 'next-themes'
 import Login from '@/components/login'
 import { Button } from '@/components/ui/button'
 
-export default function Home() {
+export default function App() {
   const { theme, setTheme } = useTheme()
 
   return (
@@ -88,7 +88,7 @@ export default function Home() {
             transition={{ delay: 0.5 }}
             className="text-sm text-center text-muted-foreground"
           >
-            &copy; {new Date().getFullYear()} Dashboard IT Support by Oren
+            &copy; Copyright 2023 - 2026 Dashboard IT Support by Oren
           </motion.p>
         </footer>
       </div>
