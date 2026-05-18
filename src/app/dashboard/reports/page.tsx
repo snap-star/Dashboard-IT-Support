@@ -233,7 +233,7 @@ export default function RoomChecklistPage() {
         form.setValue('image_url', imageUrl)
         toast.success('Gambar berhasil diunggah')
       } catch (error: any) {
-        toast.error('Gagal mengunggah gambar:' + error + error.message)
+        toast.error(`Gagal mengunggah gambar:${error}${error.message}`)
       }
     },
     [form],

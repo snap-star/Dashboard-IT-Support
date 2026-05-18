@@ -1,10 +1,11 @@
 'use client'
 import { CalendarIcon } from '@radix-ui/react-icons'
 import { format } from 'date-fns'
+import { id } from 'date-fns/locale'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
+import { DayPicker, type DayPickerLocale } from 'react-day-picker'
 import { Button } from '@/components/ui/button'
-import { Calendar } from '@/components/ui/calendar'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
@@ -66,8 +67,9 @@ export default function WorkReportForm({ initialData, onSubmitSuccess }: WorkRep
       } else {
         router.push('/dashboard/reports')
       }
+    // biome-ignore lint/suspicious/noExplicitAny: want to catch any error
     } catch (error: any) {
-      setError('Error submitting report: ' + error.message)
+      setError(`Error submitting report: ${error.message}`)
     }
   }
 
@@ -125,11 +127,11 @@ export default function WorkReportForm({ initialData, onSubmitSuccess }: WorkRep
             </Button>
           </PopoverTrigger>
           <PopoverContent className="w-auto p-0">
-            <Calendar
+            <DayPicker
               mode="single"
               selected={date ? new Date(date) : undefined}
               onSelect={date => setDate(date ? date.toISOString() : '')}
-              initialFocus
+              locale={id as DayPickerLocale}
             />
           </PopoverContent>
         </Popover>

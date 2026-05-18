@@ -1,7 +1,7 @@
 'use client'
 import { motion } from 'framer-motion'
 import { BuildingIcon, Eye, EyeOff, IdCardIcon, LampDeskIcon, Lock, Mail, SmartphoneIcon, TagIcon, User } from 'lucide-react'
-// @ts-ignore
+// @ts-expect-error
 import {useRouter} from 'next/navigation'
 import { useState } from 'react'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
