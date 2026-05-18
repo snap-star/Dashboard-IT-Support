@@ -48,11 +48,15 @@ export function useIdleTimeout() {
 
     const events = ['mousedown', 'keydown', 'touchstart', 'scroll']
     // ✅ Fix 3 & 4: Renamed shadowed `events` param to `event`
-    events.forEach(event => { window.addEventListener(event, handleActivity) })
+    events.forEach(event => {
+      window.addEventListener(event, handleActivity)
+    })
     resetTimers()
 
     return () => {
-      events.forEach(event => { window.removeEventListener(event, handleActivity) })
+      events.forEach(event => {
+        window.removeEventListener(event, handleActivity)
+      })
       if (idleTimerRef.current) clearTimeout(idleTimerRef.current)
       if (warningTimerRef.current) clearTimeout(warningTimerRef.current)
     }

@@ -30,7 +30,7 @@ const nextConfig: NextConfig = {
       },
     ]
   },
-  poweredByHeader : false,
+  poweredByHeader: false,
 }
 
 export default nextConfig

@@ -12,7 +12,6 @@ import {
   Video,
   Wrench,
 } from 'lucide-react'
-import { title } from 'process'
 
 export const navMain = [
   {
