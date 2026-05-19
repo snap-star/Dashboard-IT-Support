@@ -1,4 +1,6 @@
 # Dashboard IT Support
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fsnap-star%2FDashboard-IT-Support.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Fsnap-star%2FDashboard-IT-Support?ref=badge_shield)
+
 
 Dashboard IT Support is a modern Next.js application designed to help IT teams manage support
 operations, incidents, asset inventories, ATM monitoring, overtime submissions, employee records,
@@ -96,3 +98,7 @@ For Vercel, simply connect the repository, configure environment variables, and 
 - The app supports rich IT support workflows across incidents, asset tracking, ATM reporting, and
   employee management.
 - Customize the workflow and Supabase schema as needed for your organization.
+
+
+## License
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fsnap-star%2FDashboard-IT-Support.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Fsnap-star%2FDashboard-IT-Support?ref=badge_large)
