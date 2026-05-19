@@ -22,7 +22,7 @@ and reporting in one centralized interface.
 
 ## Tech Stack
 
-- Next.js 15
+- [Next.JS](https://nextjs.org/)
 - React 19
 - TypeScript
 - Tailwind CSS
