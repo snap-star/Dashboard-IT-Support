@@ -11,37 +11,34 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { Input } from '@/components/ui/input'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Textarea } from '@/components/ui/textarea'
+import { getErrorMessage } from '@/hooks/functionGetErrorMessage'
 import supabase from '@/lib/supabase'
 import { DialogHeader } from './ui/dialog'
+import {Label} from './ui/label';
 
 export default function NotesTask() {
-  const [noteContent, setNoteContent] = useState('')
-  const [notes, setNotes] = useState<Note[]>([])
-  const [taskTitle, setTaskTitle] = useState('')
-  const [tasks, setTasks] = useState<Task[]>([])
-  const [editingNoteId, setEditingNoteId] = useState<number | null>(null)
-  const [editingContent, setEditingContent] = useState('')
-  const [selectedNote, setSelectedNote] = useState<Note | null>(null)
-  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [noteContent, setNoteContent] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [notes, setNotes] = useState<Note[]>([]);
+  const [taskTitle, setTaskTitle] = useState('');
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [editingNoteId, setEditingNoteId] = useState<number | null>(null);
+  const [editingContent, setEditingContent] = useState('');
+  const [selectedNote, setSelectedNote] = useState<Note | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   interface Note {
-    id: number
-    content: string
-    created_at: string
+    id: number;
+    content: string;
+    created_at: string;
   }
 
   interface Task {
-    id: number
-    title: string
-    is_completed: boolean
-    created_at: string
+    id: number;
+    title: string;
+    is_completed: boolean;
+    created_at: string;
   }
-
-  // Fetch initial data
-  useEffect(() => {
-    fetchNotes()
-    fetchTasks()
-  }, [])
 
   // Notes Handlers
   const fetchNotes = async () => {
@@ -100,7 +97,7 @@ export default function NotesTask() {
       fetchNotes()
     }
   }
-
+// Export notes as text file
   const exportNotes = () => {
     try {
       const notesText = notes.map(note => `${note.content}\n\n`).join('')
@@ -111,51 +108,54 @@ export default function NotesTask() {
       a.download = 'notes.txt'
       a.click()
       toast.success('Notes exported successfully')
-    } catch (error) {
-      toast.error('Failed to export notes')
+    } catch (error: unknown) {
+      toast.error(getErrorMessage(error))
+    } finally {
+      setLoading(false)
     }
+    toast.error('Failed to export notes')
   }
-
+  
   // Task Handlers
   const fetchTasks = async () => {
     const { data, error } = await supabase
-      .from('tasks')
-      .select('*')
-      .order('created_at', { ascending: false })
-
+    .from('tasks')
+    .select('*')
+    .order('created_at', { ascending: false })
+    
     if (!error) setTasks(data)
-  }
-
+    }
+  // Add new task
   const addTask = async () => {
-    const { error } = await supabase.from('tasks').insert([{ title: taskTitle }])
-
+    const { error } = await supabase.from('tasks').insert([{ title: taskTitle, is_completed: false }])
+    
     if (!error) {
       setTaskTitle('')
       fetchTasks()
     }
   }
-
-  const toggleTask = async (taskId: any, isCompleted: any) => {
+  // Toggle task completion
+  const toggleTask = async (taskId:string, isCompleted:boolean) => {
     const { error } = await supabase
-      .from('tasks')
-      .update({ is_completed: !isCompleted })
-      .eq('id', taskId)
-
+    .from('tasks')
+    .update({ is_completed: !isCompleted })
+    .eq('id', taskId)
+    
     if (!error) fetchTasks()
-  }
-
-  const deleteTask = async (taskId: any) => {
+    }
+  
+  const deleteTask = async (taskId:string) => {
     const { error } = await supabase.from('tasks').delete().eq('id', taskId)
-
+    
     if (!error) fetchTasks()
-  }
-
+    }
+  
   const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter' && taskTitle.trim()) {
       addTask()
     }
   }
-
+  
   return (
     <div className="container mx-auto p-6 grid md:grid-cols-2 gap-6">
       <Card>
@@ -172,7 +172,7 @@ export default function NotesTask() {
             onChange={e => setNoteContent(e.target.value)}
             placeholder="Tulis Catatan mu disini..."
             className="min-h-[150px] resize-y"
-          />
+            />
           <Button onClick={saveNote} className="w-full" variant="default">
             <Save className="w-4 h-4 mr-2" />
             Save Note
@@ -194,7 +194,7 @@ export default function NotesTask() {
                           value={editingContent}
                           onChange={e => setEditingContent(e.target.value)}
                           className="min-h-[100px]"
-                        />
+                          />
                         <div className="flex gap-2">
                           <Button onClick={() => editNote(note.id)} size="sm">
                             Save
@@ -203,22 +203,22 @@ export default function NotesTask() {
                             onClick={() => setEditingNoteId(null)}
                             variant="outline"
                             size="sm"
-                          >
+                            >
                             Cancel
                           </Button>
                         </div>
                       </div>
                     ) : (
                       <div className="flex justify-between items-start">
-                        <p
+                        <Label
                           className="whitespace-pre-wrap text-sm line-clamp-3 cursor-pointer hover:text-muted-foreground"
                           onClick={() => {
                             setSelectedNote(note)
                             setIsModalOpen(true)
                           }}
-                        >
+                          >
                           {note.content}
-                        </p>
+                        </Label>
                         <div className="flex gap-2">
                           <Button
                             variant="ghost"
@@ -227,7 +227,7 @@ export default function NotesTask() {
                               setEditingNoteId(note.id)
                               setEditingContent(note.content)
                             }}
-                          >
+                            >
                             <Pencil className="w-4 h-4" />
                           </Button>
                           <Button
@@ -235,7 +235,7 @@ export default function NotesTask() {
                             size="icon"
                             onClick={() => deleteNote(note.id)}
                             className="text-destructive"
-                          >
+                            >
                             <Trash2 className="w-4 h-4" />
                           </Button>
                         </div>
@@ -268,8 +268,8 @@ export default function NotesTask() {
               value={taskTitle}
               onChange={e => setTaskTitle(e.target.value)}
               placeholder="Judul tugas baru..."
-              onKeyPress={handleKeyPress}
-            />
+              onKeyPress<HTMLInputElement>=handleKeyPress}
+              />
             <Button onClick={addTask} variant="default">
               <PlusCircle className="w-4 h-4" />
             </Button>
@@ -293,20 +293,22 @@ export default function NotesTask() {
                         <div className="flex items-center gap-3">
                           <Checkbox
                             checked={task.is_completed}
-                            onCheckedChange={() => toggleTask(task.id, task.is_completed)}
-                          />
+                            key={task.id}
+                            onCheckedChange={() => toggleTask( task.title, task.is_completed)}
+                            />
                           <span
                             className={`${task.is_completed ? 'line-through text-muted-foreground' : ''}`}
-                          >
+                            >
                             {task.title}
                           </span>
                         </div>
                         <Button
                           variant="ghost"
+                          key={task.id}
                           size="icon"
-                          onClick={() => deleteTask(task.id)}
+                          onClick={() => deleteTask(task.title)}
                           className="text-destructive hover:text-destructive"
-                        >
+                          >
                           <Trash2 className="w-4 h-4" />
                         </Button>
                       </div>
@@ -320,4 +322,5 @@ export default function NotesTask() {
       </Card>
     </div>
   )
+  
 }

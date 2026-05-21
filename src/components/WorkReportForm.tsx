@@ -67,7 +67,7 @@ export default function WorkReportForm({ initialData, onSubmitSuccess }: WorkRep
         router.push('/dashboard/reports')
       }
     } catch (error: any) {
-      setError('Error submitting report: ' + error.message)
+      setError(`Error submitting report: ${error.message}`)
     }
   }
 

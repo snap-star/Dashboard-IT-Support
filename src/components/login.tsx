@@ -9,6 +9,7 @@ import { useState } from 'react'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { getErrorMessage } from '@/hooks/functionGetErrorMessage'
 import { createClient } from '@/lib/supabase/client'
 
 export default function Login() {
@@ -20,7 +21,7 @@ export default function Login() {
   const router = useRouter()
   const { theme, setTheme } = useTheme()
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleLogin = async (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault()
     setLoading(true)
     setErrorMessage(null)
@@ -32,14 +33,13 @@ export default function Login() {
         password,
       })
 
-      if (error) throw error
+      if (error) throw getErrorMessage(error)
 
       router.push('/dashboard')
       router.refresh() // Refresh server components to pick up new session
-    // biome-ignore lint/suspicious/noExplicitAny: We want to catch any error and display a generic message
-    } catch (error: any) {
-      setErrorMessage('Invalid email or password. Please try again.')
-      console.error('Error logging in:', error.Message)
+    } catch (error: unknown) {
+      setErrorMessage(getErrorMessage(error))
+      console.error('Error logging in:', error)
     } finally {
       setLoading(false)
     }

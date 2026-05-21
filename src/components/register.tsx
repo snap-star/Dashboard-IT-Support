@@ -1,12 +1,12 @@
 'use client'
 import { motion } from 'framer-motion'
 import { BuildingIcon, Eye, EyeOff, IdCardIcon, LampDeskIcon, Lock, Mail, SmartphoneIcon, TagIcon, User } from 'lucide-react'
-// @ts-ignore
 import {useRouter} from 'next/navigation'
 import { useState } from 'react'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { getErrorMessage } from '@/hooks/functionGetErrorMessage'
 import supabase from '@/lib/supabase'
 
 export default function Register() {
@@ -25,7 +25,7 @@ export default function Register() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const router = useRouter()
 
-  const handleRegister = async (e: React.FormEvent) => {
+  const handleRegister = async (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault()
     setLoading(true)
     setErrorMessage(null)
@@ -55,9 +55,9 @@ export default function Register() {
       if (error) throw error
 
       router.push('/')
-    } catch (error: any) {
-      setErrorMessage(error.message)
-      console.error('Error registering:', error.message)
+    } catch (error: unknown) {
+      setErrorMessage(getErrorMessage(error))
+      console.error('Error registering:', error)
     } finally {
       setLoading(false)
     }

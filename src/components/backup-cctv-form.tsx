@@ -171,7 +171,7 @@ export function BackupCCTVForm() {
         ...record,
         tanggal_backup: format(new Date(record.tanggal_backup), 'dd MMMM yyyy', { locale: id }),
         created_at:
-          format(new Date(record.created_at), 'dd MMMM yyyy HH:mm:ss', { locale: id }) + ' WIB',
+          `${format(new Date(record.created_at), 'dd MMMM yyyy HH:mm:ss', { locale: id })} WIB`,
       }))
 
       const ws = XLSX.utils.json_to_sheet(formattedData)
