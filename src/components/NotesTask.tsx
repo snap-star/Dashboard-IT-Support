@@ -268,7 +268,7 @@ export default function NotesTask() {
               value={taskTitle}
               onChange={e => setTaskTitle(e.target.value)}
               placeholder="Judul tugas baru..."
-              onKeyPress<HTMLInputElement>=handleKeyPress}
+              onKeyPress={handleKeyPress}
               />
             <Button onClick={addTask} variant="default">
               <PlusCircle className="w-4 h-4" />
