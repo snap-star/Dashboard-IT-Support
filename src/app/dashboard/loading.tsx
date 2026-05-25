@@ -20,7 +20,7 @@ export default function DashboardLoading() {
       <div className="grid gap-4 md:grid-cols-2">
         {[...Array(2)].map((_, i) => (
           <Card key={i} className="p-4">
-            <Skeleton className="aspect-[4/3]" />
+            <Skeleton className="aspect-4/3" />
           </Card>
         ))}
       </div>

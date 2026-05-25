@@ -30,11 +30,11 @@ export default function Dashboard() {
         <div className="grid gap-4 md:grid-cols-2">
           <Card className="p-4">
             {/* Add your chart component here */}
-            <div className="aspect-[4/3] rounded-lg bg-muted/50" />
+            <div className="aspect-4/3 rounded-lg bg-muted/50" />
           </Card>
           <Card className="p-4">
             {/* Add another chart component here */}
-            <div className="aspect-[4/3] rounded-lg bg-muted/50" />
+            <div className="aspect-4/3 rounded-lg bg-muted/50" />
           </Card>
         </div>
 

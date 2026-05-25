@@ -242,7 +242,7 @@ export default function ATMReconciliationPage() {
                       value={field.value || ''} // Gunakan value alih-alih defaultValue
                     >
                       <FormControl>
-                        <SelectTrigger className="w-full h-auto min-h-[2.5rem] py-2">
+                        <SelectTrigger className="w-full h-auto min-h-10 py-2">
                           <SelectValue
                             placeholder="Pilih ATM"
                             className="text-base placeholder:text-muted-foreground"

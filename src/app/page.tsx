@@ -9,10 +9,10 @@ export default function App() {
   const { theme, setTheme } = useTheme();
 
   return (
-    <div className="min-h-screen relative bg-gradient-to-br from-background to-secondary/20">
+    <div className="min-h-screen relative bg-linear-to-br from-background to-secondary/20">
       {/* Animated Background Elements */}
       <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute -inset-[10px] opacity-50">
+        <div className="absolute inset-[-10px] opacity-50">
           <motion.div
             className="absolute top-1/4 left-1/4 w-72 h-72 bg-primary/10 rounded-full mix-blend-multiply filter blur-xl"
             animate={{
@@ -69,7 +69,7 @@ export default function App() {
         </header>
 
         {/* Login Component */}
-        <main className="flex-grow flex items-center justify-center px-4">
+        <main className="grow flex items-center justify-center px-4">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
