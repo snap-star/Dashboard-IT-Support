@@ -75,11 +75,6 @@
     "@types/node": "^25.9.1",
     "@types/react": "^19.2.15",
     "@types/react-dom": "^19.2.3",
-<<<<<<< HEAD
-=======
-    "postcss": "^8.5.15",
-    "tailwindcss": "^4.3.0",
->>>>>>> 40b05a232f9fc348632c1cecd56cf1309d6d110e
     "typescript": "^6.0.3"
   }
 }
