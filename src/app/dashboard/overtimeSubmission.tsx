@@ -1,23 +1,23 @@
-import jsPDF from 'jspdf'
-import autoTable from 'jspdf-autotable'
-import type React from 'react'
-import { useState } from 'react'
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
+import type React from 'react';
+import { useState } from 'react';
 
 interface OvertimeDate {
-  tanggal: string
+  tanggal: string;
 }
 
 interface FormEntry {
-  nip: string
-  nama: string
-  jabatan: string
-  rekening: string
-  keterangan: string
-  alasan: string
-  unitBagian: string
-  tanggals: OvertimeDate[]
-  penyelia: string
-  jabatanPenyelia: string
+  nip: string;
+  nama: string;
+  jabatan: string;
+  rekening: string;
+  keterangan: string;
+  alasan: string;
+  unitBagian: string;
+  tanggals: OvertimeDate[];
+  penyelia: string;
+  jabatanPenyelia: string;
 }
 
 const OvertimeSubmission: React.FC = () => {
@@ -34,20 +34,20 @@ const OvertimeSubmission: React.FC = () => {
       penyelia: '',
       jabatanPenyelia: '',
     },
-  ])
+  ]);
 
   const handleChange = (entryIndex: number, field: keyof FormEntry, value: string) => {
-    const newEntries = [...entries]
+    const newEntries = [...entries];
     // @ts-expect-error
-    newEntries[entryIndex][field] = value
-    setEntries(newEntries)
-  }
+    newEntries[entryIndex][field] = value;
+    setEntries(newEntries);
+  };
 
   const handleDateChange = (entryIndex: number, dateIndex: number, value: string) => {
-    const newEntries = [...entries]
-    newEntries[entryIndex].tanggals[dateIndex].tanggal = value
-    setEntries(newEntries)
-  }
+    const newEntries = [...entries];
+    newEntries[entryIndex].tanggals[dateIndex].tanggal = value;
+    setEntries(newEntries);
+  };
 
   const addEntry = () => {
     setEntries([
@@ -64,93 +64,93 @@ const OvertimeSubmission: React.FC = () => {
         penyelia: '',
         jabatanPenyelia: '',
       },
-    ])
-  }
+    ]);
+  };
 
   const removeEntry = (entryIndex: number) => {
-    const newEntries = [...entries]
-    newEntries.splice(entryIndex, 1)
-    setEntries(newEntries)
-  }
+    const newEntries = [...entries];
+    newEntries.splice(entryIndex, 1);
+    setEntries(newEntries);
+  };
 
   const addDate = (entryIndex: number) => {
-    const newEntries = [...entries]
-    newEntries[entryIndex].tanggals.push({ tanggal: '' })
-    setEntries(newEntries)
-  }
+    const newEntries = [...entries];
+    newEntries[entryIndex].tanggals.push({ tanggal: '' });
+    setEntries(newEntries);
+  };
 
   const removeDate = (entryIndex: number, dateIndex: number) => {
-    const newEntries = [...entries]
-    newEntries[entryIndex].tanggals.splice(dateIndex, 1)
-    setEntries(newEntries)
-  }
+    const newEntries = [...entries];
+    newEntries[entryIndex].tanggals.splice(dateIndex, 1);
+    setEntries(newEntries);
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
     // Simpan data ke backend atau state global
-    console.log(entries)
-    alert('Pengajuan lembur berhasil dikirim!')
-  }
+    console.log(entries);
+    alert('Pengajuan lembur berhasil dikirim!');
+  };
 
   const formatDate = (dateString: string) => {
     const options: Intl.DateTimeFormatOptions = {
       day: 'numeric',
       month: 'long',
       year: 'numeric',
-    }
-    return new Date(dateString).toLocaleDateString('id-ID', options)
-  }
+    };
+    return new Date(dateString).toLocaleDateString('id-ID', options);
+  };
 
   // Fungsi untuk mengelompokkan entri berdasarkan data yang sama
   const groupEntries = () => {
     const grouped: {
-      key: string
-      dates: string[]
-      data: FormEntry
-    }[] = []
+      key: string;
+      dates: string[];
+      data: FormEntry;
+    }[] = [];
 
     entries.forEach(entry => {
-      const key = `${entry.nama}|${entry.nip}|${entry.jabatan}|${entry.rekening}|${entry.keterangan}|${entry.alasan}|${entry.unitBagian}`
-      const existingGroup = grouped.find(group => group.key === key)
+      const key = `${entry.nama}|${entry.nip}|${entry.jabatan}|${entry.rekening}|${entry.keterangan}|${entry.alasan}|${entry.unitBagian}`;
+      const existingGroup = grouped.find(group => group.key === key);
 
       if (existingGroup) {
         // Tambahkan tanggal baru ke grup yang ada
         entry.tanggals.forEach(date => {
           if (!existingGroup.dates.includes(date.tanggal)) {
-            existingGroup.dates.push(date.tanggal)
+            existingGroup.dates.push(date.tanggal);
           }
-        })
+        });
       } else {
         // Buat grup baru
         grouped.push({
           key,
           dates: entry.tanggals.map(date => date.tanggal),
           data: entry,
-        })
+        });
       }
-    })
+    });
 
     // Urutkan tanggal dalam setiap grup
     grouped.forEach(group => {
-      group.dates.sort((a, b) => new Date(a).getTime() - new Date(b).getTime())
-    })
+      group.dates.sort((a, b) => new Date(a).getTime() - new Date(b).getTime());
+    });
 
-    return grouped
-  }
+    return grouped;
+  };
 
   const saveAsPDF = () => {
-    const doc = new jsPDF()
-    doc.text('Nota Lembur', 14, 20)
+    const doc = new jsPDF();
+    doc.text('Nota Lembur', 14, 20);
 
     // Header data untuk tabel
-    const headers = ['Tanggal', 'Nama', 'NIP', 'Jabatan', 'Rekening', 'Keterangan']
+    const headers = ['Tanggal', 'Nama', 'NIP', 'Jabatan', 'Rekening', 'Keterangan'];
 
     // Persiapkan data untuk tabel
-    const tableData: any[] = []
-    const groupedEntries = groupEntries()
+    const tableData: any[] = [];
+    const groupedEntries = groupEntries();
 
     groupedEntries.forEach(group => {
-      const { dates, data } = group
+      const { dates, data } = group;
 
       dates.forEach((date, index) => {
         const row = [
@@ -160,20 +160,20 @@ const OvertimeSubmission: React.FC = () => {
           index === 0 ? data.jabatan : '',
           index === 0 ? data.rekening : '',
           index === 0 ? data.keterangan : '',
-        ]
-        tableData.push(row)
-      })
-    })
+        ];
+        tableData.push(row);
+      });
+    });
 
     // Konfigurasi untuk merge cells
     const didParseCell = (data: any) => {
-      const row = data.row.index
-      const col = data.column.index
+      const row = data.row.index;
+      const col = data.column.index;
 
       if (col > 0 && tableData[row][col] === '') {
-        data.cell.styles.fillColor = [255, 255, 255]
+        data.cell.styles.fillColor = [255, 255, 255];
       }
-    }
+    };
 
     // Buat tabel dengan autoTable
     autoTable(doc, {
@@ -190,35 +190,35 @@ const OvertimeSubmission: React.FC = () => {
         4: { cellWidth: 25 }, // Rekening
         5: { cellWidth: 25 }, // Keterangan
       },
-    })
+    });
 
     // Tambahkan tanda tangan dan disposisi
-    const finalY = (doc as any).lastAutoTable.finalY || 150
+    const finalY = (doc as any).lastAutoTable.finalY || 150;
     const currentDate = new Date().toLocaleDateString('id-ID', {
       day: 'numeric',
       month: 'long',
       year: 'numeric',
-    })
+    });
 
     // Tanda tangan penyelia
-    doc.text(`Ponorogo, ${currentDate}`, 120, finalY + 20)
-    doc.text(`${entries[0].penyelia}`, 140, finalY + 65)
-    doc.text(`Penyelia ${entries[0].unitBagian}`, 130, finalY + 70)
+    doc.text(`Ponorogo, ${currentDate}`, 120, finalY + 20);
+    doc.text(`${entries[0].penyelia}`, 140, finalY + 65);
+    doc.text(`Penyelia ${entries[0].unitBagian}`, 130, finalY + 70);
 
     // Disposisi
-    doc.text('Disposisi Pimpinan:', 14, finalY + 90)
-    doc.rect(14, finalY + 95, 180, 40) // Kotak disposisi
+    doc.text('Disposisi Pimpinan:', 14, finalY + 90);
+    doc.rect(14, finalY + 95, 180, 40); // Kotak disposisi
 
-    doc.save('nota_lembur.pdf')
-  }
+    doc.save('nota_lembur.pdf');
+  };
 
   const printNota = () => {
-    const groupedEntries = groupEntries()
-    let tableRows = ''
+    const groupedEntries = groupEntries();
+    let tableRows = '';
 
     groupedEntries.forEach(group => {
-      const { dates, data } = group
-      const rowCount = dates.length
+      const { dates, data } = group;
+      const rowCount = dates.length;
 
       dates.forEach((date, index) => {
         tableRows += `<tr>
@@ -228,18 +228,18 @@ const OvertimeSubmission: React.FC = () => {
           ${index === 0 ? `<td rowspan="${rowCount}">${data.jabatan}</td>` : ''}
           ${index === 0 ? `<td rowspan="${rowCount}">${data.rekening}</td>` : ''}
           ${index === 0 ? `<td rowspan="${rowCount}">${data.keterangan}</td>` : ''}
-        </tr>`
-      })
-    })
+        </tr>`;
+      });
+    });
 
-    const currentDate = new Date()
+    const currentDate = new Date();
     const formattedDate = currentDate.toLocaleDateString('id-ID', {
       day: 'numeric',
       month: 'long',
       year: 'numeric',
-    })
+    });
 
-    const printWindow = window.open('', 'PRINT', 'height=842,width=595')
+    const printWindow = window.open('', 'PRINT', 'height=842,width=595');
     printWindow?.document.write(`
       <html>
         <head>
@@ -361,10 +361,10 @@ const OvertimeSubmission: React.FC = () => {
         </div>
         </body>
       </html>
-    `)
-    printWindow?.document.close()
-    printWindow?.print()
-  }
+    `);
+    printWindow?.document.close();
+    printWindow?.print();
+  };
 
   return (
     <div className="p-4">
@@ -552,7 +552,7 @@ const OvertimeSubmission: React.FC = () => {
         </div>
       </form>
     </div>
-  )
-}
+  );
+};
 
-export default OvertimeSubmission
+export default OvertimeSubmission;

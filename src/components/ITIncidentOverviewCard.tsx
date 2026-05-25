@@ -1,18 +1,18 @@
 // components/ITIncidentOverviewCard.tsx
-'use client'
-import { motion } from 'framer-motion'
-import { AlertCircle, CheckCircle2, Clock, XCircle } from 'lucide-react'
-import { useEffect, useState } from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import supabase from '@/lib/supabase'
+'use client';
+import { motion } from 'framer-motion';
+import { AlertCircle, CheckCircle2, Clock, XCircle } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import supabase from '@/lib/supabase';
 
 type IncidentCounts = {
-  total: number
-  open: number
-  inProgress: number
-  resolved: number
-  closed: number
-}
+  total: number;
+  open: number;
+  inProgress: number;
+  resolved: number;
+  closed: number;
+};
 
 export function ITIncidentOverviewCard() {
   const [incidentCounts, setIncidentCounts] = useState<IncidentCounts>({
@@ -21,20 +21,20 @@ export function ITIncidentOverviewCard() {
     inProgress: 0,
     resolved: 0,
     closed: 0,
-  })
-  const [isLoading, setIsLoading] = useState(true)
+  });
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    fetchIncidentCounts()
-  })
+    fetchIncidentCounts();
+  });
 
   async function fetchIncidentCounts() {
-    setIsLoading(true)
+    setIsLoading(true);
     try {
-      const { data, error } = await supabase.from('it_incidents').select('status')
+      const { data, error } = await supabase.from('it_incidents').select('status');
 
       if (error) {
-        console.error('Error fetching IT incidents:', error)
+        console.error('Error fetching IT incidents:', error);
       } else {
         const counts: IncidentCounts = {
           total: data.length,
@@ -42,11 +42,11 @@ export function ITIncidentOverviewCard() {
           inProgress: data.filter(incident => incident.status === 'In Progress').length,
           resolved: data.filter(incident => incident.status === 'Resolved').length,
           closed: data.filter(incident => incident.status === 'Closed').length,
-        }
-        setIncidentCounts(counts)
+        };
+        setIncidentCounts(counts);
       }
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
   }
 
@@ -79,7 +79,7 @@ export function ITIncidentOverviewCard() {
       color: 'text-gray-500',
       bgColor: 'bg-gray-100',
     },
-  ]
+  ];
 
   const AnimatedNumber = ({ value }: { value: number }) => {
     return (
@@ -91,8 +91,8 @@ export function ITIncidentOverviewCard() {
       >
         {value}
       </motion.div>
-    )
-  }
+    );
+  };
 
   return (
     <motion.div
@@ -149,5 +149,5 @@ export function ITIncidentOverviewCard() {
         </CardContent>
       </Card>
     </motion.div>
-  )
+  );
 }

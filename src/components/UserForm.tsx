@@ -1,25 +1,25 @@
-'use client'
+'use client';
 
-import { useState } from 'react'
-import { toast } from 'sonner'
-import supabase from '@/lib/supabase'
+import { useState } from 'react';
+import { toast } from 'sonner';
+import supabase from '@/lib/supabase';
 
 // ✅ Fix: Define the proper User type instead of `string`
 type User = {
-  id: string
-  user_estim: string
-  ip_address: string
-  nama: string
-  jabatan: string
-  unit_kerja: string
-  cab: string
-  status_user: string
-}
+  id: string;
+  user_estim: string;
+  ip_address: string;
+  nama: string;
+  jabatan: string;
+  unit_kerja: string;
+  cab: string;
+  status_user: string;
+};
 
 type UserFormProps = {
-  onSuccessAction: () => void
-  user?: User // Optional untuk edit data // ✅ Was `string`, now `User`
-}
+  onSuccessAction: () => void;
+  user?: User; // Optional untuk edit data // ✅ Was `string`, now `User`
+};
 
 export default function UserForm({ onSuccessAction, user }: UserFormProps) {
   const [formData, setFormData] = useState({
@@ -30,31 +30,31 @@ export default function UserForm({ onSuccessAction, user }: UserFormProps) {
     unit_kerja: user?.unit_kerja || '',
     cab: user?.cab || 'Cabang Ponorogo',
     status_user: user?.status_user || 'Aktif',
-  })
+  });
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
 
     if (user) {
       // Update data
-      const { error } = await supabase.from('users').update(formData).eq('id', user.id)
+      const { error } = await supabase.from('users').update(formData).eq('id', user.id);
       if (error) {
-        toast.error('Gagal memperbarui data!')
+        toast.error('Gagal memperbarui data!');
       } else {
-        toast.success('Data berhasil diperbarui!')
-        onSuccessAction()
+        toast.success('Data berhasil diperbarui!');
+        onSuccessAction();
       }
     } else {
       // Insert data
-      const { error } = await supabase.from('users').insert([formData])
+      const { error } = await supabase.from('users').insert([formData]);
       if (error) {
-        toast.error('Gagal menambah data!')
+        toast.error('Gagal menambah data!');
       } else {
-        toast.success('Data berhasil ditambahkan!')
-        onSuccessAction()
+        toast.success('Data berhasil ditambahkan!');
+        onSuccessAction();
       }
     }
-  }
+  };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
@@ -88,5 +88,5 @@ export default function UserForm({ onSuccessAction, user }: UserFormProps) {
         {user ? 'Update' : 'Create'} User
       </button>
     </form>
-  )
+  );
 }

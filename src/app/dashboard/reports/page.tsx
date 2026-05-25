@@ -1,11 +1,11 @@
-'use client'
+'use client';
 
-import { zodResolver } from '@hookform/resolvers/zod'
-import imageCompression from 'browser-image-compression'
-import { id } from 'date-fns/locale'
-import { format, toZonedTime } from 'date-fns-tz'
-import html2canvas from 'html2canvas'
-import jsPDF from 'jspdf'
+import { zodResolver } from '@hookform/resolvers/zod';
+import imageCompression from 'browser-image-compression';
+import { id } from 'date-fns/locale';
+import { format, toZonedTime } from 'date-fns-tz';
+import html2canvas from 'html2canvas';
+import jsPDF from 'jspdf';
 import {
   AlertTriangle,
   Calendar as CalendarIcon,
@@ -16,23 +16,23 @@ import {
   Printer,
   Shield,
   Thermometer,
-} from 'lucide-react'
-import { useCallback, useEffect, useRef, useState } from 'react'
-import type { DateRange } from 'react-day-picker'
-import { useForm } from 'react-hook-form'
-import { toast } from 'sonner'
-import * as XLSX from 'xlsx'
-import * as z from 'zod'
-import { Button } from '@/components/ui/button'
-import { Calendar } from '@/components/ui/calendar'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Checkbox } from '@/components/ui/checkbox'
+} from 'lucide-react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import type { DateRange } from 'react-day-picker';
+import { useForm } from 'react-hook-form';
+import { toast } from 'sonner';
+import * as XLSX from 'xlsx';
+import * as z from 'zod';
+import { Button } from '@/components/ui/button';
+import { Calendar } from '@/components/ui/calendar';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
+} from '@/components/ui/dropdown-menu';
 import {
   Form,
   FormControl,
@@ -40,19 +40,19 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from '@/components/ui/form'
-import { Input } from '@/components/ui/input'
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+} from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select'
-import { Textarea } from '@/components/ui/textarea'
-import supabase from '@/lib/supabase'
-import { cn } from '@/lib/utils'
+} from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
+import supabase from '@/lib/supabase';
+import { cn } from '@/lib/utils';
 
 // Schema untuk form checklist
 const checklistSchema = z.object({
@@ -66,52 +66,52 @@ const checklistSchema = z.object({
   equipment_status: z.string().min(1, 'Status peralatan harus diisi'),
   notes: z.string().optional().default(''),
   image_url: z.string().optional(),
-})
+});
 
 interface Location {
-  id: string
-  name: string
-  type: string
+  id: string;
+  name: string;
+  type: string;
 }
 
 interface Room {
-  id: string
-  location_id: string
-  name: string
+  id: string;
+  location_id: string;
+  name: string;
 }
 
 interface RoomCheck {
-  id: string
-  room_id: string
-  location_name: string
-  room_name: string
-  checked_by: string
-  temperature: number
-  humidity: number
-  is_clean: boolean
-  is_secure: boolean
-  equipment_status: string
-  notes: string
-  check_date: string
-  check_time: string
-  formatted_time: string
-  image_url: string
+  id: string;
+  room_id: string;
+  location_name: string;
+  room_name: string;
+  checked_by: string;
+  temperature: number;
+  humidity: number;
+  is_clean: boolean;
+  is_secure: boolean;
+  equipment_status: string;
+  notes: string;
+  check_date: string;
+  check_time: string;
+  formatted_time: string;
+  image_url: string;
 }
 
 // Fungsi helper untuk format waktu Indonesia
 const formatIndonesianTime = (date: Date | string) => {
   // Konversi ke timezone Asia/Jakarta
-  const jakartaTime = toZonedTime(new Date(date), 'Asia/Jakarta')
-  return format(jakartaTime, 'HH:mm', { timeZone: 'Asia/Jakarta' })
-}
+  const jakartaTime = toZonedTime(new Date(date), 'Asia/Jakarta');
+  return format(jakartaTime, 'HH:mm', { timeZone: 'Asia/Jakarta' });
+};
 
 const formatIndonesianDate = (date: Date | string) => {
-  const jakartaTime = toZonedTime(new Date(date), 'Asia/Jakarta')
+  const jakartaTime = toZonedTime(new Date(date), 'Asia/Jakarta');
   return format(jakartaTime, 'dd MMMM yyyy', {
     locale: id,
     timeZone: 'Asia/Jakarta',
-  })
-}
+  });
+};
 
 // Tambahkan fungsi untuk kompresi gambar
 const compressImage = async (file: File) => {
@@ -119,28 +119,28 @@ const compressImage = async (file: File) => {
     maxSizeMB: 1,
     maxWidthOrHeight: 1024,
     useWebWorker: true,
-  }
+  };
 
   try {
-    const compressedFile = await imageCompression(file, options)
-    return compressedFile
+    const compressedFile = await imageCompression(file, options);
+    return compressedFile;
   } catch (error) {
-    console.error('Error compressing image:', error)
-    throw error
+    console.error('Error compressing image:', error);
+    throw error;
   }
-}
+};
 
 export default function RoomChecklistPage() {
-  const [locations, setLocations] = useState<Location[]>([])
-  const [rooms, setRooms] = useState<Room[]>([])
-  const [checks, setChecks] = useState<RoomCheck[]>([])
-  const [filteredRooms, setFilteredRooms] = useState<Room[]>([])
-  const [isLoading, setIsLoading] = useState(true)
+  const [locations, setLocations] = useState<Location[]>([]);
+  const [rooms, setRooms] = useState<Room[]>([]);
+  const [checks, setChecks] = useState<RoomCheck[]>([]);
+  const [filteredRooms, setFilteredRooms] = useState<Room[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [date, setDate] = useState<DateRange | undefined>({
     from: undefined,
     to: undefined,
-  })
-  const [isExporting, setIsExporting] = useState(false)
+  });
+  const [isExporting, setIsExporting] = useState(false);
   const form = useForm<z.infer<typeof checklistSchema>>({
     resolver: zodResolver(checklistSchema),
     defaultValues: {
@@ -155,129 +155,129 @@ export default function RoomChecklistPage() {
       notes: '',
       image_url: '',
     },
-  })
-  const fileInputRef = useRef<HTMLInputElement>(null)
-  const formRef = useRef<HTMLFormElement>(null)
-  const checklistRef = useRef<HTMLDivElement>(null)
+  });
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const formRef = useRef<HTMLFormElement>(null);
+  const checklistRef = useRef<HTMLDivElement>(null);
 
   //fungsi generate pdf
   const generatePDF = async () => {
-    if (!checklistRef.current) return
+    if (!checklistRef.current) return;
     try {
-      toast.loading('Menyiapkan PDF...')
+      toast.loading('Menyiapkan PDF...');
       const canvas = await html2canvas(checklistRef.current, {
         scale: 2,
         useCORS: true,
         logging: false,
-      })
-      const imgWidth = 210 // A4 size
-      const imgHeight = (canvas.height * imgWidth) / canvas.width
+      });
+      const imgWidth = 210; // A4 size
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
 
-      const pdf = new jsPDF('p', 'mm', 'a4')
-      const imgData = canvas.toDataURL('image/png')
-      pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight)
-      pdf.save(`checklistt_${format(new Date(), 'ddMMyyyy')}.pdf`)
-      toast.dismiss()
-      toast.success('PDF berhasil dibuat')
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const imgData = canvas.toDataURL('image/png');
+      pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
+      pdf.save(`checklistt_${format(new Date(), 'ddMMyyyy')}.pdf`);
+      toast.dismiss();
+      toast.success('PDF berhasil dibuat');
     } catch (error) {
-      console.error('Error generating PDF:', error)
-      toast.error('Gagal membuat PDF')
+      console.error('Error generating PDF:', error);
+      toast.error('Gagal membuat PDF');
     }
-  }
+  };
 
   // Fungsi untuk print
   const handlePrint = useCallback(() => {
-    if (!checklistRef.current) return
+    if (!checklistRef.current) return;
 
-    const printContent = checklistRef.current
-    const originalContents = document.body.innerHTML
+    const printContent = checklistRef.current;
+    const originalContents = document.body.innerHTML;
 
-    document.body.innerHTML = printContent.innerHTML
-    window.print()
-    document.body.innerHTML = originalContents
-    window.location.reload() // Reload halaman setelah print
-  }, [])
+    document.body.innerHTML = printContent.innerHTML;
+    window.print();
+    document.body.innerHTML = originalContents;
+    window.location.reload(); // Reload halaman setelah print
+  }, []);
 
   // Fungsi untuk upload gambar ke Supabase Storage
   const uploadImage = async (file: File) => {
     try {
-      const compressedFile = await compressImage(file)
-      const fileName = `${Date.now()}-${file.name}`
+      const compressedFile = await compressImage(file);
+      const fileName = `${Date.now()}-${file.name}`;
 
       const { data, error } = await supabase.storage
         .from('room-checks') // Sesuaikan dengan nama bucket Anda
-        .upload(fileName, compressedFile)
+        .upload(fileName, compressedFile);
 
-      if (error) throw error
+      if (error) throw error;
 
       // Dapatkan public URL
       const {
         data: { publicUrl },
-      } = supabase.storage.from('room-checks').getPublicUrl(fileName)
+      } = supabase.storage.from('room-checks').getPublicUrl(fileName);
 
-      return publicUrl
+      return publicUrl;
     } catch (error) {
-      console.error('Error uploading image:', error)
-      throw error
+      console.error('Error uploading image:', error);
+      throw error;
     }
-  }
+  };
 
   // Handler untuk capture/upload gambar
   const handleImageCapture = useCallback(
     async (event: React.ChangeEvent<HTMLInputElement>) => {
-      const file = event.target.files?.[0]
-      if (!file) return
+      const file = event.target.files?.[0];
+      if (!file) return;
 
       try {
-        const imageUrl = await uploadImage(file)
-        form.setValue('image_url', imageUrl)
-        toast.success('Gambar berhasil diunggah')
+        const imageUrl = await uploadImage(file);
+        form.setValue('image_url', imageUrl);
+        toast.success('Gambar berhasil diunggah');
       } catch (error: any) {
-        toast.error(`Gagal mengunggah gambar:${error}${error.message}`)
+        toast.error(`Gagal mengunggah gambar:${error}${error.message}`);
       }
     },
     [form],
-  )
+  );
 
   // Fetch locations dan rooms
   useEffect(() => {
     async function fetchData() {
-      setIsLoading(true)
+      setIsLoading(true);
       try {
         // Fetch locations
         const { data: locationsData, error: locError } = await supabase
           .from('locations')
           .select('*')
-          .order('name')
+          .order('name');
 
-        if (locError) throw locError
+        if (locError) throw locError;
 
         // Fetch rooms
         const { data: roomsData, error: roomError } = await supabase
           .from('rooms')
           .select('*')
-          .order('name')
+          .order('name');
 
-        if (roomError) throw roomError
+        if (roomError) throw roomError;
 
-        if (locationsData) setLocations(locationsData)
-        if (roomsData) setRooms(roomsData)
+        if (locationsData) setLocations(locationsData);
+        if (roomsData) setRooms(roomsData);
       } catch (error) {
-        console.error('Error fetching data:', error)
-        toast.error('Gagal memuat data')
+        console.error('Error fetching data:', error);
+        toast.error('Gagal memuat data');
       } finally {
-        setIsLoading(false)
+        setIsLoading(false);
       }
     }
-    fetchData()
-  }, [])
+    fetchData();
+  }, []);
 
   // Fetch checklist hari ini
   useEffect(() => {
     async function fetchChecks() {
       try {
-        const today = new Date()
-        const jakartaDate = format(toZonedTime(today, 'Asia/Jakarta'), 'yyyy-MM-dd')
+        const today = new Date();
+        const jakartaDate = format(toZonedTime(today, 'Asia/Jakarta'), 'yyyy-MM-dd');
 
         const { data, error } = await supabase
           .from('room_checks')
@@ -295,9 +295,9 @@ export default function RoomChecklistPage() {
           `,
           )
           .eq('check_date', jakartaDate)
-          .order('created_at', { ascending: false })
+          .order('created_at', { ascending: false });
 
-        if (error) throw error
+        if (error) throw error;
 
         if (data) {
           const formattedChecks = data.map(check => ({
@@ -305,35 +305,35 @@ export default function RoomChecklistPage() {
             location_name: check.rooms.locations.name,
             room_name: check.rooms.name,
             formatted_time: formatIndonesianTime(`${check.check_date}T${check.check_time}`),
-          }))
-          setChecks(formattedChecks)
+          }));
+          setChecks(formattedChecks);
         }
       } catch (error) {
-        console.error('Error fetching checks:', error)
-        toast.error('Gagal memuat data checklist')
+        console.error('Error fetching checks:', error);
+        toast.error('Gagal memuat data checklist');
       } finally {
-        setIsLoading(false)
+        setIsLoading(false);
       }
     }
-    fetchChecks()
-  }, [])
+    fetchChecks();
+  }, []);
 
   // Filter rooms berdasarkan location
   const handleLocationChange = (locationId: string) => {
-    console.log('Selected location:', locationId) // Debug
-    const filtered = rooms.filter(room => room.location_id === locationId)
-    console.log('Filtered rooms:', filtered) // Debug
-    setFilteredRooms(filtered)
-    form.setValue('room_id', '')
-  }
+    console.log('Selected location:', locationId); // Debug
+    const filtered = rooms.filter(room => room.location_id === locationId);
+    console.log('Filtered rooms:', filtered); // Debug
+    setFilteredRooms(filtered);
+    form.setValue('room_id', '');
+  };
 
   // Submit checklist
   const onSubmit = async (values: z.infer<typeof checklistSchema>) => {
     try {
-      const now = new Date()
-      const jakartaTime = toZonedTime(now, 'Asia/Jakarta')
-      const checkDate = format(jakartaTime, 'yyyy-MM-dd')
-      const checkTime = format(jakartaTime, 'HH:mm:ss')
+      const now = new Date();
+      const jakartaTime = toZonedTime(now, 'Asia/Jakarta');
+      const checkDate = format(jakartaTime, 'yyyy-MM-dd');
+      const checkTime = format(jakartaTime, 'HH:mm:ss');
 
       const { error } = await supabase
         .from('room_checks')
@@ -353,11 +353,11 @@ export default function RoomChecklistPage() {
           },
         ])
         .select()
-        .single()
+        .single();
 
-      if (error) throw error
+      if (error) throw error;
 
-      toast.success('Checklist berhasil disimpan')
+      toast.success('Checklist berhasil disimpan');
       form.reset(
         {
           location_id: '',
@@ -372,7 +372,7 @@ export default function RoomChecklistPage() {
           image_url: '',
         },
         { keepValues: false },
-      )
+      );
 
       // Refresh data checklist
       const { data: newChecks, error: fetchError } = await supabase
@@ -391,9 +391,9 @@ export default function RoomChecklistPage() {
         `,
         )
         .eq('check_date', checkDate)
-        .order('created_at', { ascending: false })
+        .order('created_at', { ascending: false });
 
-      if (fetchError) throw fetchError
+      if (fetchError) throw fetchError;
 
       if (newChecks) {
         const formattedChecks = newChecks.map(check => ({
@@ -401,14 +401,14 @@ export default function RoomChecklistPage() {
           location_name: check.rooms.locations.name,
           room_name: check.rooms.name,
           formatted_time: formatIndonesianTime(`${check.check_date}T${check.check_time}`),
-        }))
-        setChecks(formattedChecks)
+        }));
+        setChecks(formattedChecks);
       }
     } catch (error) {
-      console.error('Error saving checklist:', error)
-      toast.error('Gagal menyimpan checklist')
+      console.error('Error saving checklist:', error);
+      toast.error('Gagal menyimpan checklist');
     }
-  }
+  };
 
   // Fungsi untuk mengambil data berdasarkan range
   const fetchChecklistData = async (startDate?: Date, endDate?: Date) => {
@@ -428,20 +428,20 @@ export default function RoomChecklistPage() {
           )
         `,
         )
-        .order('check_date', { ascending: false })
+        .order('check_date', { ascending: false });
 
       if (startDate) {
-        const formattedStart = format(toZonedTime(startDate, 'Asia/Jakarta'), 'yyyy-MM-dd')
-        query = query.gte('check_date', formattedStart)
+        const formattedStart = format(toZonedTime(startDate, 'Asia/Jakarta'), 'yyyy-MM-dd');
+        query = query.gte('check_date', formattedStart);
       }
       if (endDate) {
-        const formattedEnd = format(toZonedTime(endDate, 'Asia/Jakarta'), 'yyyy-MM-dd')
-        query = query.lte('check_date', formattedEnd)
+        const formattedEnd = format(toZonedTime(endDate, 'Asia/Jakarta'), 'yyyy-MM-dd');
+        query = query.lte('check_date', formattedEnd);
       }
 
-      const { data, error } = await query
+      const { data, error } = await query;
 
-      if (error) throw error
+      if (error) throw error;
 
       return data.map(check => ({
         Tanggal: formatIndonesianDate(check.check_date),
@@ -456,55 +456,55 @@ export default function RoomChecklistPage() {
         Petugas: check.checked_by,
         Catatan: check.notes || '-',
         image_url: check.image_url || '-',
-      }))
+      }));
     } catch (error) {
-      console.error('Error fetching data:', error)
-      throw error
+      console.error('Error fetching data:', error);
+      throw error;
     }
-  }
+  };
 
   // Fungsi untuk export ke Excel
   const exportToExcel = async (data: any[], filename: string) => {
-    const ws = XLSX.utils.json_to_sheet(data)
-    const wb = XLSX.utils.book_new()
-    XLSX.utils.book_append_sheet(wb, ws, 'Checklist')
-    XLSX.writeFile(wb, `${filename}.xlsx`)
-  }
+    const ws = XLSX.utils.json_to_sheet(data);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Checklist');
+    XLSX.writeFile(wb, `${filename}.xlsx`);
+  };
 
   // Handler untuk export semua data
   const handleExportAll = async () => {
-    setIsExporting(true)
+    setIsExporting(true);
     try {
-      const data = await fetchChecklistData()
-      await exportToExcel(data, `checklist_all_data_${format(new Date(), 'ddMMyyyy')}`)
-      toast.success('Data berhasil diexport')
+      const data = await fetchChecklistData();
+      await exportToExcel(data, `checklist_all_data_${format(new Date(), 'ddMMyyyy')}`);
+      toast.success('Data berhasil diexport');
     } catch (error) {
-      toast.error('Gagal mengexport data')
+      toast.error('Gagal mengexport data');
     } finally {
-      setIsExporting(false)
+      setIsExporting(false);
     }
-  }
+  };
 
   // Handler untuk export data berdasarkan range
   const handleExportRange = async () => {
     if (!date?.from) {
-      toast.error('Pilih tanggal mulai')
-      return
+      toast.error('Pilih tanggal mulai');
+      return;
     }
-    setIsExporting(true)
+    setIsExporting(true);
     try {
-      const data = await fetchChecklistData(date.from, date.to)
+      const data = await fetchChecklistData(date.from, date.to);
       const filename = date.to
         ? `checklist_${format(date.from, 'ddMMyyyy')}_${format(date.to, 'ddMMyyyy')}`
-        : `checklist_${format(date.from, 'ddMMyyyy')}`
-      await exportToExcel(data, filename)
-      toast.success('Data berhasil diexport')
+        : `checklist_${format(date.from, 'ddMMyyyy')}`;
+      await exportToExcel(data, filename);
+      toast.success('Data berhasil diexport');
     } catch (error) {
-      toast.error('Gagal mengexport data')
+      toast.error('Gagal mengexport data');
     } finally {
-      setIsExporting(false)
+      setIsExporting(false);
     }
-  }
+  };
 
   return (
     <div className="space-y-6">
@@ -585,8 +585,8 @@ export default function RoomChecklistPage() {
                       <FormLabel>Lokasi</FormLabel>
                       <Select
                         onValueChange={value => {
-                          field.onChange(value)
-                          handleLocationChange(value)
+                          field.onChange(value);
+                          handleLocationChange(value);
                         }}
                         value={field.value}
                       >
@@ -921,5 +921,5 @@ export default function RoomChecklistPage() {
         </Card>
       </div>
     </div>
-  )
+  );
 }

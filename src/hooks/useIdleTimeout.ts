@@ -1,62 +1,66 @@
-'use client'
+'use client';
 
-import { useRouter } from 'next/navigation'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useRouter } from 'next/navigation';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
-const IDLE_TIMEOUT = 30 * 60 * 1000 // 30 minutes
-const WARNING_BEFORE = 2 * 60 * 1000 // Warn 2 minutes before
+const IDLE_TIMEOUT = 30 * 60 * 1000; // 30 minutes
+const WARNING_BEFORE = 2 * 60 * 1000; // Warn 2 minutes before
 
 export function useIdleTimeout() {
-  const router = useRouter()
-  const idleTimerRef = useRef<NodeJS.Timeout | null>(null)
-  const warningTimerRef = useRef<NodeJS.Timeout | null>(null)
-  const [showWarning, setShowWarning] = useState(false)
+  const router = useRouter();
+  const idleTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const warningTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const [showWarning, setShowWarning] = useState(false);
   // ✅ Fix 1: Removed unused `isLoggedIn`
 
   const logout = useCallback(async () => {
-    await fetch('/api/auth/logout', { method: 'POST' })
-    router.push('/login')
-  }, [router])
+    await fetch('/api/auth/logout', { method: 'POST' });
+    router.push('/login');
+  }, [router]);
 
   const resetTimers = useCallback(() => {
-    if (idleTimerRef.current) clearTimeout(idleTimerRef.current)
-    if (warningTimerRef.current) clearTimeout(warningTimerRef.current)
+    if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
+    if (warningTimerRef.current) clearTimeout(warningTimerRef.current);
 
     warningTimerRef.current = setTimeout(() => {
-      setShowWarning(true)
-    }, IDLE_TIMEOUT - WARNING_BEFORE)
+      setShowWarning(true);
+    }, IDLE_TIMEOUT - WARNING_BEFORE);
 
     idleTimerRef.current = setTimeout(() => {
-      logout()
-    }, IDLE_TIMEOUT)
-  }, [logout])
+      logout();
+    }, IDLE_TIMEOUT);
+  }, [logout]);
 
   const extendSession = useCallback(async () => {
-    const res = await fetch('/api/auth/refresh', { method: 'POST' })
+    const res = await fetch('/api/auth/refresh', { method: 'POST' });
     if (!res.ok) {
-      logout()
-      return
+      logout();
+      return;
     }
-    setShowWarning(false)
-    resetTimers()
-  }, [logout, resetTimers]) // ✅ Fix 2: Added `resetTimers` to deps
+    setShowWarning(false);
+    resetTimers();
+  }, [logout, resetTimers]); // ✅ Fix 2: Added `resetTimers` to deps
 
   useEffect(() => {
     const handleActivity = () => {
-      resetTimers()
-    }
+      resetTimers();
+    };
 
-    const events = ['mousedown', 'keydown', 'touchstart', 'scroll']
+    const events = ['mousedown', 'keydown', 'touchstart', 'scroll'];
     // ✅ Fix 3 & 4: Renamed shadowed `events` param to `event`
-    events.forEach(event => { window.addEventListener(event, handleActivity) })
-    resetTimers()
+    events.forEach(event => {
+      window.addEventListener(event, handleActivity);
+    });
+    resetTimers();
 
     return () => {
-      events.forEach(event => { window.removeEventListener(event, handleActivity) })
-      if (idleTimerRef.current) clearTimeout(idleTimerRef.current)
-      if (warningTimerRef.current) clearTimeout(warningTimerRef.current)
-    }
-  }, [resetTimers])
+      events.forEach(event => {
+        window.removeEventListener(event, handleActivity);
+      });
+      if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
+      if (warningTimerRef.current) clearTimeout(warningTimerRef.current);
+    };
+  }, [resetTimers]);
 
-  return { showWarning, extendSession, logout }
+  return { showWarning, extendSession, logout };
 }

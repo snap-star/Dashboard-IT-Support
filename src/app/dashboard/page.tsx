@@ -1,8 +1,8 @@
-import { ITIncidentOverviewCard } from '@/components/ITIncidentOverviewCard'
-import { TotalIncidentsCard } from '@/components/TotalIncidentsCard'
-import DashboardOverview from '@/components/total-users'
-import { Card } from '@/components/ui/card'
-import { ScrollArea } from '@/components/ui/scroll-area'
+import { ITIncidentOverviewCard } from '@/components/ITIncidentOverviewCard';
+import { TotalIncidentsCard } from '@/components/TotalIncidentsCard';
+import DashboardOverview from '@/components/total-users';
+import { Card } from '@/components/ui/card';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 export default function Dashboard() {
   return (
@@ -45,5 +45,5 @@ export default function Dashboard() {
         </Card>
       </div>
     </ScrollArea>
-  )
+  );
 }

@@ -1,14 +1,14 @@
-'use client'
+'use client';
 
 import {
   type ColumnDef,
   getCoreRowModel,
   getPaginationRowModel,
   useReactTable,
-} from '@tanstack/react-table'
-import { useEffect, useState } from 'react'
-import { toast } from 'sonner'
-import * as XLSX from 'xlsx'
+} from '@tanstack/react-table';
+import { useEffect, useState } from 'react';
+import { toast } from 'sonner';
+import * as XLSX from 'xlsx';
 import {
   Table,
   TableBody,
@@ -16,65 +16,65 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table'
-import supabase from '@/lib/supabase'
+} from '@/components/ui/table';
+import supabase from '@/lib/supabase';
 
 type User = {
-  id: number
-  created_at: string
-  user_estim: string
-  ip_address: string | null
-  nama: string | null
-  nip: string | null
-  jabatan: string | null
-  unit_kerja: string | null
-  cab: string | null
-  status_user: string | null
-  display: string | null
-  updated_at: string | null
-  mac_address: string | null
-  multi: string | null
-}
+  id: number;
+  created_at: string;
+  user_estim: string;
+  ip_address: string | null;
+  nama: string | null;
+  nip: string | null;
+  jabatan: string | null;
+  unit_kerja: string | null;
+  cab: string | null;
+  status_user: string | null;
+  display: string | null;
+  updated_at: string | null;
+  mac_address: string | null;
+  multi: string | null;
+};
 
 export default function DataTable() {
-  const [data, setData] = useState<User[]>([])
-  const [loading, setLoading] = useState(true)
+  const [data, setData] = useState<User[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
-      const { data: users, error } = await supabase.from('users').select('*')
+      const { data: users, error } = await supabase.from('users').select('*');
       if (error) {
-        console.error(error)
-        toast.error('Gagal memuat data!')
+        console.error(error);
+        toast.error('Gagal memuat data!');
       } else {
-        const uniqueData = removeDuplicates(users) // Filter duplikasi
-        setData(uniqueData)
-        toast.success('Data berhasil dimuat!')
+        const uniqueData = removeDuplicates(users); // Filter duplikasi
+        setData(uniqueData);
+        toast.success('Data berhasil dimuat!');
       }
-      setLoading(false)
-    }
+      setLoading(false);
+    };
 
-    fetchData()
-  }, [])
+    fetchData();
+  }, []);
 
   const removeDuplicates = (users: User[]) => {
-    const seen: Set<string> = new Set()
+    const seen: Set<string> = new Set();
     return users.filter(user => {
       if (seen.has(user.user_estim)) {
-        return false // Skip duplikasi
+        return false; // Skip duplikasi
       }
-      seen.add(user.user_estim)
-      return true
-    })
-  }
+      seen.add(user.user_estim);
+      return true;
+    });
+  };
 
   const exportToExcel = () => {
-    const worksheet = XLSX.utils.json_to_sheet(data)
-    const workbook = XLSX.utils.book_new()
-    XLSX.utils.book_append_sheet(workbook, worksheet, 'Users')
-    XLSX.writeFile(workbook, 'users.xlsx')
-    toast.success('Data berhasil diekspor ke Excel!')
-  }
+    const worksheet = XLSX.utils.json_to_sheet(data);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Users');
+    XLSX.writeFile(workbook, 'users.xlsx');
+    toast.success('Data berhasil diekspor ke Excel!');
+  };
 
   const columns: ColumnDef<User>[] = [
     { accessorKey: 'id', header: 'ID' },
@@ -89,16 +89,16 @@ export default function DataTable() {
     { accessorKey: 'cab', header: 'Cabang' },
     { accessorKey: 'status_user', header: 'Status' },
     { accessorKey: 'updated_at', header: 'Last Updated' },
-  ]
+  ];
 
   const table = useReactTable({
     data,
     columns,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
-  })
+  });
 
-  if (loading) return <p>Loading...</p>
+  if (loading) return <p>Loading...</p>;
 
   return (
     <div className="p-4">
@@ -155,5 +155,5 @@ export default function DataTable() {
         </button>
       </div>
     </div>
-  )
+  );
 }

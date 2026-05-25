@@ -1,4 +1,4 @@
-'use client'
+'use client';
 
 import {
   type ColumnDef,
@@ -11,33 +11,33 @@ import {
   type SortingState,
   useReactTable,
   type VisibilityState,
-} from '@tanstack/react-table'
-import { ArrowUpDown, ChevronDown } from 'lucide-react'
-import * as React from 'react'
+} from '@tanstack/react-table';
+import { ArrowUpDown, ChevronDown } from 'lucide-react';
+import * as React from 'react';
 
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card'
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from '@/components/ui/dialog'
+} from '@/components/ui/dialog';
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
-import { Input } from '@/components/ui/input'
+} from '@/components/ui/dropdown-menu';
+import { Input } from '@/components/ui/input';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select'
+} from '@/components/ui/select';
 import {
   Table,
   TableBody,
@@ -45,26 +45,26 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table'
-import supabase from '@/lib/supabase'
+} from '@/components/ui/table';
+import supabase from '@/lib/supabase';
 
 type AccessLog = {
-  id: number
-  user_estim: string
-  ip_address: string
-  nama: string
-  tanggal_awal: Date
-  tanggal_akhir: Date
-  jenis_permohonan: string
-}
+  id: number;
+  user_estim: string;
+  ip_address: string;
+  nama: string;
+  tanggal_awal: Date;
+  tanggal_akhir: Date;
+  jenis_permohonan: string;
+};
 
 export default function WeekendBankingTable() {
-  const [accessLogs, setAccessLogs] = React.useState<AccessLog[]>([])
-  const [globalFilter, setGlobalFilter] = React.useState('')
-  const [sorting, setSorting] = React.useState<SortingState>([])
-  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
-  const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({})
-  const [isDialogOpen, setIsDialogOpen] = React.useState(false)
+  const [accessLogs, setAccessLogs] = React.useState<AccessLog[]>([]);
+  const [globalFilter, setGlobalFilter] = React.useState('');
+  const [sorting, setSorting] = React.useState<SortingState>([]);
+  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
+  const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
+  const [isDialogOpen, setIsDialogOpen] = React.useState(false);
   const [newLog, setNewLog] = React.useState<Omit<AccessLog, 'id' | 'akses_count' | 'last_access'>>(
     {
       user_estim: '',
@@ -74,82 +74,82 @@ export default function WeekendBankingTable() {
       tanggal_akhir: new Date(),
       jenis_permohonan: '',
     },
-  )
+  );
   const [users, setUsers] = React.useState<
     Array<{
-      user_estim: string
-      ip_address: string
-      nama: string
+      user_estim: string;
+      ip_address: string;
+      nama: string;
     }>
-  >([])
+  >([]);
 
   React.useEffect(() => {
-    fetchUsers()
-    fetchAccessLogs()
-  }, [])
+    fetchUsers();
+    fetchAccessLogs();
+  }, []);
 
   const groupUsersByEstim = (
     users: Array<{
-      user_estim: string
-      ip_address: string
-      nama: string
+      user_estim: string;
+      ip_address: string;
+      nama: string;
     }>,
   ) => {
     const grouped = users.reduce(
       (acc, user) => {
         if (!acc[user.user_estim]) {
-          acc[user.user_estim] = user
+          acc[user.user_estim] = user;
         }
-        return acc
+        return acc;
       },
       {} as Record<string, { user_estim: string; ip_address: string; nama: string }>,
-    )
+    );
 
-    return Object.values(grouped)
-  }
+    return Object.values(grouped);
+  };
 
   async function fetchUsers() {
     const { data, error } = await supabase
       .from('users')
       .select('user_estim, ip_address, nama')
-      .not('user_estim', 'is', null)
+      .not('user_estim', 'is', null);
 
     if (error) {
-      console.error('Error fetching users:', error)
-      return
+      console.error('Error fetching users:', error);
+      return;
     }
 
-    const groupedUsers = groupUsersByEstim(data || [])
-    setUsers(groupedUsers)
+    const groupedUsers = groupUsersByEstim(data || []);
+    setUsers(groupedUsers);
   }
 
   async function fetchAccessLogs() {
     const { data: userData, error: userError } = await supabase
       .from('users')
-      .select('user_estim, ip_address, nama')
+      .select('user_estim, ip_address, nama');
 
     if (userError) {
-      console.error('Error fetching users:', userError)
-      return
+      console.error('Error fetching users:', userError);
+      return;
     }
 
-    const { data: logsData, error: logsError } = await supabase.from('access_logs').select('*')
+    const { data: logsData, error: logsError } = await supabase.from('access_logs').select('*');
 
     if (logsError) {
-      console.error('Error fetching access logs:', logsError)
-      return
+      console.error('Error fetching access logs:', logsError);
+      return;
     }
 
     const combinedData = logsData?.map(log => {
-      const user = userData?.find(u => u.user_estim === log.user_estim)
+      const user = userData?.find(u => u.user_estim === log.user_estim);
       return {
         ...log,
         ip_address: user?.ip_address || '',
         nama: user?.nama || '',
-      }
-    })
+      };
+    });
 
-    setAccessLogs(combinedData || [])
+    setAccessLogs(combinedData || []);
   }
 
   async function handleAddLog() {
@@ -157,13 +157,13 @@ export default function WeekendBankingTable() {
       ...newLog,
       akses_count: 0,
       last_access: new Date().toISOString(),
-    })
+    });
     if (error) {
-      console.error('Error adding log:', error)
-      return
+      console.error('Error adding log:', error);
+      return;
     }
-    fetchAccessLogs()
-    setIsDialogOpen(false)
+    fetchAccessLogs();
+    setIsDialogOpen(false);
     setNewLog({
       user_estim: '',
       ip_address: '',
@@ -171,7 +171,7 @@ export default function WeekendBankingTable() {
       tanggal_awal: new Date(),
       tanggal_akhir: new Date(),
       jenis_permohonan: '',
-    })
+    });
   }
 
   const columns: ColumnDef<AccessLog>[] = [
@@ -201,7 +201,7 @@ export default function WeekendBankingTable() {
       ),
     },
     { accessorKey: 'jenis_permohonan', header: 'Jenis Permohonan' },
-  ]
+  ];
 
   const table = useReactTable({
     data: accessLogs,
@@ -219,7 +219,7 @@ export default function WeekendBankingTable() {
     getFilteredRowModel: getFilteredRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
-  })
+  });
 
   return (
     <div className="w-full">
@@ -267,13 +267,13 @@ export default function WeekendBankingTable() {
             <Select
               value={newLog.user_estim || undefined}
               onValueChange={value => {
-                const selectedUser = users.find(u => u.user_estim === value)
+                const selectedUser = users.find(u => u.user_estim === value);
                 setNewLog({
                   ...newLog,
                   user_estim: value,
                   ip_address: selectedUser?.ip_address || '',
                   nama: selectedUser?.nama || '',
-                })
+                });
               }}
             >
               <SelectTrigger>
@@ -390,5 +390,5 @@ export default function WeekendBankingTable() {
         </div>
       </div>
     </div>
-  )
+  );
 }

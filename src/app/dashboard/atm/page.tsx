@@ -1,11 +1,11 @@
-'use client'
+'use client';
 
-import { format } from 'date-fns'
-import { id } from 'date-fns/locale'
-import { Download, Pencil, Plus, Search, Trash } from 'lucide-react'
-import { useEffect, useState } from 'react'
-import { toast } from 'sonner'
-import * as XLSX from 'xlsx'
+import { format } from 'date-fns';
+import { id } from 'date-fns/locale';
+import { Download, Pencil, Plus, Search, Trash } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { toast } from 'sonner';
+import * as XLSX from 'xlsx';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -15,9 +15,9 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from '@/components/ui/alert-dialog'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
+} from '@/components/ui/alert-dialog';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import {
   Card,
   CardContent,
@@ -25,8 +25,8 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card'
-import { DatePickerDefault } from '@/components/ui/date-picker-default'
+} from '@/components/ui/card';
+import { DatePickerDefault } from '@/components/ui/date-picker-default';
 import {
   Dialog,
   DialogContent,
@@ -35,16 +35,16 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from '@/components/ui/dialog'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select'
+} from '@/components/ui/select';
 import {
   Table,
   TableBody,
@@ -52,22 +52,22 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table'
-import { Textarea } from '@/components/ui/textarea'
-import supabase from '@/lib/supabase'
+} from '@/components/ui/table';
+import { Textarea } from '@/components/ui/textarea';
+import supabase from '@/lib/supabase';
 
 // Types
 interface ATMComplaint {
-  id: number
-  atm_id: string
-  complaint: string
-  reported_by: string
-  account_number: string
-  nominal: number
-  date_complaint: string
-  date_reported: string
-  status: string
-  resolution: string
+  id: number;
+  atm_id: string;
+  complaint: string;
+  reported_by: string;
+  account_number: string;
+  nominal: number;
+  date_complaint: string;
+  date_reported: string;
+  status: string;
+  resolution: string;
 }
 
 // Utility functions
@@ -75,33 +75,33 @@ const formatToRupiah = (amount: number) => {
   return new Intl.NumberFormat('id-ID', {
     style: 'currency',
     currency: 'IDR',
-  }).format(amount)
-}
+  }).format(amount);
+};
 
 const getStatusColor = (status: string) => {
   switch (status) {
     case 'Open':
-      return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300'
+      return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300';
     case 'In Progress':
-      return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300'
+      return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300';
     case 'Resolved':
-      return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300'
+      return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300';
     case 'Closed':
-      return 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300'
+      return 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300';
     default:
-      return 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300'
+      return 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300';
   }
-}
+};
 
 // Tambahkan konstanta untuk page size
-const PAGE_SIZE = 10
+const PAGE_SIZE = 10;
 
 export default function ATMComplaints() {
   // States
-  const [complaints, setComplaints] = useState<ATMComplaint[]>([])
-  const [isDialogOpen, setIsDialogOpen] = useState(false)
-  const [isDeleteAlertOpen, setIsDeleteAlertOpen] = useState(false)
-  const [selectedId, setSelectedId] = useState<number | null>(null)
+  const [complaints, setComplaints] = useState<ATMComplaint[]>([]);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isDeleteAlertOpen, setIsDeleteAlertOpen] = useState(false);
+  const [selectedId, setSelectedId] = useState<number | null>(null);
   const [newComplaint, setNewComplaint] = useState<Omit<ATMComplaint, 'id'>>({
     atm_id: '',
     complaint: '',
@@ -112,118 +112,118 @@ export default function ATMComplaints() {
     date_reported: new Date().toISOString().split('T')[0],
     status: 'Open',
     resolution: '',
-  })
-  const [editingComplaint, setEditingComplaint] = useState<ATMComplaint | null>(null)
+  });
+  const [editingComplaint, setEditingComplaint] = useState<ATMComplaint | null>(null);
   // Tambahkan state untuk pagination
-  const [currentPage, setCurrentPage] = useState(1)
-  const [totalPages, setTotalPages] = useState(0)
-  const [isLoading, setIsLoading] = useState(true)
-  const [searchQuery, setSearchQuery] = useState('')
-  const [statusFilter, setStatusFilter] = useState('')
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
 
   // Effects
   useEffect(() => {
-    fetchComplaints()
-  }, [])
+    fetchComplaints();
+  }, []);
 
   // Functions
   async function fetchComplaints() {
-    setIsLoading(true)
+    setIsLoading(true);
     try {
       // Fetch total count
       const { count } = await supabase
         .from('atm_complaints')
-        .select('*', { count: 'exact', head: true })
+        .select('*', { count: 'exact', head: true });
 
       // Fetch paginated data
       const { data, error } = await supabase
         .from('atm_complaints')
         .select('*')
         .order('date_reported', { ascending: false })
-        .range((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE - 1)
+        .range((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE - 1);
 
-      if (error) throw error
+      if (error) throw error;
 
-      setComplaints(data || [])
-      setTotalPages(Math.ceil((count || 0) / PAGE_SIZE))
+      setComplaints(data || []);
+      setTotalPages(Math.ceil((count || 0) / PAGE_SIZE));
     } catch (error) {
-      console.error('Error fetching complaints:', error)
-      toast.error('Gagal memuat data komplain')
+      console.error('Error fetching complaints:', error);
+      toast.error('Gagal memuat data komplain');
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
   }
 
   // Effect untuk memuat ulang data saat halaman berubah
   useEffect(() => {
-    fetchComplaints()
-  }, [currentPage])
+    fetchComplaints();
+  }, [currentPage]);
 
   // Fungsi untuk navigasi halaman
   const nextPage = () => {
     if (currentPage < totalPages) {
-      setCurrentPage(prev => prev + 1)
+      setCurrentPage(prev => prev + 1);
     }
-  }
+  };
 
   const previousPage = () => {
     if (currentPage > 1) {
-      setCurrentPage(prev => prev - 1)
+      setCurrentPage(prev => prev - 1);
     }
-  }
+  };
 
   async function handleCreate() {
-    const { error } = await supabase.from('atm_complaints').insert([newComplaint])
+    const { error } = await supabase.from('atm_complaints').insert([newComplaint]);
 
     if (error) {
-      console.error('Error creating complaint:', error)
-      toast.error('Gagal menambah komplain')
+      console.error('Error creating complaint:', error);
+      toast.error('Gagal menambah komplain');
     } else {
-      fetchComplaints()
-      setIsDialogOpen(false)
-      toast.success('Komplain berhasil ditambahkan')
+      fetchComplaints();
+      setIsDialogOpen(false);
+      toast.success('Komplain berhasil ditambahkan');
     }
   }
 
   async function handleUpdate() {
-    if (!editingComplaint) return
+    if (!editingComplaint) return;
 
     const { error } = await supabase
       .from('atm_complaints')
       .update(editingComplaint)
-      .eq('id', editingComplaint.id)
+      .eq('id', editingComplaint.id);
 
     if (error) {
-      console.error('Error updating complaint:', error)
-      toast.error('Gagal mengupdate komplain')
+      console.error('Error updating complaint:', error);
+      toast.error('Gagal mengupdate komplain');
     } else {
-      fetchComplaints()
-      setEditingComplaint(null)
-      setIsDialogOpen(false)
-      toast.success('Komplain berhasil diupdate')
+      fetchComplaints();
+      setEditingComplaint(null);
+      setIsDialogOpen(false);
+      toast.success('Komplain berhasil diupdate');
     }
   }
 
   const handleDelete = (id: number) => {
-    setSelectedId(id)
-    setIsDeleteAlertOpen(true)
-  }
+    setSelectedId(id);
+    setIsDeleteAlertOpen(true);
+  };
 
   const confirmDelete = async () => {
-    if (!selectedId) return
+    if (!selectedId) return;
 
-    const { error } = await supabase.from('atm_complaints').delete().eq('id', selectedId)
+    const { error } = await supabase.from('atm_complaints').delete().eq('id', selectedId);
 
     if (error) {
-      console.error('Error deleting complaint:', error)
-      toast.error('Gagal menghapus komplain')
+      console.error('Error deleting complaint:', error);
+      toast.error('Gagal menghapus komplain');
     } else {
-      fetchComplaints()
-      toast.success('Komplain berhasil dihapus')
+      fetchComplaints();
+      toast.success('Komplain berhasil dihapus');
     }
-    setIsDeleteAlertOpen(false)
-    setSelectedId(null)
-  }
+    setIsDeleteAlertOpen(false);
+    setSelectedId(null);
+  };
 
   const handleExportData = async () => {
     try {
@@ -231,9 +231,9 @@ export default function ATMComplaints() {
       const { data, error } = await supabase
         .from('atm_complaints')
         .select('*')
-        .order('date_reported', { ascending: false })
+        .order('date_reported', { ascending: false });
 
-      if (error) throw error
+      if (error) throw error;
 
       // Format data untuk excel
       const exportData = data.map((item: any) => ({
@@ -248,11 +248,11 @@ export default function ATMComplaints() {
         }),
         Status: item.status,
         Resolusi: item.resolution || '-',
-      }))
+      }));
 
       // Buat workbook dan worksheet
-      const wb = XLSX.utils.book_new()
-      const ws = XLSX.utils.json_to_sheet(exportData)
+      const wb = XLSX.utils.book_new();
+      const ws = XLSX.utils.json_to_sheet(exportData);
 
       // Atur lebar kolom
       const colWidths = [
@@ -265,23 +265,23 @@ export default function ATMComplaints() {
         { wch: 15 }, // Tanggal Lapor
         { wch: 12 }, // Status
         { wch: 40 }, // Resolusi
-      ]
-      ws['!cols'] = colWidths
+      ];
+      ws['!cols'] = colWidths;
 
       // Tambahkan worksheet ke workbook
-      XLSX.utils.book_append_sheet(wb, ws, 'ATM Complaints')
+      XLSX.utils.book_append_sheet(wb, ws, 'ATM Complaints');
 
       // Generate nama file dengan timestamp
-      const fileName = `atm_complaints_${format(new Date(), 'yyyyMMdd_HHmmss')}.xlsx`
+      const fileName = `atm_complaints_${format(new Date(), 'yyyyMMdd_HHmmss')}.xlsx`;
 
       // Download file
-      XLSX.writeFile(wb, fileName)
-      toast.success('Data berhasil di-export')
+      XLSX.writeFile(wb, fileName);
+      toast.success('Data berhasil di-export');
     } catch (error) {
-      console.error('Error exporting data:', error)
-      toast.error('Gagal mengexport data')
+      console.error('Error exporting data:', error);
+      toast.error('Gagal mengexport data');
     }
-  }
+  };
 
   return (
     <div className="space-y-6 w-full min-h-screen overflow-hidden">
@@ -427,17 +427,17 @@ export default function ATMComplaints() {
                                   : new Date()
                             }
                             setDateAction={(newDate: Date | undefined) => {
-                              const selectedDate = newDate || new Date()
+                              const selectedDate = newDate || new Date();
                               if (editingComplaint) {
                                 setEditingComplaint({
                                   ...editingComplaint,
                                   date_reported: selectedDate.toISOString().split('T')[0],
-                                })
+                                });
                               } else {
                                 setNewComplaint({
                                   ...newComplaint,
                                   date_reported: selectedDate.toISOString().split('T')[0],
-                                })
+                                });
                               }
                             }}
                           />
@@ -544,16 +544,16 @@ export default function ATMComplaints() {
                     <Button
                       variant="outline"
                       onClick={() => {
-                        setIsDialogOpen(false)
-                        setEditingComplaint(null)
+                        setIsDialogOpen(false);
+                        setEditingComplaint(null);
                       }}
                     >
                       Batal
                     </Button>
                     <Button
                       onClick={() => {
-                        if (editingComplaint) handleUpdate()
-                        else handleCreate()
+                        if (editingComplaint) handleUpdate();
+                        else handleCreate();
                       }}
                     >
                       {editingComplaint ? 'Simpan Perubahan' : 'Tambah Komplain'}
@@ -575,8 +575,8 @@ export default function ATMComplaints() {
                     placeholder="Cari komplain..."
                     value={searchQuery}
                     onChange={e => {
-                      setSearchQuery(e.target.value)
-                      setCurrentPage(1) // Reset page when searching
+                      setSearchQuery(e.target.value);
+                      setCurrentPage(1); // Reset page when searching
                     }}
                     className="flex-1"
                   />
@@ -584,8 +584,8 @@ export default function ATMComplaints() {
                 <Select
                   value={statusFilter ?? ''}
                   onValueChange={value => {
-                    setStatusFilter(value)
-                    setCurrentPage(1) // Reset page when filtering
+                    setStatusFilter(value);
+                    setCurrentPage(1); // Reset page when filtering
                   }}
                 >
                   <SelectTrigger className="w-[180px]">
@@ -703,8 +703,8 @@ export default function ATMComplaints() {
                               variant="outline"
                               size="sm"
                               onClick={() => {
-                                setEditingComplaint(complaint)
-                                setIsDialogOpen(true)
+                                setEditingComplaint(complaint);
+                                setIsDialogOpen(true);
                               }}
                               className="h-8 px-2 lg:px-3"
                             >
@@ -783,5 +783,5 @@ export default function ATMComplaints() {
         </AlertDialogContent>
       </AlertDialog>
     </div>
-  )
+  );
 }

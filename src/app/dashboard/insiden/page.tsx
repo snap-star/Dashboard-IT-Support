@@ -1,4 +1,4 @@
-'use client'
+'use client';
 
 import {
   type ColumnDef,
@@ -11,29 +11,29 @@ import {
   type SortingState,
   useReactTable,
   type VisibilityState,
-} from '@tanstack/react-table'
-import { format } from 'date-fns'
-import { id } from 'date-fns/locale/id'
-import { CalendarIcon, Download, Pencil, Plus, Trash } from 'lucide-react'
-import * as React from 'react'
-import type { DateRange } from 'react-day-picker'
-import { toast } from 'sonner'
-import * as XLSX from 'xlsx'
-import ReportLayout from '@/app/dashboard/reports/layout'
-import { Button } from '@/components/ui/button'
-import { Calendar } from '@/components/ui/calendar'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { DatePickerDefault } from '@/components/ui/date-picker-default'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { Input } from '@/components/ui/input'
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+} from '@tanstack/react-table';
+import { format } from 'date-fns';
+import { id } from 'date-fns/locale/id';
+import { CalendarIcon, Download, Pencil, Plus, Trash } from 'lucide-react';
+import * as React from 'react';
+import type { DateRange } from 'react-day-picker';
+import { toast } from 'sonner';
+import * as XLSX from 'xlsx';
+import ReportLayout from '@/app/dashboard/reports/layout';
+import { Button } from '@/components/ui/button';
+import { Calendar } from '@/components/ui/calendar';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { DatePickerDefault } from '@/components/ui/date-picker-default';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select'
+} from '@/components/ui/select';
 import {
   Table,
   TableBody,
@@ -41,24 +41,24 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table'
-import { Textarea } from '@/components/ui/textarea'
-import supabase from '@/lib/supabase'
-import { cn } from '@/lib/utils'
+} from '@/components/ui/table';
+import { Textarea } from '@/components/ui/textarea';
+import supabase from '@/lib/supabase';
+import { cn } from '@/lib/utils';
 
 type Incident = {
-  id: number
-  title: string
-  description: string
-  reported_by: string
-  date_reported: string
-  status: 'Open' | 'In Progress' | 'Resolved' | 'Closed'
-  priority: 'Low' | 'Medium' | 'High' | 'Critical'
-  resolution?: string
-}
+  id: number;
+  title: string;
+  description: string;
+  reported_by: string;
+  date_reported: string;
+  status: 'Open' | 'In Progress' | 'Resolved' | 'Closed';
+  priority: 'Low' | 'Medium' | 'High' | 'Critical';
+  resolution?: string;
+};
 
 export default function ITIncidentManagement() {
-  const [incidents, setIncidents] = React.useState<Incident[]>([])
+  const [incidents, setIncidents] = React.useState<Incident[]>([]);
   const [newIncident, setNewIncident] = React.useState<Omit<Incident, 'id'>>({
     title: '',
     description: '',
@@ -67,35 +67,35 @@ export default function ITIncidentManagement() {
     status: 'Open',
     priority: 'Medium',
     resolution: '',
-  })
-  const [editingIncident, setEditingIncident] = React.useState<Incident | null>(null)
-  const [isDialogOpen, setIsDialogOpen] = React.useState(false)
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = React.useState(false)
-  const [deleteIncidentId, setDeleteIncidentId] = React.useState<number | null>(null)
-  const [globalFilter, setGlobalFilter] = React.useState('')
-  const [statusFilter, setStatusFilter] = React.useState('')
-  const [priorityFilter, setPriorityFilter] = React.useState('')
-  const [sorting, setSorting] = React.useState<SortingState>([])
-  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
-  const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({})
-  const [pageIndex, setPageIndex] = React.useState(0)
-  const [pageSize, setPageSize] = React.useState(10)
-  const [dateRange, setDateRange] = React.useState<DateRange | undefined>()
-  const [isExporting, setIsExporting] = React.useState(false)
+  });
+  const [editingIncident, setEditingIncident] = React.useState<Incident | null>(null);
+  const [isDialogOpen, setIsDialogOpen] = React.useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = React.useState(false);
+  const [deleteIncidentId, setDeleteIncidentId] = React.useState<number | null>(null);
+  const [globalFilter, setGlobalFilter] = React.useState('');
+  const [statusFilter, setStatusFilter] = React.useState('');
+  const [priorityFilter, setPriorityFilter] = React.useState('');
+  const [sorting, setSorting] = React.useState<SortingState>([]);
+  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
+  const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
+  const [pageIndex, setPageIndex] = React.useState(0);
+  const [pageSize, setPageSize] = React.useState(10);
+  const [dateRange, setDateRange] = React.useState<DateRange | undefined>();
+  const [isExporting, setIsExporting] = React.useState(false);
 
   React.useEffect(() => {
-    fetchIncidents()
-  }, [])
+    fetchIncidents();
+  }, []);
 
   async function fetchIncidents() {
     const { data, error } = await supabase
       .from('it_incidents')
       .select('*')
-      .order('date_reported', { ascending: false })
+      .order('date_reported', { ascending: false });
     if (error) {
-      console.error('Error fetching incidents:', error)
+      console.error('Error fetching incidents:', error);
     } else {
-      setIncidents(data || [])
+      setIncidents(data || []);
     }
   }
 
@@ -104,21 +104,21 @@ export default function ITIncidentManagement() {
       const { error } = await supabase
         .from('it_incidents')
         .update(editingIncident)
-        .eq('id', editingIncident.id)
+        .eq('id', editingIncident.id);
       if (error) {
-        console.error('Error updating incident:', error)
-        return
+        console.error('Error updating incident:', error);
+        return;
       }
     } else {
-      const { error } = await supabase.from('it_incidents').insert([newIncident])
+      const { error } = await supabase.from('it_incidents').insert([newIncident]);
       if (error) {
-        console.error('Error creating incident:', error)
-        return
+        console.error('Error creating incident:', error);
+        return;
       }
     }
-    fetchIncidents()
-    setIsDialogOpen(false)
-    setEditingIncident(null)
+    fetchIncidents();
+    setIsDialogOpen(false);
+    setEditingIncident(null);
     setNewIncident({
       title: '',
       description: '',
@@ -127,56 +127,56 @@ export default function ITIncidentManagement() {
       status: 'Open',
       priority: 'Medium',
       resolution: '',
-    })
+    });
   }
 
   async function handleDelete(id: number) {
-    const { error } = await supabase.from('it_incidents').delete().eq('id', id)
+    const { error } = await supabase.from('it_incidents').delete().eq('id', id);
     if (error) {
-      console.error('Error deleting incident:', error)
-      return
+      console.error('Error deleting incident:', error);
+      return;
     }
-    fetchIncidents()
+    fetchIncidents();
   }
 
   const updateColumnFilter = (id: string, value: string) => {
-    setPageIndex(0)
-    const normalizedValue = value === 'all' ? '' : value
+    setPageIndex(0);
+    const normalizedValue = value === 'all' ? '' : value;
     setColumnFilters(prev => {
-      const filtered = prev.filter(filter => filter.id !== id)
-      return normalizedValue ? [...filtered, { id, value: normalizedValue }] : filtered
-    })
-  }
+      const filtered = prev.filter(filter => filter.id !== id);
+      return normalizedValue ? [...filtered, { id, value: normalizedValue }] : filtered;
+    });
+  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'Open':
-        return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300'
+        return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300';
       case 'In Progress':
-        return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300'
+        return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300';
       case 'Resolved':
-        return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300'
+        return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300';
       case 'Closed':
-        return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300'
+        return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300';
       default:
-        return 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300'
+        return 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300';
     }
-  }
+  };
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
       case 'Critical':
-        return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300'
+        return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300';
       case 'High':
-        return 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300'
+        return 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300';
       case 'Medium':
-        return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300'
+        return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300';
       case 'Low':
-        return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300'
+        return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300';
       default:
-        return 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300'
+        return 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300';
     }
-  }
+  };
 
   const columns: ColumnDef<Incident>[] = [
     {
@@ -222,28 +222,28 @@ export default function ITIncidentManagement() {
       accessorKey: 'status',
       header: 'Status',
       cell: ({ row }) => {
-        const status = row.getValue('status') as string
+        const status = row.getValue('status') as string;
         return (
           <span
             className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(status)}`}
           >
             {status}
           </span>
-        )
+        );
       },
     },
     {
       accessorKey: 'priority',
       header: 'Priority',
       cell: ({ row }) => {
-        const priority = row.getValue('priority') as string
+        const priority = row.getValue('priority') as string;
         return (
           <span
             className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getPriorityColor(priority)}`}
           >
             {priority}
           </span>
-        )
+        );
       },
     },
     {
@@ -255,8 +255,8 @@ export default function ITIncidentManagement() {
             variant="outline"
             size="sm"
             onClick={() => {
-              setEditingIncident(row.original)
-              setIsDialogOpen(true)
+              setEditingIncident(row.original);
+              setIsDialogOpen(true);
             }}
             className="h-8 px-2 lg:px-3"
           >
@@ -267,8 +267,8 @@ export default function ITIncidentManagement() {
             variant="destructive"
             size="sm"
             onClick={() => {
-              setDeleteIncidentId(row.original.id)
-              setIsDeleteDialogOpen(true)
+              setDeleteIncidentId(row.original.id);
+              setIsDeleteDialogOpen(true);
             }}
             className="h-8 px-2 lg:px-3"
           >
@@ -278,7 +278,7 @@ export default function ITIncidentManagement() {
         </div>
       ),
     },
-  ]
+  ];
 
   const table = useReactTable({
     data: incidents,
@@ -294,9 +294,9 @@ export default function ITIncidentManagement() {
       },
     },
     onPaginationChange: updater => {
-      const newState = typeof updater === 'function' ? updater({ pageIndex, pageSize }) : updater
-      setPageIndex(newState.pageIndex)
-      setPageSize(newState.pageSize)
+      const newState = typeof updater === 'function' ? updater({ pageIndex, pageSize }) : updater;
+      setPageIndex(newState.pageIndex);
+      setPageSize(newState.pageSize);
     },
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
@@ -306,12 +306,12 @@ export default function ITIncidentManagement() {
     getSortedRowModel: getSortedRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     manualPagination: false,
-  })
+  });
 
   const downloadExcel = async (filtered = false) => {
-    setIsExporting(true)
+    setIsExporting(true);
     try {
-      let dataToExport
+      let dataToExport;
 
       if (filtered && dateRange?.from && dateRange?.to) {
         const { data, error } = await supabase
@@ -319,18 +319,18 @@ export default function ITIncidentManagement() {
           .select('*')
           .gte('date_reported', format(dateRange.from, 'yyyy-MM-dd'))
           .lte('date_reported', format(dateRange.to, 'yyyy-MM-dd'))
-          .order('date_reported', { ascending: false })
+          .order('date_reported', { ascending: false });
 
-        if (error) throw error
-        dataToExport = data
+        if (error) throw error;
+        dataToExport = data;
       } else {
         const { data, error } = await supabase
           .from('it_incidents')
           .select('*')
-          .order('date_reported', { ascending: false })
+          .order('date_reported', { ascending: false });
 
-        if (error) throw error
-        dataToExport = data
+        if (error) throw error;
+        dataToExport = data;
       }
 
       // Format data untuk Excel
@@ -342,26 +342,26 @@ export default function ITIncidentManagement() {
         Status: item.status,
         Prioritas: item.priority,
         Resolusi: item.resolution || '-',
-      }))
+      }));
 
-      const ws = XLSX.utils.json_to_sheet(formattedData)
-      const wb = XLSX.utils.book_new()
-      XLSX.utils.book_append_sheet(wb, ws, 'Insiden')
+      const ws = XLSX.utils.json_to_sheet(formattedData);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, 'Insiden');
 
       // Generate filename dengan timestamp
       const fileName = filtered
         ? `insiden_${format(dateRange!.from!, 'yyyyMMdd')}_${format(dateRange!.to!, 'yyyyMMdd')}.xlsx`
-        : `insiden_all_${format(new Date(), 'yyyyMMdd_HHmmss')}.xlsx`
+        : `insiden_all_${format(new Date(), 'yyyyMMdd_HHmmss')}.xlsx`;
 
-      XLSX.writeFile(wb, fileName)
-      toast.success('Data berhasil diexport')
+      XLSX.writeFile(wb, fileName);
+      toast.success('Data berhasil diexport');
     } catch (error) {
-      console.error('Error exporting data:', error)
-      toast.error('Gagal mengexport data')
+      console.error('Error exporting data:', error);
+      toast.error('Gagal mengexport data');
     } finally {
-      setIsExporting(false)
+      setIsExporting(false);
     }
-  }
+  };
 
   return (
     <ReportLayout>
@@ -424,17 +424,17 @@ export default function ITIncidentManagement() {
                     : new Date()
               }
               setDateAction={(newDate: Date | undefined) => {
-                const selectedDate = newDate || new Date()
+                const selectedDate = newDate || new Date();
                 if (editingIncident) {
                   setEditingIncident({
                     ...editingIncident,
                     date_reported: selectedDate.toISOString().split('T')[0],
-                  })
+                  });
                 } else {
                   setNewIncident({
                     ...newIncident,
                     date_reported: selectedDate.toISOString().split('T')[0],
-                  })
+                  });
                 }
               }}
             />
@@ -495,8 +495,8 @@ export default function ITIncidentManagement() {
       <Dialog
         open={isDeleteDialogOpen}
         onOpenChange={open => {
-          setIsDeleteDialogOpen(open)
-          if (!open) setDeleteIncidentId(null)
+          setIsDeleteDialogOpen(open);
+          if (!open) setDeleteIncidentId(null);
         }}
       >
         <DialogContent>
@@ -515,9 +515,9 @@ export default function ITIncidentManagement() {
                 variant="destructive"
                 onClick={() => {
                   if (deleteIncidentId !== null) {
-                    handleDelete(deleteIncidentId)
+                    handleDelete(deleteIncidentId);
                   }
-                  setIsDeleteDialogOpen(false)
+                  setIsDeleteDialogOpen(false);
                 }}
               >
                 Hapus
@@ -548,8 +548,8 @@ export default function ITIncidentManagement() {
                 <Select
                   value={statusFilter || 'all'}
                   onValueChange={value => {
-                    setStatusFilter(value === 'all' ? '' : value)
-                    updateColumnFilter('status', value)
+                    setStatusFilter(value === 'all' ? '' : value);
+                    updateColumnFilter('status', value);
                   }}
                 >
                   <SelectTrigger className="w-44">
@@ -566,8 +566,8 @@ export default function ITIncidentManagement() {
                 <Select
                   value={priorityFilter || 'all'}
                   onValueChange={value => {
-                    setPriorityFilter(value === 'all' ? '' : value)
-                    updateColumnFilter('priority', value)
+                    setPriorityFilter(value === 'all' ? '' : value);
+                    updateColumnFilter('priority', value);
                   }}
                 >
                   <SelectTrigger className="w-44">
@@ -699,8 +699,8 @@ export default function ITIncidentManagement() {
                 <Select
                   value={String(pageSize)}
                   onValueChange={value => {
-                    setPageSize(Number(value))
-                    setPageIndex(0)
+                    setPageSize(Number(value));
+                    setPageIndex(0);
                   }}
                 >
                   <SelectTrigger className="w-24">
@@ -735,5 +735,5 @@ export default function ITIncidentManagement() {
         </CardContent>
       </Card>
     </ReportLayout>
-  )
+  );
 }

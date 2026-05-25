@@ -1,49 +1,49 @@
 // FILEPATH: e:/work-report/dev/reportapp/src/components/login.tsx
-'use client'
+'use client';
 
-import { motion } from 'framer-motion'
-import { Eye, EyeOff, Lock, Mail, Moon, Sun } from 'lucide-react'
-import { useRouter } from 'next/navigation'
-import { useTheme } from 'next-themes'
-import { useState } from 'react'
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { getErrorMessage } from '@/hooks/functionGetErrorMessage'
-import { createClient } from '@/lib/supabase/client'
+import { motion } from 'framer-motion';
+import { Eye, EyeOff, Lock, Mail, Moon, Sun } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { useTheme } from 'next-themes';
+import { useState } from 'react';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { getErrorMessage } from '@/hooks/functionGetErrorMessage';
+import { createClient } from '@/lib/supabase/client';
 
 export default function Login() {
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [errorMessage, setErrorMessage] = useState<string | null>(null)
-  const [loading, setLoading] = useState(false)
-  const [showPassword, setShowPassword] = useState(false)
-  const router = useRouter()
-  const { theme, setTheme } = useTheme()
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const router = useRouter();
+  const { theme, setTheme } = useTheme();
 
   const handleLogin = async (e: React.SubmitEvent<HTMLFormElement>) => {
-    e.preventDefault()
-    setLoading(true)
-    setErrorMessage(null)
+    e.preventDefault();
+    setLoading(true);
+    setErrorMessage(null);
 
     try {
-      const supabase = createClient()
+      const supabase = createClient();
       const { error } = await supabase.auth.signInWithPassword({
         email,
         password,
-      })
+      });
 
-      if (error) throw getErrorMessage(error)
+      if (error) throw getErrorMessage(error);
 
-      router.push('/dashboard')
-      router.refresh() // Refresh server components to pick up new session
+      router.push('/dashboard');
+      router.refresh(); // Refresh server components to pick up new session
     } catch (error: unknown) {
-      setErrorMessage(getErrorMessage(error))
-      console.error('Error logging in:', error)
+      setErrorMessage(getErrorMessage(error));
+      console.error('Error logging in:', error);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   return (
     <div className="flex items-center justify-center bg-background">
@@ -146,5 +146,5 @@ export default function Login() {
         </form>
       </motion.div>
     </div>
-  )
+  );
 }

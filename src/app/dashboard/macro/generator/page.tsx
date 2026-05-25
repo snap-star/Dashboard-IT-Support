@@ -1,16 +1,16 @@
-'use client'
+'use client';
 
-import { zodResolver } from '@hookform/resolvers/zod'
-import FileSaver from 'file-saver'
-import { Download, FileSpreadsheet, Trash, Upload } from 'lucide-react'
-import { useEffect, useState } from 'react'
-import { useForm } from 'react-hook-form'
-import { toast } from 'sonner'
-import * as XLSX from 'xlsx'
-import * as z from 'zod'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { zodResolver } from '@hookform/resolvers/zod';
+import FileSaver from 'file-saver';
+import { Download, FileSpreadsheet, Trash, Upload } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { toast } from 'sonner';
+import * as XLSX from 'xlsx';
+import * as z from 'zod';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Form,
   FormControl,
@@ -18,17 +18,17 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from '@/components/ui/form'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
+} from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select'
-import { Textarea } from '@/components/ui/textarea'
+} from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
 
 // Schema untuk form konfigurasi
 const configSchema = z.object({
@@ -36,7 +36,7 @@ const configSchema = z.object({
   startRow: z.string().regex(/^\d+$/, 'Harus berupa angka'),
   waitTime: z.string().regex(/^\d+$/, 'Harus berupa angka'),
   customScript: z.string().optional(),
-})
+});
 
 // Tipe macro yang tersedia
 const macroTypes = [
@@ -264,15 +264,15 @@ End Sub`,
     value: 'custom',
     label: 'Custom Macro',
   },
-]
+];
 
 // Tambahkan fungsi untuk generate preview macro
 const generatePreviewMacro = (values: z.infer<typeof configSchema>, data: any[]) => {
-  if (data.length === 0) return ''
+  if (data.length === 0) return '';
 
-  const waitTime = Number.parseInt(values.waitTime)
-  const previewData = data.slice(0, 3) // Preview 3 data pertama
-  const selectedType = macroTypes.find(type => type.value === values.macroType)
+  const waitTime = Number.parseInt(values.waitTime);
+  const previewData = data.slice(0, 3); // Preview 3 data pertama
+  const selectedType = macroTypes.find(type => type.value === values.macroType);
 
   if (values.macroType === 'custom' && values.customScript) {
     return `[PCOMM SCRIPT HEADER]
@@ -283,34 +283,37 @@ Sub Main
     autECLSession.SetConnectionByName(ThisSessionName)
     ${previewData
       .map((row, index) => {
-        let script = values.customScript
+        let script = values.customScript;
         Object.keys(row).forEach(key => {
-          script = script?.replace(new RegExp(`\\[${key}\\]`, 'g'), row[key])
-        })
+          script = script?.replace(new RegExp(`\\[${key}\\]`, 'g'), row[key]);
+        });
         return `
     ' Record ${index + 1}
     autECLSession.autECLOIA.WaitForInputReady
     autECLSession.autECLPS.SendKeys "${script}"
-    WScript.Sleep ${waitTime}`
+    WScript.Sleep ${waitTime}`;
       })
       .join('\n')}
     ' ... dan seterusnya untuk ${data.length - 3} data lainnya
-End Sub`
+End Sub`;
   }
   if (selectedType?.template) {
     return selectedType
       .template(previewData, waitTime)
-      .replace('End Sub', `    ' ... dan seterusnya untuk ${data.length - 3} data lainnya\nEnd Sub`)
+      .replace(
+        'End Sub',
+        `    ' ... dan seterusnya untuk ${data.length - 3} data lainnya\nEnd Sub`,
+      );
   }
 
-  return ''
-}
+  return '';
+};
 
 export default function MacroGeneratorPage() {
-  const [excelData, setExcelData] = useState<any[]>([])
-  const [fileName, setFileName] = useState<string>('')
-  const [previewData, setPreviewData] = useState<any[]>([])
-  const [previewMacro, setPreviewMacro] = useState<string>('')
+  const [excelData, setExcelData] = useState<any[]>([]);
+  const [fileName, setFileName] = useState<string>('');
+  const [previewData, setPreviewData] = useState<any[]>([]);
+  const [previewMacro, setPreviewMacro] = useState<string>('');
 
   const form = useForm<z.infer<typeof configSchema>>({
     resolver: zodResolver(configSchema),
@@ -320,53 +323,53 @@ export default function MacroGeneratorPage() {
       waitTime: '1000',
       customScript: '',
     },
-  })
+  });
 
-  const formValues = form.watch()
+  const formValues = form.watch();
 
   useEffect(() => {
     if (excelData.length > 0 && formValues.macroType) {
-      const preview = generatePreviewMacro(formValues, excelData)
-      setPreviewMacro(preview)
+      const preview = generatePreviewMacro(formValues, excelData);
+      setPreviewMacro(preview);
     }
-  }, [formValues, excelData])
+  }, [formValues, excelData]);
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0]
+    const file = event.target.files?.[0];
     if (file) {
-      setFileName(file.name)
-      const reader = new FileReader()
+      setFileName(file.name);
+      const reader = new FileReader();
       reader.onload = e => {
         try {
-          const data = new Uint8Array(e.target?.result as ArrayBuffer)
-          const workbook = XLSX.read(data, { type: 'array' })
-          const firstSheet = workbook.Sheets[workbook.SheetNames[0]]
-          const jsonData = XLSX.utils.sheet_to_json(firstSheet)
-          setExcelData(jsonData)
-          setPreviewData(jsonData.slice(0, 5)) // Preview 5 baris pertama
-          toast.success('File Excel berhasil dimuat')
+          const data = new Uint8Array(e.target?.result as ArrayBuffer);
+          const workbook = XLSX.read(data, { type: 'array' });
+          const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+          const jsonData = XLSX.utils.sheet_to_json(firstSheet);
+          setExcelData(jsonData);
+          setPreviewData(jsonData.slice(0, 5)); // Preview 5 baris pertama
+          toast.success('File Excel berhasil dimuat');
         } catch (error) {
-          toast.error('Gagal membaca file Excel')
-          console.error(error)
+          toast.error('Gagal membaca file Excel');
+          console.error(error);
         }
-      }
-      reader.readAsArrayBuffer(file)
+      };
+      reader.readAsArrayBuffer(file);
     }
-  }
+  };
 
   const generateMacro = (values: z.infer<typeof configSchema>) => {
     if (excelData.length === 0) {
-      toast.error('Belum ada data yang dimuat')
-      return
+      toast.error('Belum ada data yang dimuat');
+      return;
     }
 
     try {
-      const startRow = Number.parseInt(values.startRow) - 1
-      const waitTime = Number.parseInt(values.waitTime)
-      const data = excelData.slice(startRow)
+      const startRow = Number.parseInt(values.startRow) - 1;
+      const waitTime = Number.parseInt(values.waitTime);
+      const data = excelData.slice(startRow);
 
-      let macroContent = ''
-      const selectedType = macroTypes.find(type => type.value === values.macroType)
+      let macroContent = '';
+      const selectedType = macroTypes.find(type => type.value === values.macroType);
 
       if (values.macroType === 'custom' && values.customScript) {
         // Generate custom macro
@@ -378,34 +381,34 @@ Sub Main
     autECLSession.SetConnectionByName(ThisSessionName)
     ${data
       .map((row, index) => {
-        let script = values.customScript
+        let script = values.customScript;
         // Replace placeholders with actual data
         Object.keys(row).forEach(key => {
-          script = script?.replace(new RegExp(`\\[${key}\\]`, 'g'), row[key])
-        })
+          script = script?.replace(new RegExp(`\\[${key}\\]`, 'g'), row[key]);
+        });
         return `
     ' Record ${index + 1}
     ${script}
-    WScript.Sleep ${waitTime}`
+    WScript.Sleep ${waitTime}`;
       })
       .join('\n')}
-End Sub`
+End Sub`;
       } else if (selectedType?.template) {
         // Generate macro using predefined template
-        macroContent = selectedType.template(data, waitTime)
+        macroContent = selectedType.template(data, waitTime);
       }
 
       // Create and download .mac file
       const blob = new Blob([macroContent], {
         type: 'text/plain;charset=utf-8',
-      })
-      FileSaver.saveAs(blob, `${fileName.split('.')[0]}_macro.mac`)
-      toast.success('Macro berhasil digenerate')
+      });
+      FileSaver.saveAs(blob, `${fileName.split('.')[0]}_macro.mac`);
+      toast.success('Macro berhasil digenerate');
     } catch (error) {
-      toast.error('Gagal generate macro')
-      console.error(error)
+      toast.error('Gagal generate macro');
+      console.error(error);
     }
-  }
+  };
 
   return (
     <div className="space-y-6">
@@ -447,11 +450,11 @@ End Sub`
                   variant="outline"
                   className="w-full"
                   onClick={() => {
-                    setExcelData([])
-                    setFileName('')
-                    setPreviewData([])
-                    setPreviewMacro('')
-                    form.reset()
+                    setExcelData([]);
+                    setFileName('');
+                    setPreviewData([]);
+                    setPreviewMacro('');
+                    form.reset();
                   }}
                 >
                   <Trash className="mr-2 h-4 w-4" />
@@ -589,8 +592,8 @@ End Sub`
                   variant="secondary"
                   size="sm"
                   onClick={() => {
-                    navigator.clipboard.writeText(previewMacro)
-                    toast.success('Macro preview disalin ke clipboard')
+                    navigator.clipboard.writeText(previewMacro);
+                    toast.success('Macro preview disalin ke clipboard');
                   }}
                 >
                   Copy
@@ -699,5 +702,5 @@ End Sub`
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }

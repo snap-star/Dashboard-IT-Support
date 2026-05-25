@@ -22,6 +22,7 @@
     "lineEnding": "lf",
     "lineWidth": 100,
     "attributePosition": "auto",
+    "trailingNewline": true,
     "bracketSameLine": false,
     "bracketSpacing": true,
     "expand": "auto",
@@ -33,13 +34,16 @@
       "!**/out",
       "!**/dist",
       "!**/build",
-      "!**/coverage"
+      "!**/coverage",
+      "!**/.github/*",
+      "!**/.vscode/*"
     ]
   },
   "linter": {
     "enabled": true,
     "rules": {
       "suspicious": {
+        "recommended": true,
         "useIterableCallbackReturn": "warn"
       },
       "correctness": {
@@ -64,7 +68,7 @@
           "level": "warn",
           "fix": "unsafe"
         },
-         "useTemplate": {
+        "useTemplate": {
           "level": "warn",
           "fix": "safe"
         }
@@ -74,9 +78,10 @@
   "javascript": {
     "formatter": {
       "jsxQuoteStyle": "double",
+      "trailingNewline": true,
       "quoteProperties": "asNeeded",
       "trailingCommas": "all",
-      "semicolons": "asNeeded",
+      "semicolons": "always",
       "arrowParentheses": "asNeeded",
       "bracketSameLine": false,
       "quoteStyle": "single",
@@ -85,7 +90,12 @@
     }
   },
   "html": {
+    "linter": {
+      "enabled": true
+    },
     "formatter": {
+      "enabled": true,
+      "trailingNewline": true,
       "indentScriptAndStyle": false,
       "selfCloseVoidElements": "always"
     }

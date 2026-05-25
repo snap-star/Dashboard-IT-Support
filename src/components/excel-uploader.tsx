@@ -1,12 +1,12 @@
-'use client'
+'use client';
 
-import { Upload } from 'lucide-react'
-import React, { useState } from 'react'
-import * as XLSX from 'xlsx'
-import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
+import { Upload } from 'lucide-react';
+import React, { useState } from 'react';
+import * as XLSX from 'xlsx';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
 import {
   Table,
   TableBody,
@@ -14,54 +14,54 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table'
-import supabase from '@/lib/supabase'
+} from '@/components/ui/table';
+import supabase from '@/lib/supabase';
 
 const ExcelUploader = () => {
-  const [data, setData] = useState([])
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState(null)
-  const [success, setSuccess] = useState(false)
+  const [data, setData] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [success, setSuccess] = useState(false);
 
   const processExcel = (file: any) => {
-    const reader = new FileReader()
+    const reader = new FileReader();
     reader.onload = async (e: any) => {
       try {
-        setLoading(true)
-        setError(null)
+        setLoading(true);
+        setError(null);
 
-        const workbook = XLSX.read(e.target.result, { type: 'binary' })
-        const sheetName = workbook.SheetNames[0]
-        const worksheet = workbook.Sheets[sheetName]
-        const jsonData: any = XLSX.utils.sheet_to_json(worksheet)
+        const workbook = XLSX.read(e.target.result, { type: 'binary' });
+        const sheetName = workbook.SheetNames[0];
+        const worksheet = workbook.Sheets[sheetName];
+        const jsonData: any = XLSX.utils.sheet_to_json(worksheet);
 
-        setData(jsonData)
+        setData(jsonData);
 
         // Upload data ke Supabase
         const { error: uploadError } = await supabase
           .from('excel_data') // Ganti dengan nama tabel Anda
-          .insert(jsonData)
+          .insert(jsonData);
 
-        if (uploadError) throw uploadError
+        if (uploadError) throw uploadError;
 
-        setSuccess(true)
-        setTimeout(() => setSuccess(false), 3000)
+        setSuccess(true);
+        setTimeout(() => setSuccess(false), 3000);
       } catch (err: any) {
-        setError(err.message)
+        setError(err.message);
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
-    }
+    };
 
-    reader.readAsBinaryString(file)
-  }
+    reader.readAsBinaryString(file);
+  };
 
   const handleFileUpload = (event: any) => {
-    const file = event.target.files[0]
+    const file = event.target.files[0];
     if (file) {
-      processExcel(file)
+      processExcel(file);
     }
-  }
+  };
 
   return (
     <Card className="w-full max-w-6xl mx-auto">
@@ -127,7 +127,7 @@ const ExcelUploader = () => {
         </div>
       </CardContent>
     </Card>
-  )
-}
+  );
+};
 
-export default ExcelUploader
+export default ExcelUploader;

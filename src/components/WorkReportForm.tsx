@@ -1,51 +1,51 @@
-'use client'
-import { CalendarIcon } from '@radix-ui/react-icons'
-import { format } from 'date-fns'
-import { useRouter } from 'next/navigation'
-import { useState } from 'react'
-import { Button } from '@/components/ui/button'
-import { Calendar } from '@/components/ui/calendar'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+'use client';
+import { CalendarIcon } from '@radix-ui/react-icons';
+import { format } from 'date-fns';
+import { useRouter } from 'next/navigation';
+import { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Calendar } from '@/components/ui/calendar';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select'
-import { Textarea } from '@/components/ui/textarea'
-import supabase from '@/lib/supabase'
+} from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
+import supabase from '@/lib/supabase';
 
 type WorkReport = {
-  id?: number
-  title: string
-  description: string
-  date: string
-  status: string
-}
+  id?: number;
+  title: string;
+  description: string;
+  date: string;
+  status: string;
+};
 
 type WorkReportFormProps = {
-  initialData?: WorkReport
-  onSubmitSuccess?: () => void
-}
+  initialData?: WorkReport;
+  onSubmitSuccess?: () => void;
+};
 
 export default function WorkReportForm({ initialData, onSubmitSuccess }: WorkReportFormProps) {
-  const [title, setTitle] = useState(initialData?.title || '')
-  const [description, setDescription] = useState(initialData?.description || '')
-  const [date, setDate] = useState(initialData?.date || '')
-  const [status, setStatus] = useState(initialData?.status || 'pending')
-  const [error, setError] = useState('')
-  const router = useRouter()
+  const [title, setTitle] = useState(initialData?.title || '');
+  const [description, setDescription] = useState(initialData?.description || '');
+  const [date, setDate] = useState(initialData?.date || '');
+  const [status, setStatus] = useState(initialData?.status || 'pending');
+  const [error, setError] = useState('');
+  const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    const report = { title, description, date, status }
+    e.preventDefault();
+    const report = { title, description, date, status };
 
     try {
       if (!validateForm(report)) {
-        return
+        return;
       }
 
       if (initialData?.id) {
@@ -53,48 +53,48 @@ export default function WorkReportForm({ initialData, onSubmitSuccess }: WorkRep
         const { error } = await supabase
           .from('work_reports')
           .update(report)
-          .eq('id', initialData.id)
-        if (error) throw error
+          .eq('id', initialData.id);
+        if (error) throw error;
       } else {
         // Insert new report
-        const { error } = await supabase.from('work_reports').insert([report])
-        if (error) throw error
+        const { error } = await supabase.from('work_reports').insert([report]);
+        if (error) throw error;
       }
 
       if (onSubmitSuccess) {
-        onSubmitSuccess()
+        onSubmitSuccess();
       } else {
-        router.push('/dashboard/reports')
+        router.push('/dashboard/reports');
       }
     } catch (error: any) {
-      setError(`Error submitting report: ${error.message}`)
+      setError(`Error submitting report: ${error.message}`);
     }
-  }
+  };
 
   const validateForm = (report: WorkReport) => {
     if (!report.title) {
-      setError('Title is required')
-      return false
+      setError('Title is required');
+      return false;
     }
 
     if (!report.description) {
-      setError('Description is required')
-      return false
+      setError('Description is required');
+      return false;
     }
 
     if (!report.date) {
-      setError('Date is required')
-      return false
+      setError('Date is required');
+      return false;
     }
 
     if (!['pending', 'in_progress', ' completed'].includes(report.status)) {
-      setError('Invalid status')
-      return false
+      setError('Invalid status');
+      return false;
     }
 
-    setError('')
-    return true
-  }
+    setError('');
+    return true;
+  };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
@@ -149,5 +149,5 @@ export default function WorkReportForm({ initialData, onSubmitSuccess }: WorkRep
       </div>
       <Button type="submit">{initialData ? 'Update Report' : 'Add Report'}</Button>
     </form>
-  )
+  );
 }

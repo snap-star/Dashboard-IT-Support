@@ -1,20 +1,20 @@
-'use client'
+'use client';
 
-import { Dialog, DialogContent, DialogTitle } from '@radix-ui/react-dialog'
-import { Popover } from '@radix-ui/react-popover'
-import { Download, Pencil, PlusCircle, Save, Trash2 } from 'lucide-react'
-import { useEffect, useState } from 'react'
-import { toast } from 'sonner'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Checkbox } from '@/components/ui/checkbox'
-import { Input } from '@/components/ui/input'
-import { ScrollArea } from '@/components/ui/scroll-area'
-import { Textarea } from '@/components/ui/textarea'
-import { getErrorMessage } from '@/hooks/functionGetErrorMessage'
-import supabase from '@/lib/supabase'
-import { DialogHeader } from './ui/dialog'
-import {Label} from './ui/label';
+import { Dialog, DialogContent, DialogTitle } from '@radix-ui/react-dialog';
+import { Popover } from '@radix-ui/react-popover';
+import { Download, Pencil, PlusCircle, Save, Trash2 } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { toast } from 'sonner';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Input } from '@/components/ui/input';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Textarea } from '@/components/ui/textarea';
+import { getErrorMessage } from '@/hooks/functionGetErrorMessage';
+import supabase from '@/lib/supabase';
+import { DialogHeader } from './ui/dialog';
+import { Label } from './ui/label';
 
 export default function NotesTask() {
   const [noteContent, setNoteContent] = useState('');
@@ -45,117 +45,119 @@ export default function NotesTask() {
     const { data, error } = await supabase
       .from('notes')
       .select('*')
-      .order('created_at', { ascending: false })
+      .order('created_at', { ascending: false });
 
-    if (!error) setNotes(data)
-  }
+    if (!error) setNotes(data);
+  };
 
   const saveNote = async () => {
     if (!noteContent.trim()) {
-      toast.error('Note cannot be empty')
-      return
+      toast.error('Note cannot be empty');
+      return;
     }
 
-    const { error } = await supabase.from('notes').insert([{ content: noteContent }])
+    const { error } = await supabase.from('notes').insert([{ content: noteContent }]);
 
     if (error) {
-      toast.error('Failed to save note')
+      toast.error('Failed to save note');
     } else {
-      toast.success('Note saved successfully')
-      setNoteContent('')
-      fetchNotes()
+      toast.success('Note saved successfully');
+      setNoteContent('');
+      fetchNotes();
     }
-  }
+  };
 
   const deleteNote = async (noteId: number) => {
-    const { error } = await supabase.from('notes').delete().eq('id', noteId)
+    const { error } = await supabase.from('notes').delete().eq('id', noteId);
 
     if (error) {
-      toast.error('Failed to delete note')
+      toast.error('Failed to delete note');
     } else {
-      toast.success('Note deleted successfully')
-      fetchNotes()
+      toast.success('Note deleted successfully');
+      fetchNotes();
     }
-  }
+  };
 
   const editNote = async (noteId: number) => {
     if (!editingContent.trim()) {
-      toast.error('Note cannot be empty')
-      return
+      toast.error('Note cannot be empty');
+      return;
     }
 
     const { error } = await supabase
       .from('notes')
       .update({ content: editingContent })
-      .eq('id', noteId)
+      .eq('id', noteId);
 
     if (error) {
-      toast.error('Failed to update note')
+      toast.error('Failed to update note');
     } else {
-      toast.success('Note updated successfully')
-      setEditingNoteId(null)
-      fetchNotes()
+      toast.success('Note updated successfully');
+      setEditingNoteId(null);
+      fetchNotes();
     }
-  }
-// Export notes as text file
+  };
+  // Export notes as text file
   const exportNotes = () => {
     try {
-      const notesText = notes.map(note => `${note.content}\n\n`).join('')
-      const blob = new Blob([notesText], { type: 'text/plain' })
-      const url = URL.createObjectURL(blob)
-      const a = document.createElement('a')
-      a.href = url
-      a.download = 'notes.txt'
-      a.click()
-      toast.success('Notes exported successfully')
+      const notesText = notes.map(note => `${note.content}\n\n`).join('');
+      const blob = new Blob([notesText], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'notes.txt';
+      a.click();
+      toast.success('Notes exported successfully');
     } catch (error: unknown) {
-      toast.error(getErrorMessage(error))
+      toast.error(getErrorMessage(error));
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-    toast.error('Failed to export notes')
-  }
-  
+    toast.error('Failed to export notes');
+  };
+
   // Task Handlers
   const fetchTasks = async () => {
     const { data, error } = await supabase
-    .from('tasks')
-    .select('*')
-    .order('created_at', { ascending: false })
-    
-    if (!error) setTasks(data)
-    }
+      .from('tasks')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (!error) setTasks(data);
+  };
   // Add new task
   const addTask = async () => {
-    const { error } = await supabase.from('tasks').insert([{ title: taskTitle, is_completed: false }])
-    
-    if (!error) {
-      setTaskTitle('')
-      fetchTasks()
-    }
-  }
-  // Toggle task completion
-  const toggleTask = async (taskId:string, isCompleted:boolean) => {
     const { error } = await supabase
-    .from('tasks')
-    .update({ is_completed: !isCompleted })
-    .eq('id', taskId)
-    
-    if (!error) fetchTasks()
+      .from('tasks')
+      .insert([{ title: taskTitle, is_completed: false }]);
+
+    if (!error) {
+      setTaskTitle('');
+      fetchTasks();
     }
-  
-  const deleteTask = async (taskId:string) => {
-    const { error } = await supabase.from('tasks').delete().eq('id', taskId)
-    
-    if (!error) fetchTasks()
-    }
-  
+  };
+  // Toggle task completion
+  const toggleTask = async (taskId: string, isCompleted: boolean) => {
+    const { error } = await supabase
+      .from('tasks')
+      .update({ is_completed: !isCompleted })
+      .eq('id', taskId);
+
+    if (!error) fetchTasks();
+  };
+
+  const deleteTask = async (taskId: string) => {
+    const { error } = await supabase.from('tasks').delete().eq('id', taskId);
+
+    if (!error) fetchTasks();
+  };
+
   const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter' && taskTitle.trim()) {
-      addTask()
+      addTask();
     }
-  }
-  
+  };
+
   return (
     <div className="container mx-auto p-6 grid md:grid-cols-2 gap-6">
       <Card>
@@ -172,7 +174,7 @@ export default function NotesTask() {
             onChange={e => setNoteContent(e.target.value)}
             placeholder="Tulis Catatan mu disini..."
             className="min-h-[150px] resize-y"
-            />
+          />
           <Button onClick={saveNote} className="w-full" variant="default">
             <Save className="w-4 h-4 mr-2" />
             Save Note
@@ -194,7 +196,7 @@ export default function NotesTask() {
                           value={editingContent}
                           onChange={e => setEditingContent(e.target.value)}
                           className="min-h-[100px]"
-                          />
+                        />
                         <div className="flex gap-2">
                           <Button onClick={() => editNote(note.id)} size="sm">
                             Save
@@ -203,7 +205,7 @@ export default function NotesTask() {
                             onClick={() => setEditingNoteId(null)}
                             variant="outline"
                             size="sm"
-                            >
+                          >
                             Cancel
                           </Button>
                         </div>
@@ -213,10 +215,10 @@ export default function NotesTask() {
                         <Label
                           className="whitespace-pre-wrap text-sm line-clamp-3 cursor-pointer hover:text-muted-foreground"
                           onClick={() => {
-                            setSelectedNote(note)
-                            setIsModalOpen(true)
+                            setSelectedNote(note);
+                            setIsModalOpen(true);
                           }}
-                          >
+                        >
                           {note.content}
                         </Label>
                         <div className="flex gap-2">
@@ -224,10 +226,10 @@ export default function NotesTask() {
                             variant="ghost"
                             size="icon"
                             onClick={() => {
-                              setEditingNoteId(note.id)
-                              setEditingContent(note.content)
+                              setEditingNoteId(note.id);
+                              setEditingContent(note.content);
                             }}
-                            >
+                          >
                             <Pencil className="w-4 h-4" />
                           </Button>
                           <Button
@@ -235,7 +237,7 @@ export default function NotesTask() {
                             size="icon"
                             onClick={() => deleteNote(note.id)}
                             className="text-destructive"
-                            >
+                          >
                             <Trash2 className="w-4 h-4" />
                           </Button>
                         </div>
@@ -269,7 +271,7 @@ export default function NotesTask() {
               onChange={e => setTaskTitle(e.target.value)}
               placeholder="Judul tugas baru..."
               onKeyPress={handleKeyPress}
-              />
+            />
             <Button onClick={addTask} variant="default">
               <PlusCircle className="w-4 h-4" />
             </Button>
@@ -294,11 +296,11 @@ export default function NotesTask() {
                           <Checkbox
                             checked={task.is_completed}
                             key={task.id}
-                            onCheckedChange={() => toggleTask( task.title, task.is_completed)}
-                            />
+                            onCheckedChange={() => toggleTask(task.title, task.is_completed)}
+                          />
                           <span
                             className={`${task.is_completed ? 'line-through text-muted-foreground' : ''}`}
-                            >
+                          >
                             {task.title}
                           </span>
                         </div>
@@ -308,7 +310,7 @@ export default function NotesTask() {
                           size="icon"
                           onClick={() => deleteTask(task.title)}
                           className="text-destructive hover:text-destructive"
-                          >
+                        >
                           <Trash2 className="w-4 h-4" />
                         </Button>
                       </div>
@@ -321,6 +323,5 @@ export default function NotesTask() {
         </CardContent>
       </Card>
     </div>
-  )
-  
+  );
 }

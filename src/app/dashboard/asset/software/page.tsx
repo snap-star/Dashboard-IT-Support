@@ -1,4 +1,4 @@
-'use client'
+'use client';
 
 import {
   type ColumnDef,
@@ -11,13 +11,13 @@ import {
   type SortingState,
   useReactTable,
   type VisibilityState,
-} from '@tanstack/react-table'
-import { ArrowUpDown, MoreHorizontal } from 'lucide-react'
-import * as React from 'react'
-import * as XLSX from 'xlsx'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+} from '@tanstack/react-table';
+import { ArrowUpDown, MoreHorizontal } from 'lucide-react';
+import * as React from 'react';
+import * as XLSX from 'xlsx';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -25,15 +25,15 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
-import { Input } from '@/components/ui/input'
+} from '@/components/ui/dropdown-menu';
+import { Input } from '@/components/ui/input';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select'
+} from '@/components/ui/select';
 import {
   Table,
   TableBody,
@@ -41,42 +41,42 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table'
-import supabase from '@/lib/supabase'
+} from '@/components/ui/table';
+import supabase from '@/lib/supabase';
 
 type Software = {
-  id: number
-  nama_software: string
-  jenis: string
-  versi: string
-  lisensi: string
-  tanggal_aktivasi: string
-  tanggal_expired: string
-  pengguna: string
-  lokasi: string
-  status: string
-  keterangan: string
-}
+  id: number;
+  nama_software: string;
+  jenis: string;
+  versi: string;
+  lisensi: string;
+  tanggal_aktivasi: string;
+  tanggal_expired: string;
+  pengguna: string;
+  lokasi: string;
+  status: string;
+  keterangan: string;
+};
 
 type User = {
-  id: number
-  user_estim: string
-  nama: string
-  ip_address: string
-  nip: string
-  jabatan: string
-}
+  id: number;
+  user_estim: string;
+  nama: string;
+  ip_address: string;
+  nip: string;
+  jabatan: string;
+};
 
 export default function AssetSoftware() {
-  const [software, setSoftware] = React.useState<Software[]>([])
-  const [globalFilter, setGlobalFilter] = React.useState('')
-  const [sorting, setSorting] = React.useState<SortingState>([])
-  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
-  const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({})
-  const [isDialogOpen, setIsDialogOpen] = React.useState(false)
-  const [editingSoftware, setEditingSoftware] = React.useState<Software | null>(null)
-  const [lastUpdated, setLastUpdated] = React.useState<string>('')
-  const [users, setUsers] = React.useState<User[]>([])
+  const [software, setSoftware] = React.useState<Software[]>([]);
+  const [globalFilter, setGlobalFilter] = React.useState('');
+  const [sorting, setSorting] = React.useState<SortingState>([]);
+  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
+  const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
+  const [isDialogOpen, setIsDialogOpen] = React.useState(false);
+  const [editingSoftware, setEditingSoftware] = React.useState<Software | null>(null);
+  const [lastUpdated, setLastUpdated] = React.useState<string>('');
+  const [users, setUsers] = React.useState<User[]>([]);
   const [newSoftware, setNewSoftware] = React.useState<Omit<Software, 'id'>>({
     nama_software: '',
     jenis: '',
@@ -88,31 +88,31 @@ export default function AssetSoftware() {
     lokasi: '',
     status: '',
     keterangan: '',
-  })
+  });
 
   React.useEffect(() => {
-    fetchSoftware()
-    fetchUsers()
-  }, [])
+    fetchSoftware();
+    fetchUsers();
+  }, []);
 
   async function fetchSoftware() {
-    const { data, error } = await supabase.from('software').select('*')
+    const { data, error } = await supabase.from('software').select('*');
     if (error) {
-      console.error('Error fetching software:', error)
+      console.error('Error fetching software:', error);
     } else {
-      setSoftware(data || [])
-      setLastUpdated(new Date().toLocaleString())
+      setSoftware(data || []);
+      setLastUpdated(new Date().toLocaleString());
     }
   }
 
   async function fetchUsers() {
     const { data, error } = await supabase
       .from('users')
-      .select('id, user_estim, nama, ip_address, nip, jabatan')
+      .select('id, user_estim, nama, ip_address, nip, jabatan');
     if (error) {
-      console.error('Error fetching users:', error)
+      console.error('Error fetching users:', error);
     } else {
-      setUsers(data || [])
+      setUsers(data || []);
     }
   }
 
@@ -166,28 +166,28 @@ export default function AssetSoftware() {
       header: 'Keterangan',
     },
     // ... sisanya sama seperti hardware
-  ]
+  ];
 
   async function handleCreateOrUpdateSoftware() {
     if (editingSoftware) {
       const { error } = await supabase
         .from('software')
         .update(editingSoftware)
-        .eq('id', editingSoftware.id)
+        .eq('id', editingSoftware.id);
       if (error) {
-        console.error('Error updating software:', error)
-        return
+        console.error('Error updating software:', error);
+        return;
       }
     } else {
-      const { error } = await supabase.from('software').insert([newSoftware])
+      const { error } = await supabase.from('software').insert([newSoftware]);
       if (error) {
-        console.error('Error creating software:', error)
-        return
+        console.error('Error creating software:', error);
+        return;
       }
     }
-    fetchSoftware()
-    setIsDialogOpen(false)
-    setEditingSoftware(null)
+    fetchSoftware();
+    setIsDialogOpen(false);
+    setEditingSoftware(null);
     setNewSoftware({
       nama_software: '',
       jenis: '',
@@ -199,24 +199,24 @@ export default function AssetSoftware() {
       lokasi: '',
       status: '',
       keterangan: '',
-    })
+    });
   }
 
   async function handleDeleteSoftware(id: number) {
-    const { error } = await supabase.from('software').delete().eq('id', id)
+    const { error } = await supabase.from('software').delete().eq('id', id);
     if (error) {
-      console.error('Error deleting software:', error)
-      return
+      console.error('Error deleting software:', error);
+      return;
     }
-    fetchSoftware()
+    fetchSoftware();
   }
 
   const exportToExcel = () => {
-    const worksheet = XLSX.utils.json_to_sheet(software)
-    const workbook = XLSX.utils.book_new()
-    XLSX.utils.book_append_sheet(workbook, worksheet, 'Software Assets')
-    XLSX.writeFile(workbook, 'Data_Aset_Software.xlsx')
-  }
+    const worksheet = XLSX.utils.json_to_sheet(software);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Software Assets');
+    XLSX.writeFile(workbook, 'Data_Aset_Software.xlsx');
+  };
 
   const table = useReactTable({
     data: software,
@@ -234,7 +234,7 @@ export default function AssetSoftware() {
     getFilteredRowModel: getFilteredRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
-  })
+  });
 
   return (
     <div className="w-full">
@@ -500,5 +500,5 @@ export default function AssetSoftware() {
         </CardFooter>
       </Card>
     </div>
-  )
+  );
 }

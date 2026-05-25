@@ -1,36 +1,36 @@
-'use client'
+'use client';
 
-import { format } from 'date-fns'
-import { id } from 'date-fns/locale'
-import * as React from 'react'
-import { Button } from '@/components/ui/button'
-import { Calendar } from '@/components/ui/calendar'
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
-import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area'
-import { cn } from '@/lib/utils'
+import { format } from 'date-fns';
+import { id } from 'date-fns/locale';
+import * as React from 'react';
+import { Button } from '@/components/ui/button';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
+import { cn } from '@/lib/utils';
 
 export function DatePicker() {
-  const [date, setDate] = React.useState<Date>()
-  const [isOpen, setIsOpen] = React.useState(false)
+  const [date, setDate] = React.useState<Date>();
+  const [isOpen, setIsOpen] = React.useState(false);
 
-  const hours = Array.from({ length: 24 }, (_, i) => i)
+  const hours = Array.from({ length: 24 }, (_, i) => i);
   const handleDateSelect = (selectedDate: Date | undefined) => {
     if (selectedDate) {
-      setDate(selectedDate)
+      setDate(selectedDate);
     }
-  }
+  };
 
   const handleTimeChange = (type: 'hour' | 'minute', value: string) => {
     if (date) {
-      const newDate = new Date(date)
+      const newDate = new Date(date);
       if (type === 'hour') {
-        newDate.setHours(Number.parseInt(value, 10))
+        newDate.setHours(Number.parseInt(value, 10));
       } else if (type === 'minute') {
-        newDate.setMinutes(Number.parseInt(value, 10))
+        newDate.setMinutes(Number.parseInt(value, 10));
       }
-      setDate(newDate)
+      setDate(newDate);
     }
-  }
+  };
 
   return (
     <Popover open={isOpen} onOpenChange={setIsOpen}>
@@ -92,5 +92,5 @@ export function DatePicker() {
         </div>
       </PopoverContent>
     </Popover>
-  )
+  );
 }

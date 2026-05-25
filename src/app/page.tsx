@@ -1,12 +1,12 @@
-'use client'
-import { motion } from 'framer-motion'
-import { Moon, Sun } from 'lucide-react'
-import { useTheme } from 'next-themes'
-import Login from '@/components/login'
-import { Button } from '@/components/ui/button'
+'use client';
+import { motion } from 'framer-motion';
+import { Moon, Sun } from 'lucide-react';
+import { useTheme } from 'next-themes';
+import Login from '@/components/login';
+import { Button } from '@/components/ui/button';
 
 export default function App() {
-  const { theme, setTheme } = useTheme()
+  const { theme, setTheme } = useTheme();
 
   return (
     <div className="min-h-screen relative bg-gradient-to-br from-background to-secondary/20">
@@ -93,5 +93,5 @@ export default function App() {
         </footer>
       </div>
     </div>
-  )
+  );
 }

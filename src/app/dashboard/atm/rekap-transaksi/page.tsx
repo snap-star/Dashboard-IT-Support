@@ -1,18 +1,18 @@
-'use client'
+'use client';
 
-import { zodResolver } from '@hookform/resolvers/zod'
-import { format } from 'date-fns'
-import { id } from 'date-fns/locale'
-import { Download, Edit, Loader2, Plus, Trash2 } from 'lucide-react'
-import { useEffect, useState } from 'react'
-import { useForm } from 'react-hook-form'
-import { CartesianGrid, Legend, Line, LineChart, Tooltip, XAxis, YAxis } from 'recharts'
-import { toast } from 'sonner'
-import * as XLSX from 'xlsx'
-import { z } from 'zod'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { type ChartConfig, ChartContainer } from '@/components/ui/chart'
+import { zodResolver } from '@hookform/resolvers/zod';
+import { format } from 'date-fns';
+import { id } from 'date-fns/locale';
+import { Download, Edit, Loader2, Plus, Trash2 } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { CartesianGrid, Legend, Line, LineChart, Tooltip, XAxis, YAxis } from 'recharts';
+import { toast } from 'sonner';
+import * as XLSX from 'xlsx';
+import { z } from 'zod';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { type ChartConfig, ChartContainer } from '@/components/ui/chart';
 import {
   Dialog,
   DialogContent,
@@ -21,7 +21,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from '@/components/ui/dialog'
+} from '@/components/ui/dialog';
 import {
   Form,
   FormControl,
@@ -29,16 +29,16 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from '@/components/ui/form'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
+} from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select'
+} from '@/components/ui/select';
 import {
   Table,
   TableBody,
@@ -46,21 +46,21 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table'
-import supabase from '@/lib/supabase'
+} from '@/components/ui/table';
+import supabase from '@/lib/supabase';
 
 // Interface untuk data transaksi
 interface TransaksiATM {
-  id: string
-  atm_id: string
-  tahun: number
-  bulan: string
-  jumlah_transaksi: number
-  total_nominal: number
-  rata_rata_harian: number
-  keterangan?: string
-  created_at: string
-  updated_at: string
+  id: string;
+  atm_id: string;
+  tahun: number;
+  bulan: string;
+  jumlah_transaksi: number;
+  total_nominal: number;
+  rata_rata_harian: number;
+  keterangan?: string;
+  created_at: string;
+  updated_at: string;
 }
 
 // Tambahkan form schema
@@ -91,7 +91,7 @@ const formSchema = z.object({
     })
     .min(1, 'Total nominal harus diisi'),
   keterangan: z.string().optional(),
-})
+});
 
 // Tambahkan ATM ID options
 const atmOptions = [
@@ -118,7 +118,7 @@ const atmOptions = [
   'JTM09302',
   'JTM15401',
   'JTM17902',
-]
+];
 
 // Data contoh untuk chart
 const chartData = [
@@ -128,7 +128,7 @@ const chartData = [
   { bulan: 'April', total_transaksi: 73, total_nominal: 190000 },
   { bulan: 'Mei', total_transaksi: 209, total_nominal: 130000 },
   { bulan: 'Juni', total_transaksi: 214, total_nominal: 140000 },
-]
+];
 
 // Konfigurasi chart
 const chartConfig = {
@@ -140,16 +140,16 @@ const chartConfig = {
     label: 'Total Nominal',
     color: '#60a5fa',
   },
-} satisfies ChartConfig
+} satisfies ChartConfig;
 
 export default function RekapTransaksiATM() {
-  const [isLoading, setIsLoading] = useState(true)
-  const [transaksi, setTransaksi] = useState<TransaksiATM[]>([])
-  const [selectedYear, setSelectedYear] = useState<string>(new Date().getFullYear().toString())
-  const [years, setYears] = useState<string[]>([])
-  const [isDialogOpen, setIsDialogOpen] = useState(false)
-  const [editingData, setEditingData] = useState<TransaksiATM | null>(null)
-  const [chartData, setChartData] = useState<any[]>([])
+  const [isLoading, setIsLoading] = useState(true);
+  const [transaksi, setTransaksi] = useState<TransaksiATM[]>([]);
+  const [selectedYear, setSelectedYear] = useState<string>(new Date().getFullYear().toString());
+  const [years, setYears] = useState<string[]>([]);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [editingData, setEditingData] = useState<TransaksiATM | null>(null);
+  const [chartData, setChartData] = useState<any[]>([]);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -161,7 +161,7 @@ export default function RekapTransaksiATM() {
       total_nominal: '',
       keterangan: '',
     },
-  })
+  });
 
   const bulanOptions = [
     'Januari',
@@ -176,76 +176,76 @@ export default function RekapTransaksiATM() {
     'Oktober',
     'November',
     'Desember',
-  ]
+  ];
 
   // Reset form saat dialog ditutup
   useEffect(() => {
     if (!isDialogOpen) {
-      form.reset()
-      setEditingData(null)
+      form.reset();
+      setEditingData(null);
     }
-  }, [isDialogOpen])
+  }, [isDialogOpen]);
 
   // Fetch data saat tahun berubah
   useEffect(() => {
-    fetchTransaksi()
-  }, [selectedYear])
+    fetchTransaksi();
+  }, [selectedYear]);
 
   const fetchTransaksi = async () => {
     try {
-      setIsLoading(true)
+      setIsLoading(true);
       const { data, error } = await supabase
         .from('rekap_transaksi_atm')
         .select('*')
         .eq('tahun', Number.parseInt(selectedYear))
         .order('atm_id', { ascending: true })
-        .order('bulan', { ascending: true })
+        .order('bulan', { ascending: true });
 
-      if (error) throw error
+      if (error) throw error;
 
-      setTransaksi(data || [])
+      setTransaksi(data || []);
 
       // Siapkan data untuk chart
       const chartData = data?.reduce((acc: any[], curr) => {
-        const existingData = acc.find(item => item.bulan === curr.bulan)
+        const existingData = acc.find(item => item.bulan === curr.bulan);
         if (existingData) {
-          existingData.total_transaksi += curr.jumlah_transaksi
-          existingData.total_nominal += Number.parseFloat(curr.total_nominal)
+          existingData.total_transaksi += curr.jumlah_transaksi;
+          existingData.total_nominal += Number.parseFloat(curr.total_nominal);
         } else {
           acc.push({
             bulan: curr.bulan,
             total_transaksi: curr.jumlah_transaksi,
             total_nominal: Number.parseFloat(curr.total_nominal),
-          })
+          });
         }
-        return acc
-      }, [])
+        return acc;
+      }, []);
 
-      setChartData(chartData || [])
+      setChartData(chartData || []);
 
       // Fetch tahun yang tersedia
       const { data: yearsData } = await supabase
         .from('rekap_transaksi_atm')
         .select('tahun')
-        .order('tahun', { ascending: false })
+        .order('tahun', { ascending: false });
 
-      const uniqueYears = [...new Set(yearsData?.map(item => item.tahun.toString()) || [])]
+      const uniqueYears = [...new Set(yearsData?.map(item => item.tahun.toString()) || [])];
       if (!uniqueYears.includes(selectedYear)) {
-        uniqueYears.push(selectedYear)
+        uniqueYears.push(selectedYear);
       }
-      setYears(uniqueYears.sort((a, b) => Number.parseInt(b) - Number.parseInt(a)))
+      setYears(uniqueYears.sort((a, b) => Number.parseInt(b) - Number.parseInt(a)));
     } catch (error: any) {
-      console.error('Error:', error)
-      toast.error('Gagal memuat data')
+      console.error('Error:', error);
+      toast.error('Gagal memuat data');
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
-      setIsLoading(true)
-      console.log('Form values:', values)
+      setIsLoading(true);
+      console.log('Form values:', values);
 
       // Validasi input
       if (
@@ -255,8 +255,8 @@ export default function RekapTransaksiATM() {
         !values.jumlah_transaksi ||
         !values.total_nominal
       ) {
-        toast.error('Semua field harus diisi')
-        return
+        toast.error('Semua field harus diisi');
+        return;
       }
 
       const dataToSubmit = {
@@ -269,24 +269,24 @@ export default function RekapTransaksiATM() {
           (Number.parseInt(values.jumlah_transaksi) / 30).toFixed(2),
         ), // Simplified average
         keterangan: values.keterangan || null,
-      }
+      };
 
-      console.log('Data to submit:', dataToSubmit)
+      console.log('Data to submit:', dataToSubmit);
 
       if (editingData) {
         // Update existing data
         const { error: updateError } = await supabase
           .from('rekap_transaksi_atm')
           .update(dataToSubmit)
-          .eq('id', editingData.id)
+          .eq('id', editingData.id);
 
         if (updateError) {
-          console.error('Update error:', updateError)
-          toast.error('Gagal memperbarui data')
-          return
+          console.error('Update error:', updateError);
+          toast.error('Gagal memperbarui data');
+          return;
         }
 
-        toast.success('Data berhasil diperbarui')
+        toast.success('Data berhasil diperbarui');
       } else {
         // Check for existing data
         const { data: existingData, error: checkError } = await supabase
@@ -295,36 +295,36 @@ export default function RekapTransaksiATM() {
           .eq('atm_id', values.atm_id)
           .eq('tahun', dataToSubmit.tahun)
           .eq('bulan', values.bulan)
-          .maybeSingle()
+          .maybeSingle();
 
         if (checkError) {
-          console.error('Check error:', checkError)
-          return
+          console.error('Check error:', checkError);
+          return;
         }
 
         if (existingData) {
           toast.error(
             `Data untuk ATM ${values.atm_id} periode ${values.bulan} ${values.tahun} sudah ada`,
-          )
-          return
+          );
+          return;
         }
 
         // Insert new data
         const { error: insertError } = await supabase
           .from('rekap_transaksi_atm')
-          .insert([dataToSubmit])
+          .insert([dataToSubmit]);
 
         if (insertError) {
-          console.error('Insert error:', insertError)
-          toast.error('Gagal menambahkan data')
-          return
+          console.error('Insert error:', insertError);
+          toast.error('Gagal menambahkan data');
+          return;
         }
 
-        toast.success('Data berhasil ditambahkan')
+        toast.success('Data berhasil ditambahkan');
       }
 
       // Reset form and refresh data
-      setIsDialogOpen(false)
+      setIsDialogOpen(false);
       form.reset({
         atm_id: '',
         tahun: new Date().getFullYear().toString(),
@@ -332,15 +332,15 @@ export default function RekapTransaksiATM() {
         jumlah_transaksi: '',
         total_nominal: '',
         keterangan: '',
-      })
-      fetchTransaksi()
+      });
+      fetchTransaksi();
     } catch (error: any) {
-      console.error('Error:', error)
-      toast.error('Terjadi kesalahan saat menyimpan data')
+      console.error('Error:', error);
+      toast.error('Terjadi kesalahan saat menyimpan data');
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const handleExport = async () => {
     try {
@@ -351,10 +351,10 @@ export default function RekapTransaksiATM() {
         'Total Nominal': formatToRupiah(item.total_nominal),
         'Rata-rata Harian': item.rata_rata_harian.toLocaleString(),
         Keterangan: item.keterangan || '-',
-      }))
+      }));
 
-      const wb = XLSX.utils.book_new()
-      const ws = XLSX.utils.json_to_sheet(exportData)
+      const wb = XLSX.utils.book_new();
+      const ws = XLSX.utils.json_to_sheet(exportData);
 
       ws['!cols'] = [
         { wch: 15 }, // ATM ID
@@ -363,25 +363,25 @@ export default function RekapTransaksiATM() {
         { wch: 25 }, // Total Nominal
         { wch: 20 }, // Rata-rata Harian
         { wch: 30 }, // Keterangan
-      ]
+      ];
 
-      XLSX.utils.book_append_sheet(wb, ws, `Rekap Transaksi ATM ${selectedYear}`)
-      XLSX.writeFile(wb, `rekap_transaksi_atm_${selectedYear}.xlsx`)
+      XLSX.utils.book_append_sheet(wb, ws, `Rekap Transaksi ATM ${selectedYear}`);
+      XLSX.writeFile(wb, `rekap_transaksi_atm_${selectedYear}.xlsx`);
 
-      toast.success('Data berhasil di-export')
+      toast.success('Data berhasil di-export');
     } catch (error) {
-      console.error('Export error:', error)
-      toast.error('Gagal mengexport data')
+      console.error('Export error:', error);
+      toast.error('Gagal mengexport data');
     }
-  }
+  };
 
   const formatToRupiah = (amount: number) => {
     return new Intl.NumberFormat('id-ID', {
       style: 'currency',
       currency: 'IDR',
       minimumFractionDigits: 0,
-    }).format(amount)
-  }
+    }).format(amount);
+  };
 
   // Tambahkan fungsi untuk mengecek kelengkapan data bulan ini
   const checkMonthlyCompletion = async (tahun: number, bulan: string) => {
@@ -390,24 +390,24 @@ export default function RekapTransaksiATM() {
         .from('rekap_transaksi_atm')
         .select('atm_id')
         .eq('tahun', tahun)
-        .eq('bulan', bulan)
+        .eq('bulan', bulan);
 
-      if (error) throw error
+      if (error) throw error;
 
-      const submittedAtms = new Set(data?.map(item => item.atm_id))
-      const remainingAtms = atmOptions.filter(atmId => !submittedAtms.has(atmId))
+      const submittedAtms = new Set(data?.map(item => item.atm_id));
+      const remainingAtms = atmOptions.filter(atmId => !submittedAtms.has(atmId));
 
       return {
         total: atmOptions.length,
         submitted: submittedAtms.size,
         remaining: remainingAtms,
         isComplete: submittedAtms.size === atmOptions.length,
-      }
+      };
     } catch (error) {
-      console.error('Error checking completion:', error)
-      return null
+      console.error('Error checking completion:', error);
+      return null;
     }
-  }
+  };
 
   // Update tampilan untuk menampilkan progress
   useEffect(() => {
@@ -415,31 +415,31 @@ export default function RekapTransaksiATM() {
       const completion = await checkMonthlyCompletion(
         Number.parseInt(selectedYear),
         bulanOptions[new Date().getMonth()],
-      )
+      );
       if (completion) {
         // Tampilkan informasi progress
         const progressMessage = completion.isComplete
           ? `Semua data ATM (${completion.total}) untuk bulan ini telah lengkap`
-          : `${completion.submitted} dari ${completion.total} ATM telah diinput`
+          : `${completion.submitted} dari ${completion.total} ATM telah diinput`;
 
         if (!completion.isComplete) {
-          toast.info(progressMessage)
+          toast.info(progressMessage);
         }
       }
-    }
+    };
 
-    checkCompletion()
-  }, [selectedYear])
+    checkCompletion();
+  }, [selectedYear]);
 
   // Pastikan format input numerik benar
   const formatNumber = (value: string) => {
     // Hapus semua karakter non-digit
-    return value.replace(/[^0-9]/g, '')
-  }
+    return value.replace(/[^0-9]/g, '');
+  };
 
   // Tambahkan fungsi untuk handle edit dan delete
   const handleEdit = (data: TransaksiATM) => {
-    setEditingData(data)
+    setEditingData(data);
     form.reset({
       atm_id: data.atm_id,
       tahun: data.tahun.toString(),
@@ -447,24 +447,24 @@ export default function RekapTransaksiATM() {
       jumlah_transaksi: data.jumlah_transaksi.toString(),
       total_nominal: data.total_nominal.toString(),
       keterangan: data.keterangan || '',
-    })
-    setIsDialogOpen(true)
-  }
+    });
+    setIsDialogOpen(true);
+  };
 
   const handleDelete = async (id: string) => {
     if (window.confirm('Apakah Anda yakin ingin menghapus data ini?')) {
       try {
-        const { error } = await supabase.from('rekap_transaksi_atm').delete().eq('id', id)
+        const { error } = await supabase.from('rekap_transaksi_atm').delete().eq('id', id);
 
-        if (error) throw error
-        toast.success('Data berhasil dihapus')
-        fetchTransaksi()
+        if (error) throw error;
+        toast.success('Data berhasil dihapus');
+        fetchTransaksi();
       } catch (error: any) {
-        console.error('Error:', error)
-        toast.error('Gagal menghapus data')
+        console.error('Error:', error);
+        toast.error('Gagal menghapus data');
       }
     }
-  }
+  };
 
   return (
     <div className="space-y-4 p-8">
@@ -728,5 +728,5 @@ export default function RekapTransaksiATM() {
         </DialogContent>
       </Dialog>
     </div>
-  )
+  );
 }
