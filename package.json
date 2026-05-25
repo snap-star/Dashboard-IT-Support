@@ -13,7 +13,7 @@
     "lint:fix": "biome lint --write"
   },
   "dependencies": {
-    "@hookform/resolvers": "^3.10.0",
+    "@hookform/resolvers": "^5.4.0",
     "@mdx-js/loader": "^3.1.1",
     "@mdx-js/react": "^3.1.1",
     "@next/mdx": "^16.2.6",
@@ -56,17 +56,22 @@
     "next-themes": "^0.4.6",
     "postcss": "^8.5.15",
     "react": "^19.2.6",
-    "react-day-picker": "8.10.1",
+    "react-day-picker": "10.0.1",
     "react-dom": "^19.2.6",
     "react-hook-form": "^7.76.1",
+<<<<<<< HEAD
     "react-resizable-panels": "^2.1.9",
     "recharts": "^2.15.4",
+=======
+    "react-resizable-panels": "^4.11.2",
+    "recharts": "^3.8.1",
+>>>>>>> 40b05a232f9fc348632c1cecd56cf1309d6d110e
     "sonner": "^2.0.7",
     "tailwind-merge": "^3.6.0",
     "tailwindcss": "^4.3.0",
     "tailwindcss-animate": "^1.0.7",
     "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz",
-    "zod": "^3.25.76"
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@biomejs/biome": "2.4.15",
@@ -75,6 +80,11 @@
     "@types/node": "^25.9.1",
     "@types/react": "^19.2.15",
     "@types/react-dom": "^19.2.3",
+<<<<<<< HEAD
+=======
+    "postcss": "^8.5.15",
+    "tailwindcss": "^4.3.0",
+>>>>>>> 40b05a232f9fc348632c1cecd56cf1309d6d110e
     "typescript": "^6.0.3"
   }
 }
