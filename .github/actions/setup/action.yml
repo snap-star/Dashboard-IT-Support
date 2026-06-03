@@ -12,13 +12,16 @@ runs:
       # Removed 'version' — reads from packageManager field in package.json
       with:
         run_install: false
-
+        
     - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
-        node-version: 20
+        node-version: 24
         cache: 'pnpm'
-
+        
+    - name: Cache
+      uses: actions/cache@v5.0.5
+      
     - name: Install dependencies
       shell: bash
       run: pnpm install --frozen-lockfile
