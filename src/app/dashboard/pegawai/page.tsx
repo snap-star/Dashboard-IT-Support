@@ -1,4 +1,4 @@
-'use client';
+'use client'
 
 import {
   type ColumnDef,
@@ -11,8 +11,8 @@ import {
   type SortingState,
   useReactTable,
   type VisibilityState,
-} from '@tanstack/react-table';
-import { type FormEvent, useEffect, useState } from 'react';
+} from '@tanstack/react-table'
+import { type FormEvent, useEffect, useState } from 'react'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -23,24 +23,24 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from '@/components/ui/alert-dialog';
-import { Button } from '@/components/ui/button';
+} from '@/components/ui/alert-dialog'
+import { Button } from '@/components/ui/button'
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+} from '@/components/ui/dialog'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
+} from '@/components/ui/select'
 import {
   Table,
   TableBody,
@@ -48,51 +48,51 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
-import supabase from '@/lib/supabase';
+} from '@/components/ui/table'
+import supabase from '@/lib/supabase'
 
 interface Employee {
-  id?: number;
-  nip: string;
-  name: string;
-  jabatan: string;
-  department: string;
-  created_at?: string | null;
+  id?: number
+  nip: string
+  name: string
+  jabatan: string
+  department: string
+  created_at?: string | null
 }
 
 export default function PegawaiPage() {
-  const [employees, setEmployees] = useState<Employee[]>([]);
-  const [isOpen, setIsOpen] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [sorting, setSorting] = useState<SortingState>([]);
-  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
-  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
-  const [pageIndex, setPageIndex] = useState(0);
-  const [pageSize, setPageSize] = useState(10);
-  const [globalFilter, setGlobalFilter] = useState('');
+  const [employees, setEmployees] = useState<Employee[]>([])
+  const [isOpen, setIsOpen] = useState(false)
+  const [loading, setLoading] = useState(true)
+  const [sorting, setSorting] = useState<SortingState>([])
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
+  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
+  const [pageIndex, setPageIndex] = useState(0)
+  const [pageSize, setPageSize] = useState(10)
+  const [globalFilter, setGlobalFilter] = useState('')
   const [formData, setFormData] = useState({
     nip: '',
     nama: '',
     jabatan: '',
     department: '',
-  });
-  const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null);
-  const [isEditOpen, setIsEditOpen] = useState(false);
-  const [deleteEmployee, setDeleteEmployee] = useState<Employee | null>(null);
-  const [departmentFilter, setDepartmentFilter] = useState('');
+  })
+  const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null)
+  const [isEditOpen, setIsEditOpen] = useState(false)
+  const [deleteEmployee, setDeleteEmployee] = useState<Employee | null>(null)
+  const [departmentFilter, setDepartmentFilter] = useState('')
 
   // Get unique departments for filter options
   const departmentOptions = Array.from(
     new Set(employees.map(emp => emp.department).filter(Boolean)),
-  ).sort();
+  ).sort()
 
   const updateColumnFilter = (id: string, value: string) => {
-    setPageIndex(0);
+    setPageIndex(0)
     setColumnFilters(prev => {
-      const filtered = prev.filter(filter => filter.id !== id);
-      return value && value !== 'all' ? [...filtered, { id, value }] : filtered;
-    });
-  };
+      const filtered = prev.filter(filter => filter.id !== id)
+      return value && value !== 'all' ? [...filtered, { id, value }] : filtered
+    })
+  }
 
   const columns: ColumnDef<Employee>[] = [
     {
@@ -146,7 +146,7 @@ export default function PegawaiPage() {
       id: 'actions',
       header: 'Aksi',
       cell: ({ row }) => {
-        const employee = row.original;
+        const employee = row.original
         return (
           <div className="flex items-center gap-1 sm:gap-2">
             <Button
@@ -166,10 +166,10 @@ export default function PegawaiPage() {
               Delete
             </Button>
           </div>
-        );
+        )
       },
     },
-  ];
+  ]
 
   const table = useReactTable({
     data: employees,
@@ -185,51 +185,51 @@ export default function PegawaiPage() {
       },
     },
     onPaginationChange: updater => {
-      const newState = typeof updater === 'function' ? updater({ pageIndex, pageSize }) : updater;
-      setPageIndex(newState.pageIndex);
-      setPageSize(newState.pageSize);
+      const newState = typeof updater === 'function' ? updater({ pageIndex, pageSize }) : updater
+      setPageIndex(newState.pageIndex)
+      setPageSize(newState.pageSize)
     },
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     onColumnVisibilityChange: setColumnVisibility,
     onGlobalFilterChange: setGlobalFilter,
     globalFilterFn: (row, columnId, filterValue) => {
-      const nip = row.getValue('nip') as string;
-      const name = row.getValue('name') as string;
+      const nip = row.getValue('nip') as string
+      const name = row.getValue('name') as string
       return (
         nip.toLowerCase().includes(filterValue.toLowerCase()) ||
         name.toLowerCase().includes(filterValue.toLowerCase())
-      );
+      )
     },
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     manualPagination: false,
-  });
+  })
 
   useEffect(() => {
-    void fetchEmployees();
-  }, []);
+    void fetchEmployees()
+  }, [])
 
   const fetchEmployees = async () => {
-    setLoading(true);
+    setLoading(true)
     const { data, error } = await supabase
       .from('employees')
       .select('id, nip, name, jabatan, department, created_at')
-      .order('nip', { ascending: true });
+      .order('nip', { ascending: true })
 
     if (error) {
-      console.error('Gagal memuat data pegawai:', error);
+      console.error('Gagal memuat data pegawai:', error)
     } else if (data) {
-      setEmployees(data);
+      setEmployees(data)
     }
 
-    setLoading(false);
-  };
+    setLoading(false)
+  }
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+    e.preventDefault()
 
     const { error } = await supabase.from('employees').insert([
       {
@@ -238,33 +238,33 @@ export default function PegawaiPage() {
         jabatan: formData.jabatan,
         department: formData.department,
       },
-    ]);
+    ])
 
     if (error) {
-      console.error('Gagal menyimpan pegawai:', error);
-      return;
+      console.error('Gagal menyimpan pegawai:', error)
+      return
     }
 
-    setFormData({ nip: '', nama: '', jabatan: '', department: '' });
-    setIsOpen(false);
-    void fetchEmployees();
-  };
+    setFormData({ nip: '', nama: '', jabatan: '', department: '' })
+    setIsOpen(false)
+    void fetchEmployees()
+  }
 
   const handleEdit = (employee: Employee) => {
-    setEditingEmployee(employee);
+    setEditingEmployee(employee)
     setFormData({
       nip: employee.nip,
       nama: employee.name,
       jabatan: employee.jabatan,
       department: employee.department,
-    });
-    setIsEditOpen(true);
-  };
+    })
+    setIsEditOpen(true)
+  }
 
   const handleEditSubmit = async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+    e.preventDefault()
 
-    if (!editingEmployee?.id) return;
+    if (!editingEmployee?.id) return
 
     const { error } = await supabase
       .from('employees')
@@ -274,36 +274,36 @@ export default function PegawaiPage() {
         jabatan: formData.jabatan,
         department: formData.department,
       })
-      .eq('id', editingEmployee.id);
+      .eq('id', editingEmployee.id)
 
     if (error) {
-      console.error('Gagal mengupdate pegawai:', error);
-      return;
+      console.error('Gagal mengupdate pegawai:', error)
+      return
     }
 
-    setFormData({ nip: '', nama: '', jabatan: '', department: '' });
-    setEditingEmployee(null);
-    setIsEditOpen(false);
-    void fetchEmployees();
-  };
+    setFormData({ nip: '', nama: '', jabatan: '', department: '' })
+    setEditingEmployee(null)
+    setIsEditOpen(false)
+    void fetchEmployees()
+  }
 
   const handleDelete = (employee: Employee) => {
-    setDeleteEmployee(employee);
-  };
+    setDeleteEmployee(employee)
+  }
 
   const confirmDelete = async () => {
-    if (!deleteEmployee?.id) return;
+    if (!deleteEmployee?.id) return
 
-    const { error } = await supabase.from('employees').delete().eq('id', deleteEmployee.id);
+    const { error } = await supabase.from('employees').delete().eq('id', deleteEmployee.id)
 
     if (error) {
-      console.error('Gagal menghapus pegawai:', error);
-      return;
+      console.error('Gagal menghapus pegawai:', error)
+      return
     }
 
-    setDeleteEmployee(null);
-    void fetchEmployees();
-  };
+    setDeleteEmployee(null)
+    void fetchEmployees()
+  }
 
   return (
     <div className="container mx-auto py-4 px-4 sm:py-10 sm:px-0">
@@ -459,16 +459,16 @@ export default function PegawaiPage() {
             placeholder="Cari berdasarkan NIP atau Nama..."
             value={globalFilter}
             onChange={e => {
-              setGlobalFilter(e.target.value);
-              setPageIndex(0);
+              setGlobalFilter(e.target.value)
+              setPageIndex(0)
             }}
             className="flex-1 h-10"
           />
           <Select
             value={departmentFilter || 'all'}
             onValueChange={value => {
-              setDepartmentFilter(value === 'all' ? '' : value);
-              updateColumnFilter('department', value);
+              setDepartmentFilter(value === 'all' ? '' : value)
+              updateColumnFilter('department', value)
             }}
           >
             <SelectTrigger className="w-full sm:w-48 h-10">
@@ -552,8 +552,8 @@ export default function PegawaiPage() {
                 <Select
                   value={String(pageSize)}
                   onValueChange={value => {
-                    setPageSize(Number(value));
-                    setPageIndex(0);
+                    setPageSize(Number(value))
+                    setPageIndex(0)
                   }}
                 >
                   <SelectTrigger className="w-20 sm:w-24 h-8 sm:h-9">
@@ -590,5 +590,5 @@ export default function PegawaiPage() {
         </>
       )}
     </div>
-  );
+  )
 }

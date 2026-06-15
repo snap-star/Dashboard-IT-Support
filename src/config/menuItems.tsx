@@ -1,4 +1,4 @@
-import { PersonIcon } from '@radix-ui/react-icons';
+import { PersonIcon } from '@radix-ui/react-icons'
 import {
   Calendar,
   Computer,
@@ -11,8 +11,8 @@ import {
   Users,
   Video,
   Wrench,
-} from 'lucide-react';
-import { title } from 'process';
+} from 'lucide-react'
+import { title } from 'process'
 
 export const navMain = [
   {
@@ -102,7 +102,7 @@ export const navMain = [
       },
     ],
   },
-];
+]
 
 export const singleNavMain = [
   {
@@ -135,22 +135,22 @@ export const singleNavMain = [
     url: '/dashboard/pegawai',
     icon: PersonIcon,
   },
-];
+]
 
 export type NavItem = {
-  title: string;
-  url: string;
-  icon?: LucideIcon;
-  isActive?: boolean;
+  title: string
+  url: string
+  icon?: LucideIcon
+  isActive?: boolean
   items?: {
-    title: string;
-    url: string;
-  }[];
-};
+    title: string
+    url: string
+  }[]
+}
 
 export type SingleNavItem = {
-  title: string;
-  url: string;
-  icon?: LucideIcon;
-  isActive?: boolean;
-};
+  title: string
+  url: string
+  icon?: LucideIcon
+  isActive?: boolean
+}

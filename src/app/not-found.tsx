@@ -1,14 +1,14 @@
-import { Card } from '@/components/ui/card';
-import './globals.css';
-import { WarningProvider } from '@radix-ui/react-dialog';
-import Link from 'next/link';
-import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card'
+import './globals.css'
+import { WarningProvider } from '@radix-ui/react-dialog'
+import Link from 'next/link'
+import { Button } from '@/components/ui/button'
 
 export default function NotFound({ children }: { children: React.ReactNode }) {
   return (
     <div className="h-full w-full flex flex-col items-center justify-center text-center ">
       {children}
-      <Card className="w-full max-w-md p-6 rounded-lg shadow-md bg-white dark:bg-gray-800 position-center border hover:border-red-500 dark:hover:border-white ">
+      <Card className="w-full max-w-md p-6 rounded-lg shadow-md bg-mist-100 dark:bg-mist-800 position-center border hover:border-red-500 dark:hover:border-white ">
         <WarningProvider contentName="Request Not Found" docsSlug="" titleName="Request Not Found">
           <div className="mx-auto mb-4 w-16 h-16 flex items-center justify-center rounded-full bg-red-100 text-red-500">
             <svg
@@ -35,5 +35,5 @@ export default function NotFound({ children }: { children: React.ReactNode }) {
         </Button>
       </Card>
     </div>
-  );
+  )
 }

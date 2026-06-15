@@ -1,7 +1,7 @@
-'use client';
+'use client'
 
-import { type ColumnDef, getCoreRowModel, useReactTable } from '@tanstack/react-table';
-import { useEffect, useState } from 'react';
+import { type ColumnDef, getCoreRowModel, useReactTable } from '@tanstack/react-table'
+import { useEffect, useState } from 'react'
 import {
   Table,
   TableBody,
@@ -9,40 +9,40 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
-import supabase from '@/lib/supabase';
+} from '@/components/ui/table'
+import supabase from '@/lib/supabase'
 
 type User = {
-  id: number;
-  created_at: string;
-  user_estim: string;
-  ip_address: string | null;
-  nama: string | null;
-  nip: string | null;
-  jabatan: string | null;
-  unit_kerja: string | null;
-  cab: string | null;
-  status_user: string | null;
-  display: string | null;
-  updated_at: string | null;
-  mac_address: string | null;
-  multi: string | null;
-};
+  id: number
+  created_at: string
+  user_estim: string
+  ip_address: string | null
+  nama: string | null
+  nip: string | null
+  jabatan: string | null
+  unit_kerja: string | null
+  cab: string | null
+  status_user: string | null
+  display: string | null
+  updated_at: string | null
+  mac_address: string | null
+  multi: string | null
+}
 
 export default function DataTable() {
-  const [data, setData] = useState<User[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [data, setData] = useState<User[]>([])
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     const fetchData = async () => {
-      const { data: users, error } = await supabase.from('users').select('*');
-      if (error) console.error(error);
-      else setData(users);
-      setLoading(false);
-    };
+      const { data: users, error } = await supabase.from('users').select('*')
+      if (error) console.error(error)
+      else setData(users)
+      setLoading(false)
+    }
 
-    fetchData();
-  }, []);
+    fetchData()
+  }, [])
 
   const columns: ColumnDef<User>[] = [
     { accessorKey: 'id', header: 'ID' }, // Bisa langsung string
@@ -55,15 +55,15 @@ export default function DataTable() {
     { accessorKey: 'cab', header: 'Cabang' },
     { accessorKey: 'status_user', header: 'Status' },
     { accessorKey: 'updated_at', header: 'Last Updated' },
-  ];
+  ]
 
   const table = useReactTable({
     data,
     columns,
     getCoreRowModel: getCoreRowModel(),
-  });
+  })
 
-  if (loading) return <p>Loading...</p>;
+  if (loading) return <p>Loading...</p>
 
   return (
     <div className="p-4">
@@ -90,5 +90,5 @@ export default function DataTable() {
         </TableBody>
       </Table>
     </div>
-  );
+  )
 }

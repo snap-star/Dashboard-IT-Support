@@ -1,23 +1,27 @@
-import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable';
-import type React from 'react';
-import { useState } from 'react';
+import jsPDF from 'jspdf'
+import autoTable from 'jspdf-autotable'
+import type React from 'react'
+import { useState } from 'react'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
 
 interface OvertimeDate {
-  tanggal: string;
+  tanggal: string
 }
 
 interface FormEntry {
-  nip: string;
-  nama: string;
-  jabatan: string;
-  rekening: string;
-  keterangan: string;
-  alasan: string;
-  unitBagian: string;
-  tanggals: OvertimeDate[];
-  penyelia: string;
-  jabatanPenyelia: string;
+  nip: string
+  nama: string
+  jabatan: string
+  rekening: string
+  keterangan: string
+  alasan: string
+  unitBagian: string
+  tanggals: OvertimeDate[]
+  penyelia: string
+  jabatanPenyelia: string
 }
 
 const OvertimeSubmission: React.FC = () => {
@@ -34,20 +38,20 @@ const OvertimeSubmission: React.FC = () => {
       penyelia: '',
       jabatanPenyelia: '',
     },
-  ]);
+  ])
 
   const handleChange = (entryIndex: number, field: keyof FormEntry, value: string) => {
-    const newEntries = [...entries];
+    const newEntries = [...entries]
     // @ts-expect-error
-    newEntries[entryIndex][field] = value;
-    setEntries(newEntries);
-  };
+    newEntries[entryIndex][field] = value
+    setEntries(newEntries)
+  }
 
   const handleDateChange = (entryIndex: number, dateIndex: number, value: string) => {
-    const newEntries = [...entries];
-    newEntries[entryIndex].tanggals[dateIndex].tanggal = value;
-    setEntries(newEntries);
-  };
+    const newEntries = [...entries]
+    newEntries[entryIndex].tanggals[dateIndex].tanggal = value
+    setEntries(newEntries)
+  }
 
   const addEntry = () => {
     setEntries([
@@ -64,93 +68,93 @@ const OvertimeSubmission: React.FC = () => {
         penyelia: '',
         jabatanPenyelia: '',
       },
-    ]);
-  };
+    ])
+  }
 
   const removeEntry = (entryIndex: number) => {
-    const newEntries = [...entries];
-    newEntries.splice(entryIndex, 1);
-    setEntries(newEntries);
-  };
+    const newEntries = [...entries]
+    newEntries.splice(entryIndex, 1)
+    setEntries(newEntries)
+  }
 
   const addDate = (entryIndex: number) => {
-    const newEntries = [...entries];
-    newEntries[entryIndex].tanggals.push({ tanggal: '' });
-    setEntries(newEntries);
-  };
+    const newEntries = [...entries]
+    newEntries[entryIndex].tanggals.push({ tanggal: '' })
+    setEntries(newEntries)
+  }
 
   const removeDate = (entryIndex: number, dateIndex: number) => {
-    const newEntries = [...entries];
-    newEntries[entryIndex].tanggals.splice(dateIndex, 1);
-    setEntries(newEntries);
-  };
+    const newEntries = [...entries]
+    newEntries[entryIndex].tanggals.splice(dateIndex, 1)
+    setEntries(newEntries)
+  }
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+    e.preventDefault()
     // Simpan data ke backend atau state global
-    console.log(entries);
-    alert('Pengajuan lembur berhasil dikirim!');
-  };
+    console.log(entries)
+    alert('Pengajuan lembur berhasil dikirim!')
+  }
 
   const formatDate = (dateString: string) => {
     const options: Intl.DateTimeFormatOptions = {
       day: 'numeric',
       month: 'long',
       year: 'numeric',
-    };
-    return new Date(dateString).toLocaleDateString('id-ID', options);
-  };
+    }
+    return new Date(dateString).toLocaleDateString('id-ID', options)
+  }
 
   // Fungsi untuk mengelompokkan entri berdasarkan data yang sama
   const groupEntries = () => {
     const grouped: {
-      key: string;
-      dates: string[];
-      data: FormEntry;
-    }[] = [];
+      key: string
+      dates: string[]
+      data: FormEntry
+    }[] = []
 
     entries.forEach(entry => {
-      const key = `${entry.nama}|${entry.nip}|${entry.jabatan}|${entry.rekening}|${entry.keterangan}|${entry.alasan}|${entry.unitBagian}`;
-      const existingGroup = grouped.find(group => group.key === key);
+      const key = `${entry.nama}|${entry.nip}|${entry.jabatan}|${entry.rekening}|${entry.keterangan}|${entry.alasan}|${entry.unitBagian}`
+      const existingGroup = grouped.find(group => group.key === key)
 
       if (existingGroup) {
         // Tambahkan tanggal baru ke grup yang ada
         entry.tanggals.forEach(date => {
           if (!existingGroup.dates.includes(date.tanggal)) {
-            existingGroup.dates.push(date.tanggal);
+            existingGroup.dates.push(date.tanggal)
           }
-        });
+        })
       } else {
         // Buat grup baru
         grouped.push({
           key,
           dates: entry.tanggals.map(date => date.tanggal),
           data: entry,
-        });
+        })
       }
-    });
+    })
 
     // Urutkan tanggal dalam setiap grup
     grouped.forEach(group => {
-      group.dates.sort((a, b) => new Date(a).getTime() - new Date(b).getTime());
-    });
+      group.dates.sort((a, b) => new Date(a).getTime() - new Date(b).getTime())
+    })
 
-    return grouped;
-  };
+    return grouped
+  }
 
   const saveAsPDF = () => {
-    const doc = new jsPDF();
-    doc.text('Nota Lembur', 14, 20);
+    const doc = new jsPDF()
+    doc.text('Nota Lembur', 14, 20)
 
     // Header data untuk tabel
-    const headers = ['Tanggal', 'Nama', 'NIP', 'Jabatan', 'Rekening', 'Keterangan'];
+    const headers = ['Tanggal', 'Nama', 'NIP', 'Jabatan', 'Rekening', 'Keterangan']
 
     // Persiapkan data untuk tabel
-    const tableData: any[] = [];
-    const groupedEntries = groupEntries();
+    const tableData: any[] = []
+    const groupedEntries = groupEntries()
 
     groupedEntries.forEach(group => {
-      const { dates, data } = group;
+      const { dates, data } = group
 
       dates.forEach((date, index) => {
         const row = [
@@ -160,20 +164,20 @@ const OvertimeSubmission: React.FC = () => {
           index === 0 ? data.jabatan : '',
           index === 0 ? data.rekening : '',
           index === 0 ? data.keterangan : '',
-        ];
-        tableData.push(row);
-      });
-    });
+        ]
+        tableData.push(row)
+      })
+    })
 
     // Konfigurasi untuk merge cells
     const didParseCell = (data: any) => {
-      const row = data.row.index;
-      const col = data.column.index;
+      const row = data.row.index
+      const col = data.column.index
 
       if (col > 0 && tableData[row][col] === '') {
-        data.cell.styles.fillColor = [255, 255, 255];
+        data.cell.styles.fillColor = [255, 255, 255]
       }
-    };
+    }
 
     // Buat tabel dengan autoTable
     autoTable(doc, {
@@ -190,35 +194,35 @@ const OvertimeSubmission: React.FC = () => {
         4: { cellWidth: 25 }, // Rekening
         5: { cellWidth: 25 }, // Keterangan
       },
-    });
+    })
 
     // Tambahkan tanda tangan dan disposisi
-    const finalY = (doc as any).lastAutoTable.finalY || 150;
+    const finalY = (doc as any).lastAutoTable.finalY || 150
     const currentDate = new Date().toLocaleDateString('id-ID', {
       day: 'numeric',
       month: 'long',
       year: 'numeric',
-    });
+    })
 
     // Tanda tangan penyelia
-    doc.text(`Ponorogo, ${currentDate}`, 120, finalY + 20);
-    doc.text(`${entries[0].penyelia}`, 140, finalY + 65);
-    doc.text(`Penyelia ${entries[0].unitBagian}`, 130, finalY + 70);
+    doc.text(`Ponorogo, ${currentDate}`, 120, finalY + 20)
+    doc.text(`${entries[0].penyelia}`, 140, finalY + 65)
+    doc.text(`Penyelia ${entries[0].unitBagian}`, 130, finalY + 70)
 
     // Disposisi
-    doc.text('Disposisi Pimpinan:', 14, finalY + 90);
-    doc.rect(14, finalY + 95, 180, 40); // Kotak disposisi
+    doc.text('Disposisi Pimpinan:', 14, finalY + 90)
+    doc.rect(14, finalY + 95, 180, 40) // Kotak disposisi
 
-    doc.save('nota_lembur.pdf');
-  };
+    doc.save('nota_lembur.pdf')
+  }
 
   const printNota = () => {
-    const groupedEntries = groupEntries();
-    let tableRows = '';
+    const groupedEntries = groupEntries()
+    let tableRows = ''
 
     groupedEntries.forEach(group => {
-      const { dates, data } = group;
-      const rowCount = dates.length;
+      const { dates, data } = group
+      const rowCount = dates.length
 
       dates.forEach((date, index) => {
         tableRows += `<tr>
@@ -228,18 +232,18 @@ const OvertimeSubmission: React.FC = () => {
           ${index === 0 ? `<td rowspan="${rowCount}">${data.jabatan}</td>` : ''}
           ${index === 0 ? `<td rowspan="${rowCount}">${data.rekening}</td>` : ''}
           ${index === 0 ? `<td rowspan="${rowCount}">${data.keterangan}</td>` : ''}
-        </tr>`;
-      });
-    });
+        </tr>`
+      })
+    })
 
-    const currentDate = new Date();
+    const currentDate = new Date()
     const formattedDate = currentDate.toLocaleDateString('id-ID', {
       day: 'numeric',
       month: 'long',
       year: 'numeric',
-    });
+    })
 
-    const printWindow = window.open('', 'PRINT', 'height=842,width=595');
+    const printWindow = window.open('', 'PRINT', 'height=842,width=595')
     printWindow?.document.write(`
       <html>
         <head>
@@ -361,10 +365,10 @@ const OvertimeSubmission: React.FC = () => {
         </div>
         </body>
       </html>
-    `);
-    printWindow?.document.close();
-    printWindow?.print();
-  };
+    `)
+    printWindow?.document.close()
+    printWindow?.print()
+  }
 
   return (
     <div className="p-4">
@@ -375,8 +379,8 @@ const OvertimeSubmission: React.FC = () => {
             <h3 className="text-xl font-semibold mb-2">Anggota {entryIndex + 1}</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block">Nama</label>
-                <input
+                <Label className="block">Nama</Label>
+                <Input
                   type="text"
                   name="nama"
                   placeholder="Nama"
@@ -387,8 +391,8 @@ const OvertimeSubmission: React.FC = () => {
                 />
               </div>
               <div>
-                <label className="block">NIP</label>
-                <input
+                <Label className="block">NIP</Label>
+                <Input
                   type="text"
                   name="nip"
                   placeholder="NIP"
@@ -399,8 +403,8 @@ const OvertimeSubmission: React.FC = () => {
                 />
               </div>
               <div>
-                <label className="block">Jabatan</label>
-                <input
+                <Label className="block">Jabatan</Label>
+                <Input
                   type="text"
                   name="jabatan"
                   placeholder="Jabatan"
@@ -411,8 +415,8 @@ const OvertimeSubmission: React.FC = () => {
                 />
               </div>
               <div>
-                <label className="block">Nomor Rekening</label>
-                <input
+                <Label className="block">Nomor Rekening</Label>
+                <Input
                   type="text"
                   name="rekening"
                   placeholder="Nomor Rekening"
@@ -423,8 +427,8 @@ const OvertimeSubmission: React.FC = () => {
                 />
               </div>
               <div>
-                <label className="block">Keterangan</label>
-                <textarea
+                <Label className="block">Keterangan</Label>
+                <Textarea
                   name="keterangan"
                   placeholder="Keterangan"
                   value={entry.keterangan}
@@ -434,8 +438,8 @@ const OvertimeSubmission: React.FC = () => {
                 />
               </div>
               <div>
-                <label className="block">Alasan</label>
-                <input
+                <Label className="block">Alasan</Label>
+                <Input
                   type="text"
                   name="alasan"
                   placeholder="Alasan"
@@ -446,8 +450,8 @@ const OvertimeSubmission: React.FC = () => {
                 />
               </div>
               <div>
-                <label className="block">Unit Bagian</label>
-                <input
+                <Label className="block">Unit Bagian</Label>
+                <Input
                   type="text"
                   name="unitBagian"
                   placeholder="Unit Bagian"
@@ -458,8 +462,8 @@ const OvertimeSubmission: React.FC = () => {
                 />
               </div>
               <div>
-                <label className="block">Penyelia</label>
-                <input
+                <Label className="block">Penyelia</Label>
+                <Input
                   type="text"
                   name="penyelia"
                   placeholder="Penyelia"
@@ -470,8 +474,8 @@ const OvertimeSubmission: React.FC = () => {
                 />
               </div>
               <div>
-                <label className="block">Jabatan Penyelia</label>
-                <input
+                <Label className="block">Jabatan Penyelia</Label>
+                <Input
                   type="text"
                   name="jabatanPenyelia"
                   placeholder="Jabatan Penyelia"
@@ -486,7 +490,7 @@ const OvertimeSubmission: React.FC = () => {
               <h4 className="text-lg font-semibold mb-2">Tanggal Lembur</h4>
               {entry.tanggals.map((date, dateIndex) => (
                 <div key={dateIndex} className="flex items-center mb-2">
-                  <input
+                  <Input
                     type="date"
                     placeholder="Tanggal"
                     value={date.tanggal}
@@ -495,64 +499,63 @@ const OvertimeSubmission: React.FC = () => {
                     className="w-full border px-3 py-2"
                   />
                   {entry.tanggals.length > 1 && (
-                    <button
+                    <Button
                       type="button"
                       onClick={() => removeDate(entryIndex, dateIndex)}
                       className="ml-2 bg-red-500 text-white px-3 py-1 rounded"
                     >
                       Hapus
-                    </button>
+                    </Button>
                   )}
                 </div>
               ))}
-              <button
-                type="button"
+              <Button
                 onClick={() => addDate(entryIndex)}
                 className="mt-2 bg-yellow-500 text-white px-4 py-2 rounded"
               >
                 Tambah Tanggal
-              </button>
+              </Button>
             </div>
             {entries.length > 1 && (
-              <button
+              <Button
                 type="button"
                 onClick={() => removeEntry(entryIndex)}
                 className="mt-4 bg-red-500 text-white px-4 py-2 rounded"
               >
                 Hapus Anggota
-              </button>
+              </Button>
             )}
           </div>
         ))}
-        <button
+        <Button
           type="button"
           onClick={addEntry}
           className="bg-yellow-500 text-white px-4 py-2 rounded"
         >
           Tambah Anggota
-        </button>
+        </Button>
         <div className="flex space-x-4 mt-4">
-          <button type="submit" className="bg-blue-500 text-white px-4 py-2 rounded">
+          <Button type="submit" className="bg-blue-500 text-white px-4 py-2 rounded">
             Kirim
-          </button>
-          <button
+          </Button>
+          <Button
             type="button"
             onClick={saveAsPDF}
             className="bg-green-500 text-white px-4 py-2 rounded"
           >
             Simpan sebagai PDF
-          </button>
-          <button
+          </Button>
+          <Button
             type="button"
             onClick={printNota}
             className="bg-gray-500 text-white px-4 py-2 rounded"
           >
             Cetak Nota
-          </button>
+          </Button>
         </div>
       </form>
     </div>
-  );
-};
+  )
+}
 
-export default OvertimeSubmission;
+export default OvertimeSubmission

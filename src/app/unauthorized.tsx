@@ -1,11 +1,11 @@
-import './globals.css';
-import { WarningProvider } from '@radix-ui/react-dialog';
-import { AlertCircle } from 'lucide-react';
-import Link from 'next/link';
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import { Label } from '@/components/ui/label';
-import Login from '../components/login';
+import './globals.css'
+import { WarningProvider } from '@radix-ui/react-dialog'
+import { AlertCircle } from 'lucide-react'
+import Link from 'next/link'
+import { Button } from '@/components/ui/button'
+import { Card } from '@/components/ui/card'
+import { Label } from '@/components/ui/label'
+import Login from '../components/login'
 
 export default function Unauthorized() {
   return (
@@ -30,5 +30,5 @@ export default function Unauthorized() {
         </Card>
       </div>
     </main>
-  );
+  )
 }

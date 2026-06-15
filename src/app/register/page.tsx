@@ -1,18 +1,19 @@
-'use client';
-import { motion } from 'framer-motion';
-import { Moon, Sun } from 'lucide-react';
-import { useTheme } from 'next-themes';
-import Register from '@/components/register';
-import { Button } from '@/components/ui/button';
+'use client'
+import { motion } from 'framer-motion'
+import { Moon, Sun } from 'lucide-react'
+import { useTheme } from 'next-themes'
+import Footer from '@/components/footer'
+import Register from '@/components/register'
+import { Button } from '@/components/ui/button'
 
 export default function RegisterPage() {
-  const { theme, setTheme } = useTheme();
+  const { theme, setTheme } = useTheme()
 
   return (
     <div className="min-h-screen relative bg-linear-to-br from-background to-secondary/20">
       {/* Animated Background Elements */}
       <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute inset-[-10px] opacity-50">
+        <div className="absolute -inset-2.5 opacity-50">
           <motion.div
             className="absolute top-1/4 left-1/4 w-72 h-72 bg-primary/10 rounded-full mix-blend-multiply filter blur-xl"
             animate={{
@@ -79,19 +80,8 @@ export default function RegisterPage() {
             <Register />
           </motion.div>
         </main>
-
-        {/* Footer */}
-        <footer className="py-4">
-          <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.5 }}
-            className="text-sm text-center text-muted-foreground"
-          >
-            &copy; {new Date().getFullYear()} Dashboard IT Support by Oren
-          </motion.p>
-        </footer>
+        <Footer />
       </div>
     </div>
-  );
+  )
 }

@@ -1,0 +1,27 @@
+const atmOptions = [
+  'JTM02002',
+  'JTM02003',
+  'JTM02005',
+  'JTM02007',
+  'JTM02008',
+  'JTM02009',
+  'JTM02010',
+  'JTM02011',
+  'JTM02012',
+  'JTM02013',
+  'JTM02014',
+  'JTM02015',
+  'JTM02016',
+  'JTM02017',
+  'JTM02018',
+  'JTM02019',
+  'JTM02020',
+  'JTM02021',
+  'JTM05101',
+  'JTM09301',
+  'JTM09302',
+  'JTM15401',
+  'JTM17902',
+]
+
+export default atmOptions

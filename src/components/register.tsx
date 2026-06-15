@@ -1,5 +1,5 @@
-'use client';
-import { motion } from 'framer-motion';
+'use client'
+import { motion } from 'framer-motion'
 import {
   BuildingIcon,
   Eye,
@@ -11,40 +11,40 @@ import {
   SmartphoneIcon,
   TagIcon,
   User,
-} from 'lucide-react';
-import { useRouter } from 'next/navigation';
-import { useState } from 'react';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { getErrorMessage } from '@/hooks/functionGetErrorMessage';
-import supabase from '@/lib/supabase';
+} from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { useState } from 'react'
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { getErrorMessage } from '@/hooks/functionGetErrorMessage'
+import supabase from '@/lib/supabase'
 
 export default function Register() {
-  const [full_name, setFullName] = useState('');
-  const [nip, setNip] = useState('');
-  const [nohp, setNohp] = useState('');
-  const [jabatan, setJabatan] = useState('');
-  const [department_unit, setDepartmentUnit] = useState('');
-  const [branch_office, setBranchOffice] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const router = useRouter();
+  const [full_name, setFullName] = useState('')
+  const [nip, setNip] = useState('')
+  const [nohp, setNohp] = useState('')
+  const [jabatan, setJabatan] = useState('')
+  const [department_unit, setDepartmentUnit] = useState('')
+  const [branch_office, setBranchOffice] = useState('')
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [errorMessage, setErrorMessage] = useState<string | null>(null)
+  const [loading, setLoading] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+  const router = useRouter()
 
   const handleRegister = async (e: React.SubmitEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setLoading(true);
-    setErrorMessage(null);
+    e.preventDefault()
+    setLoading(true)
+    setErrorMessage(null)
 
     if (password !== confirmPassword) {
-      setErrorMessage('Password tidak cocok');
-      setLoading(false);
-      return;
+      setErrorMessage('Password tidak cocok')
+      setLoading(false)
+      return
     }
 
     try {
@@ -61,18 +61,18 @@ export default function Register() {
             branch_office: branch_office,
           },
         },
-      });
+      })
 
-      if (error) throw error;
+      if (error) throw error
 
-      router.push('/');
+      router.push('/')
     } catch (error: unknown) {
-      setErrorMessage(getErrorMessage(error));
-      console.error('Error registering:', error);
+      setErrorMessage(getErrorMessage(error))
+      console.error('Error registering:', error)
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   return (
     <div className="flex items-center justify-center bg-background">
@@ -256,5 +256,5 @@ export default function Register() {
         </form>
       </motion.div>
     </div>
-  );
+  )
 }

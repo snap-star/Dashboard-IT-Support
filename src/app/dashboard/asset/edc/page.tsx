@@ -1,6 +1,6 @@
-'use client';
+'use client'
 
-import { zodResolver } from '@hookform/resolvers/zod';
+import { zodResolver } from '@hookform/resolvers/zod'
 import {
   type ColumnDef,
   type ColumnFiltersState,
@@ -12,14 +12,14 @@ import {
   type SortingState,
   useReactTable,
   type VisibilityState,
-} from '@tanstack/react-table';
-import { format } from 'date-fns';
-import { Download, MoreHorizontal, Pencil, Plus, Trash } from 'lucide-react';
-import { useEffect, useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { toast } from 'sonner';
-import * as XLSX from 'xlsx';
-import * as z from 'zod';
+} from '@tanstack/react-table'
+import { format } from 'date-fns'
+import { Download, MoreHorizontal, Pencil, Plus, Trash } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { useForm } from 'react-hook-form'
+import { toast } from 'sonner'
+import * as XLSX from 'xlsx'
+import * as z from 'zod'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -29,9 +29,9 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+} from '@/components/ui/alert-dialog'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import {
   Dialog,
   DialogContent,
@@ -39,14 +39,14 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from '@/components/ui/dialog';
+} from '@/components/ui/dialog'
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+} from '@/components/ui/dropdown-menu'
 import {
   Form,
   FormControl,
@@ -54,15 +54,15 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
+} from '@/components/ui/form'
+import { Input } from '@/components/ui/input'
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
+} from '@/components/ui/select'
 import {
   Table,
   TableBody,
@@ -70,8 +70,8 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
-import supabase from '@/lib/supabase';
+} from '@/components/ui/table'
+import supabase from '@/lib/supabase'
 
 // Schema validasi form
 const formSchema = z.object({
@@ -83,19 +83,19 @@ const formSchema = z.object({
   ip_address: z.string().min(1, 'IP Address harus diisi'),
   status: z.string().min(1, 'Status harus diisi'),
   description: z.string().optional(),
-});
+})
 
 interface EDCAsset {
-  id: string;
-  created_at: string;
-  tid: string;
-  mid: string;
-  merchant_name: string;
-  location: string;
-  serial_number: string;
-  ip_address: string;
-  status: string;
-  description?: string;
+  id: string
+  created_at: string
+  tid: string
+  mid: string
+  merchant_name: string
+  location: string
+  serial_number: string
+  ip_address: string
+  status: string
+  description?: string
 }
 
 const locationOptions = [
@@ -104,24 +104,24 @@ const locationOptions = [
   'Capem Jetis',
   'Capem Pulung',
   'Capem Balong',
-];
+]
 
-const statusOptions = ['Aktif', 'Rusak', 'Maintenance', 'Stock'];
+const statusOptions = ['Aktif', 'Rusak', 'Maintenance', 'Stock']
 
 export default function EDCAssetPage() {
-  const [assets, setAssets] = useState<EDCAsset[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [isDeleteAlertOpen, setIsDeleteAlertOpen] = useState(false);
-  const [selectedAsset, setSelectedAsset] = useState<EDCAsset | null>(null);
-  const [isEditing, setIsEditing] = useState(false);
-  const [sorting, setSorting] = useState<SortingState>([]);
-  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
-  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
-  const [pageIndex, setPageIndex] = useState(0);
-  const [pageSize, setPageSize] = useState(10);
-  const [globalFilter, setGlobalFilter] = useState('');
-  const [locationFilter, setLocationFilter] = useState('');
+  const [assets, setAssets] = useState<EDCAsset[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [isDialogOpen, setIsDialogOpen] = useState(false)
+  const [isDeleteAlertOpen, setIsDeleteAlertOpen] = useState(false)
+  const [selectedAsset, setSelectedAsset] = useState<EDCAsset | null>(null)
+  const [isEditing, setIsEditing] = useState(false)
+  const [sorting, setSorting] = useState<SortingState>([])
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
+  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
+  const [pageIndex, setPageIndex] = useState(0)
+  const [pageSize, setPageSize] = useState(10)
+  const [globalFilter, setGlobalFilter] = useState('')
+  const [locationFilter, setLocationFilter] = useState('')
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -134,27 +134,27 @@ export default function EDCAssetPage() {
       status: '',
       description: '',
     },
-  });
+  })
 
   const updateColumnFilter = (id: string, value: string) => {
-    setPageIndex(0);
+    setPageIndex(0)
     setColumnFilters(prev => {
-      const filtered = prev.filter(filter => filter.id !== id);
-      return value && value !== 'all' ? [...filtered, { id, value }] : filtered;
-    });
-  };
+      const filtered = prev.filter(filter => filter.id !== id)
+      return value && value !== 'all' ? [...filtered, { id, value }] : filtered
+    })
+  }
 
   const handleEdit = (asset: EDCAsset) => {
-    setSelectedAsset(asset);
-    setIsEditing(true);
-    form.reset(asset);
-    setIsDialogOpen(true);
-  };
+    setSelectedAsset(asset)
+    setIsEditing(true)
+    form.reset(asset)
+    setIsDialogOpen(true)
+  }
 
   const handleDelete = (asset: EDCAsset) => {
-    setSelectedAsset(asset);
-    setIsDeleteAlertOpen(true);
-  };
+    setSelectedAsset(asset)
+    setIsDeleteAlertOpen(true)
+  }
 
   const columns: ColumnDef<EDCAsset>[] = [
     {
@@ -191,7 +191,7 @@ export default function EDCAssetPage() {
       accessorKey: 'status',
       header: 'Status',
       cell: ({ row }) => {
-        const status = row.getValue('status') as string;
+        const status = row.getValue('status') as string
         return (
           <div
             className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
@@ -207,7 +207,7 @@ export default function EDCAssetPage() {
           >
             {status}
           </div>
-        );
+        )
       },
     },
     {
@@ -244,7 +244,7 @@ export default function EDCAssetPage() {
         </DropdownMenu>
       ),
     },
-  ];
+  ]
 
   const table = useReactTable({
     data: assets,
@@ -260,28 +260,28 @@ export default function EDCAssetPage() {
       },
     },
     onPaginationChange: updater => {
-      const newState = typeof updater === 'function' ? updater({ pageIndex, pageSize }) : updater;
-      setPageIndex(newState.pageIndex);
-      setPageSize(newState.pageSize);
+      const newState = typeof updater === 'function' ? updater({ pageIndex, pageSize }) : updater
+      setPageIndex(newState.pageIndex)
+      setPageSize(newState.pageSize)
     },
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     onColumnVisibilityChange: setColumnVisibility,
     onGlobalFilterChange: setGlobalFilter,
     globalFilterFn: (row, columnId, filterValue) => {
-      const tid = row.getValue('tid') as string;
-      const mid = row.getValue('mid') as string;
+      const tid = row.getValue('tid') as string
+      const mid = row.getValue('mid') as string
       return (
         tid.toLowerCase().includes(filterValue.toLowerCase()) ||
         mid.toLowerCase().includes(filterValue.toLowerCase())
-      );
+      )
     },
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     manualPagination: false,
-  });
+  })
 
   // Fetch data dari Supabase
   const fetchAssets = async () => {
@@ -289,21 +289,21 @@ export default function EDCAssetPage() {
       const { data, error } = await supabase
         .from('edc_assets')
         .select('*')
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false })
 
-      if (error) throw error;
-      setAssets(data || []);
+      if (error) throw error
+      setAssets(data || [])
     } catch (error) {
-      console.error('Error fetching EDC assets:', error);
-      toast.error('Gagal memuat data EDC');
+      console.error('Error fetching EDC assets:', error)
+      toast.error('Gagal memuat data EDC')
     } finally {
-      setIsLoading(false);
+      setIsLoading(false)
     }
-  };
+  }
 
   useEffect(() => {
-    fetchAssets();
-  }, []);
+    fetchAssets()
+  }, [])
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
@@ -311,29 +311,29 @@ export default function EDCAssetPage() {
         const { error } = await supabase
           .from('edc_assets')
           .update(values)
-          .eq('id', selectedAsset.id);
+          .eq('id', selectedAsset.id)
 
-        if (error) throw error;
-        toast.success('Data EDC berhasil diperbarui');
+        if (error) throw error
+        toast.success('Data EDC berhasil diperbarui')
       } else {
-        const { error } = await supabase.from('edc_assets').insert([values]);
+        const { error } = await supabase.from('edc_assets').insert([values])
 
-        if (error) throw error;
-        toast.success('Data EDC berhasil ditambahkan');
+        if (error) throw error
+        toast.success('Data EDC berhasil ditambahkan')
       }
 
-      fetchAssets();
-      handleCloseDialog();
+      fetchAssets()
+      handleCloseDialog()
     } catch (error) {
-      console.error('Error saving EDC asset:', error);
-      toast.error('Gagal menyimpan data EDC');
+      console.error('Error saving EDC asset:', error)
+      toast.error('Gagal menyimpan data EDC')
     }
-  };
+  }
 
   const handleCloseDialog = () => {
-    setIsDialogOpen(false);
-    setIsEditing(false);
-    setSelectedAsset(null);
+    setIsDialogOpen(false)
+    setIsEditing(false)
+    setSelectedAsset(null)
     form.reset({
       tid: '',
       mid: '',
@@ -342,12 +342,12 @@ export default function EDCAssetPage() {
       serial_number: '',
       status: '',
       description: '',
-    });
-  };
+    })
+  }
 
   const handleAddNew = () => {
-    setIsEditing(false);
-    setSelectedAsset(null);
+    setIsEditing(false)
+    setSelectedAsset(null)
     form.reset({
       tid: '',
       mid: '',
@@ -356,34 +356,34 @@ export default function EDCAssetPage() {
       serial_number: '',
       status: '',
       description: '',
-    });
-    setIsDialogOpen(true);
-  };
+    })
+    setIsDialogOpen(true)
+  }
 
   const confirmDelete = async () => {
     if (selectedAsset) {
       try {
-        const { error } = await supabase.from('edc_assets').delete().eq('id', selectedAsset.id);
+        const { error } = await supabase.from('edc_assets').delete().eq('id', selectedAsset.id)
 
-        if (error) throw error;
-        toast.success('Data EDC berhasil dihapus');
-        fetchAssets();
+        if (error) throw error
+        toast.success('Data EDC berhasil dihapus')
+        fetchAssets()
       } catch (error) {
-        console.error('Error deleting EDC asset:', error);
-        toast.error('Gagal menghapus data EDC');
+        console.error('Error deleting EDC asset:', error)
+        toast.error('Gagal menghapus data EDC')
       }
     }
-    setIsDeleteAlertOpen(false);
-  };
+    setIsDeleteAlertOpen(false)
+  }
 
   const downloadExcel = async () => {
     try {
       const { data, error } = await supabase
         .from('edc_assets')
         .select('*')
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false })
 
-      if (error) throw error;
+      if (error) throw error
 
       const formattedData = data.map(item => ({
         TID: item.tid,
@@ -395,27 +395,27 @@ export default function EDCAssetPage() {
         Status: item.status,
         Keterangan: item.description || '-',
         'Tanggal Dibuat': format(new Date(item.created_at), 'dd MMM yyyy HH:mm'),
-      }));
+      }))
 
-      const ws = XLSX.utils.json_to_sheet(formattedData);
-      const wb = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(wb, ws, 'EDC Assets');
+      const ws = XLSX.utils.json_to_sheet(formattedData)
+      const wb = XLSX.utils.book_new()
+      XLSX.utils.book_append_sheet(wb, ws, 'EDC Assets')
 
-      const fileName = `edc_assets_${format(new Date(), 'yyyyMMdd_HHmmss')}.xlsx`;
-      XLSX.writeFile(wb, fileName);
-      toast.success('Data berhasil diexport');
+      const fileName = `edc_assets_${format(new Date(), 'yyyyMMdd_HHmmss')}.xlsx`
+      XLSX.writeFile(wb, fileName)
+      toast.success('Data berhasil diexport')
     } catch (error) {
-      console.error('Error exporting data:', error);
-      toast.error('Gagal mengexport data');
+      console.error('Error exporting data:', error)
+      toast.error('Gagal mengexport data')
     }
-  };
+  }
 
   if (isLoading) {
     return (
       <div className="flex items-center align-center justify-center h-96">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900" />
       </div>
-    );
+    )
   }
 
   return (
@@ -604,16 +604,16 @@ export default function EDCAssetPage() {
                 placeholder="Cari berdasarkan TID atau MID..."
                 value={globalFilter}
                 onChange={e => {
-                  setGlobalFilter(e.target.value);
-                  setPageIndex(0);
+                  setGlobalFilter(e.target.value)
+                  setPageIndex(0)
                 }}
                 className="max-w-sm"
               />
               <Select
                 value={locationFilter || 'all'}
                 onValueChange={value => {
-                  setLocationFilter(value === 'all' ? '' : value);
-                  updateColumnFilter('location', value);
+                  setLocationFilter(value === 'all' ? '' : value)
+                  updateColumnFilter('location', value)
                 }}
               >
                 <SelectTrigger className="w-44">
@@ -681,8 +681,8 @@ export default function EDCAssetPage() {
               <Select
                 value={String(pageSize)}
                 onValueChange={value => {
-                  setPageSize(Number(value));
-                  setPageIndex(0);
+                  setPageSize(Number(value))
+                  setPageIndex(0)
                 }}
               >
                 <SelectTrigger className="w-24">
@@ -733,5 +733,5 @@ export default function EDCAssetPage() {
         </AlertDialogContent>
       </AlertDialog>
     </div>
-  );
+  )
 }

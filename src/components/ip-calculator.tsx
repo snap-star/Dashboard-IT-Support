@@ -1,35 +1,35 @@
-'use client';
+'use client'
 
-import { useState } from 'react';
-import { any } from 'zod';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { useState } from 'react'
+import { any } from 'zod'
+import { Alert, AlertDescription } from '@/components/ui/alert'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 
 export function IPCalculator() {
-  const [ipAddress, setIpAddress] = useState('');
-  const [subnetMask, setSubnetMask] = useState('');
-  const [error, setError] = useState<string | null>(null);
+  const [ipAddress, setIpAddress] = useState('')
+  const [subnetMask, setSubnetMask] = useState('')
+  const [error, setError] = useState<string | null>(null)
   const [result, setResult] = useState({
     networkAddress: '',
     broadcastAddress: '',
     firstUsableAddress: '',
     lastUsableAddress: '',
     totalHosts: 0,
-  });
+  })
 
   const calculateIP = () => {
     try {
-      setError(null);
+      setError(null)
       // Validasi input
-      const ipParts = ipAddress.split('.').map(Number);
-      const maskParts = subnetMask.split('.').map(Number);
+      const ipParts = ipAddress.split('.').map(Number)
+      const maskParts = subnetMask.split('.').map(Number)
 
       if (ipParts.length !== 4 || maskParts.length !== 4) {
-        setError('Format IP atau Subnet Mask tidak valid');
-        return;
+        setError('Format IP atau Subnet Mask tidak valid')
+        return
       }
 
       // Validasi range angka (0-255)
@@ -37,42 +37,42 @@ export function IPCalculator() {
         ipParts.some(part => isNaN(part) || part < 0 || part > 255) ||
         maskParts.some(part => isNaN(part) || part < 0 || part > 255)
       ) {
-        setError('Setiap oktet harus berupa angka antara 0-255');
-        return;
+        setError('Setiap oktet harus berupa angka antara 0-255')
+        return
       }
 
       // Konversi ke binary
-      const ipBinary = ipParts.map(x => x.toString(2).padStart(8, '0')).join('');
-      const maskBinary = maskParts.map(x => x.toString(2).padStart(8, '0')).join('');
+      const ipBinary = ipParts.map(x => x.toString(2).padStart(8, '0')).join('')
+      const maskBinary = maskParts.map(x => x.toString(2).padStart(8, '0')).join('')
 
       // Hitung network address
       const networkBinary = ipBinary
         .split('')
         .map((bit, i) => Number(bit) & Number(maskBinary[i]))
-        .join('');
+        .join('')
 
       // Hitung broadcast address
       const broadcastBinary = ipBinary
         .split('')
         .map((bit, i) => {
-          if (maskBinary[i] === '1') return Number(bit) & Number(maskBinary[i]);
-          return '1';
+          if (maskBinary[i] === '1') return Number(bit) & Number(maskBinary[i])
+          return '1'
         })
-        .join('');
+        .join('')
 
       // Konversi hasil ke format decimal
-      const networkAddress = binaryToDecimal(networkBinary);
-      const broadcastAddress = binaryToDecimal(broadcastBinary);
+      const networkAddress = binaryToDecimal(networkBinary)
+      const broadcastAddress = binaryToDecimal(broadcastBinary)
 
       // Hitung first dan last usable address
-      const firstUsable: any = networkAddress.split('.');
-      firstUsable[3] = Number.parseInt(firstUsable[3]) + 1;
+      const firstUsable: any = networkAddress.split('.')
+      firstUsable[3] = Number.parseInt(firstUsable[3]) + 1
 
-      const lastUsable: any = broadcastAddress.split('.');
-      lastUsable[3] = Number.parseInt(lastUsable[3]) - 1;
+      const lastUsable: any = broadcastAddress.split('.')
+      lastUsable[3] = Number.parseInt(lastUsable[3]) - 1
 
       // Hitung total host
-      const totalHosts = 2 ** (maskBinary.split('0').length - 1) - 2;
+      const totalHosts = 2 ** (maskBinary.split('0').length - 1) - 2
 
       setResult({
         networkAddress,
@@ -80,17 +80,17 @@ export function IPCalculator() {
         firstUsableAddress: firstUsable.join('.'),
         lastUsableAddress: lastUsable.join('.'),
         totalHosts,
-      });
+      })
     } catch (err) {
-      setError('Terjadi kesalahan dalam perhitungan');
+      setError('Terjadi kesalahan dalam perhitungan')
     }
-  };
+  }
 
   // Helper function untuk konversi binary ke decimal
   const binaryToDecimal = (binary: string) => {
-    const octets = binary.match(/.{8}/g) || [];
-    return octets.map(x => Number.parseInt(x, 2)).join('.');
-  };
+    const octets = binary.match(/.{8}/g) || []
+    return octets.map(x => Number.parseInt(x, 2)).join('.')
+  }
 
   return (
     <Card className="w-[400px]">
@@ -149,5 +149,5 @@ export function IPCalculator() {
         )}
       </CardContent>
     </Card>
-  );
+  )
 }

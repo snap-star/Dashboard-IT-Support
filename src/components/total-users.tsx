@@ -1,53 +1,53 @@
-'use client';
+'use client'
 
-import { motion } from 'framer-motion';
-import { Network, Users } from 'lucide-react';
-import * as React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import supabase from '@/lib/supabase';
+import { motion } from 'framer-motion'
+import { Network, Users } from 'lucide-react'
+import * as React from 'react'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import supabase from '@/lib/supabase'
 
 export default function DashboardOverview() {
-  const [totalIpAddress, setTotalIpAddress] = React.useState(0);
-  const [totalUserEstim, setTotalUserEstim] = React.useState(0);
-  const [isLoading, setIsLoading] = React.useState(true);
+  const [totalIpAddress, setTotalIpAddress] = React.useState(0)
+  const [totalUserEstim, setTotalUserEstim] = React.useState(0)
+  const [isLoading, setIsLoading] = React.useState(true)
 
   React.useEffect(() => {
-    fetchOverviewData();
-  }, []);
+    fetchOverviewData()
+  }, [])
 
   async function fetchOverviewData() {
-    setIsLoading(true);
+    setIsLoading(true)
     try {
       // Query untuk mendapatkan IP address unik
       const { data: ipData, error: ipError } = await supabase
         .from('as400_users')
-        .select('ip_address');
+        .select('ip_address')
 
-      if (ipError) throw ipError;
+      if (ipError) throw ipError
 
       // Filter IP address unik
       const uniqueIpAddresses = new Set(
         ipData?.map(item => item.ip_address).filter(ip => ip && ip.trim() !== ''),
-      );
+      )
 
       // Query untuk mendapatkan user ESTIM unik
       const { data: userEstimData, error: userEstimError } = await supabase
         .from('as400_users')
-        .select('username');
+        .select('username')
 
-      if (userEstimError) throw userEstimError;
+      if (userEstimError) throw userEstimError
 
       // Filter user ESTIM unik
       const uniqueUserEstim = new Set(
         userEstimData?.map(item => item.username).filter(user => user && user.trim() !== ''),
-      );
+      )
 
-      setTotalIpAddress(uniqueIpAddresses.size);
-      setTotalUserEstim(uniqueUserEstim.size);
+      setTotalIpAddress(uniqueIpAddresses.size)
+      setTotalUserEstim(uniqueUserEstim.size)
     } catch (error) {
-      console.error('Error fetching overview data:', error);
+      console.error('Error fetching overview data:', error)
     } finally {
-      setIsLoading(false);
+      setIsLoading(false)
     }
   }
 
@@ -62,8 +62,8 @@ export default function DashboardOverview() {
       >
         {value}
       </motion.div>
-    );
-  };
+    )
+  }
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -115,5 +115,5 @@ export default function DashboardOverview() {
         </Card>
       </motion.div>
     </div>
-  );
+  )
 }

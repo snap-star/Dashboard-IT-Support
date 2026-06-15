@@ -1,4 +1,4 @@
-'use client';
+'use client'
 
 import {
   ArrowLeft,
@@ -14,32 +14,32 @@ import {
   Search,
   Trash,
   Upload,
-} from 'lucide-react';
-import type React from 'react';
-import { useEffect, useState } from 'react';
-import { toast } from 'sonner';
-import * as XLSX from 'xlsx';
+} from 'lucide-react'
+import type React from 'react'
+import { useEffect, useState } from 'react'
+import { toast } from 'sonner'
+import * as XLSX from 'xlsx'
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from '@/components/ui/dialog';
+} from '@/components/ui/dialog'
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { Input } from '@/components/ui/input';
+} from '@/components/ui/dropdown-menu'
+import { Input } from '@/components/ui/input'
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
+} from '@/components/ui/select'
 import {
   Table,
   TableBody,
@@ -47,11 +47,11 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
-import { useDebounce } from '@/hooks/use-debounce';
-import supabase from '@/lib/supabase';
-import { Button } from './ui/button';
-import { Card, CardContent } from './ui/card';
+} from '@/components/ui/table'
+import { useDebounce } from '@/hooks/use-debounce'
+import supabase from '@/lib/supabase'
+import { Button } from './ui/button'
+import { Card, CardContent } from './ui/card'
 import {
   Pagination,
   PaginationContent,
@@ -59,158 +59,158 @@ import {
   PaginationLink,
   PaginationNext,
   PaginationPrevious,
-} from './ui/pagination';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/tooltip';
+} from './ui/pagination'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/tooltip'
 
 // Define types
 type As400User = {
-  id: number;
-  username: string;
-  display_user: string;
-  ip_address: string;
-  mac_address: string;
-  last_login: string;
-};
+  id: number
+  username: string
+  display_user: string
+  ip_address: string
+  mac_address: string
+  last_login: string
+}
 
 type Pegawai = {
-  id: number;
-  nip: string;
-  name: string;
-  jabatan: string;
-  department: string;
-  as400_users: As400User[];
-};
+  id: number
+  nip: string
+  name: string
+  jabatan: string
+  department: string
+  as400_users: As400User[]
+}
 
 type ExcelPegawai = {
-  nip: string;
-  name: string;
-  jabatan: string;
-  department: string;
-  username: string;
-  display_user: string;
-  ip_address: string;
-  mac_address: string;
-};
+  nip: string
+  name: string
+  jabatan: string
+  department: string
+  username: string
+  display_user: string
+  ip_address: string
+  mac_address: string
+}
 
 // Tambahkan type untuk sorting
 type SortConfig = {
-  key: keyof Pegawai | 'username' | 'display_user' | 'ip_address' | 'mac_address';
-  direction: 'asc' | 'desc';
-};
+  key: keyof Pegawai | 'username' | 'display_user' | 'ip_address' | 'mac_address'
+  direction: 'asc' | 'desc'
+}
 
 const EmployeeAS400Management = () => {
-  const [pegawai, setPegawai] = useState<Pegawai[]>([]);
-  const [selectedPegawai, setSelectedPegawai] = useState<Pegawai | undefined>(undefined);
-  const [duplicatePegawai, setDuplicatePegawai] = useState<Pegawai[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [departmentFilter, setDepartmentFilter] = useState('');
-  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [pegawai, setPegawai] = useState<Pegawai[]>([])
+  const [selectedPegawai, setSelectedPegawai] = useState<Pegawai | undefined>(undefined)
+  const [duplicatePegawai, setDuplicatePegawai] = useState<Pegawai[]>([])
+  const [loading, setLoading] = useState(true)
+  const [searchTerm, setSearchTerm] = useState('')
+  const [departmentFilter, setDepartmentFilter] = useState('')
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
   const [newPegawai, setNewPegawai] = useState({
     nip: '',
     name: '',
     department: '',
     jabatan: '',
-  });
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [isAddAS400DialogOpen, setIsAddAS400DialogOpen] = useState(false);
+  })
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
+  const [isAddAS400DialogOpen, setIsAddAS400DialogOpen] = useState(false)
   const [newAS400User, setNewAS400User] = useState({
     username: '',
     display_user: '',
     ip_address: '',
     mac_address: '',
-  });
+  })
   //pagination
-  const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage] = useState(10);
+  const [currentPage, setCurrentPage] = useState(1)
+  const [itemsPerPage] = useState(10)
 
   // Calculate pagination values
-  const indexOfLastItem = currentPage * itemsPerPage;
-  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const indexOfLastItem = currentPage * itemsPerPage
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage
 
   // Tambahkan type untuk sorting
   const [sortConfig, setSortConfig] = useState<SortConfig>({
     key: 'id',
     direction: 'asc',
-  });
+  })
 
   // Gunakan debounce untuk searchTerm
-  const debouncedSearchTerm = useDebounce(searchTerm, 500);
+  const debouncedSearchTerm = useDebounce(searchTerm, 500)
 
   // Get unique departments for filter options
   const departmentOptions = Array.from(
     new Set(pegawai.map(emp => emp.department).filter(Boolean)),
-  ).sort();
+  ).sort()
 
   // Modifikasi useEffect untuk menggunakan debouncedSearchTerm dan departmentFilter
   useEffect(() => {
     //reset ke halaman pertama ketika search atau filter department berubah
-    setCurrentPage(1);
-    fetchPegawai();
-  }, [debouncedSearchTerm, departmentFilter]); // Tambahkan departmentFilter
+    setCurrentPage(1)
+    fetchPegawai()
+  }, [debouncedSearchTerm, departmentFilter]) // Tambahkan departmentFilter
 
   // Fungsi untuk sorting
   const handleSort = (key: SortConfig['key']) => {
     setSortConfig(currentSort => ({
       key,
       direction: currentSort.key === key && currentSort.direction === 'asc' ? 'desc' : 'asc',
-    }));
-  };
+    }))
+  }
 
   // Fungsi untuk mendapatkan sorted data
   const getSortedData = (data: Pegawai[]) => {
     return [...data].sort((a, b) => {
       if (sortConfig.key === 'username') {
-        const aValue = a.as400_users[0]?.username || '';
-        const bValue = b.as400_users[0]?.username || '';
+        const aValue = a.as400_users[0]?.username || ''
+        const bValue = b.as400_users[0]?.username || ''
         return sortConfig.direction === 'asc'
           ? aValue.localeCompare(bValue)
-          : bValue.localeCompare(aValue);
+          : bValue.localeCompare(aValue)
       }
 
       if (sortConfig.key === 'display_user') {
-        const aValue = a.as400_users[0]?.display_user || '';
-        const bValue = b.as400_users[0]?.display_user || '';
+        const aValue = a.as400_users[0]?.display_user || ''
+        const bValue = b.as400_users[0]?.display_user || ''
         return sortConfig.direction === 'asc'
           ? aValue.localeCompare(bValue)
-          : bValue.localeCompare(aValue);
+          : bValue.localeCompare(aValue)
       }
 
       if (sortConfig.key === 'ip_address') {
-        const aValue = a.as400_users[0]?.ip_address || '';
-        const bValue = b.as400_users[0]?.ip_address || '';
+        const aValue = a.as400_users[0]?.ip_address || ''
+        const bValue = b.as400_users[0]?.ip_address || ''
         return sortConfig.direction === 'asc'
           ? aValue.localeCompare(bValue)
-          : bValue.localeCompare(aValue);
+          : bValue.localeCompare(aValue)
       }
       if (sortConfig.key === 'mac_address') {
-        const aValue = a.as400_users[0]?.mac_address || '';
-        const bValue = b.as400_users[0]?.mac_address || '';
+        const aValue = a.as400_users[0]?.mac_address || ''
+        const bValue = b.as400_users[0]?.mac_address || ''
         return sortConfig.direction === 'asc'
           ? aValue.localeCompare(bValue)
-          : bValue.localeCompare(aValue);
+          : bValue.localeCompare(aValue)
       }
 
-      const aValue = String(a[sortConfig.key]);
-      const bValue = String(b[sortConfig.key]);
+      const aValue = String(a[sortConfig.key])
+      const bValue = String(b[sortConfig.key])
 
       return sortConfig.direction === 'asc'
         ? aValue.localeCompare(bValue)
-        : bValue.localeCompare(aValue);
-    });
-  };
+        : bValue.localeCompare(aValue)
+    })
+  }
 
   // Modifikasi currentItems untuk menggunakan sorted data
-  const sortedData = getSortedData(pegawai);
-  const currentItems = sortedData.slice(indexOfFirstItem, indexOfLastItem);
+  const sortedData = getSortedData(pegawai)
+  const currentItems = sortedData.slice(indexOfFirstItem, indexOfLastItem)
 
   //editUserESTIM
-  const [isEditAS400DialogOpen, setIsEditAS400DialogOpen] = useState(false);
-  const [selectedAS400User, setSelectedAS400User] = useState<As400User | undefined>(undefined);
+  const [isEditAS400DialogOpen, setIsEditAS400DialogOpen] = useState(false)
+  const [selectedAS400User, setSelectedAS400User] = useState<As400User | undefined>(undefined)
 
   //upload EXCEL
-  const [isUploading, setIsUploading] = useState(false);
-  const [isUploadDialogOpen, setIsUploadDialogOpen] = useState(false);
+  const [isUploading, setIsUploading] = useState(false)
+  const [isUploadDialogOpen, setIsUploadDialogOpen] = useState(false)
   //exceldownloadtemplate
   const downloadTemplate = () => {
     const template = [
@@ -224,54 +224,54 @@ const EmployeeAS400Management = () => {
         ip_address: '192.168.1.1',
         mac_address: '00:00:00:00:00:00',
       },
-    ];
+    ]
 
-    const ws = XLSX.utils.json_to_sheet(template);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'Template');
-    XLSX.writeFile(wb, 'user_template.xlsx');
-  };
+    const ws = XLSX.utils.json_to_sheet(template)
+    const wb = XLSX.utils.book_new()
+    XLSX.utils.book_append_sheet(wb, ws, 'Template')
+    XLSX.writeFile(wb, 'user_template.xlsx')
+  }
 
   //Handlers dan Fetch Area
 
   //Handler Upload Excel
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+    const file = e.target.files?.[0]
+    if (!file) return
 
-    setIsUploading(true);
+    setIsUploading(true)
     try {
-      const data = await readExcelFile(file);
-      await uploadBulkData(data);
-      setIsUploadDialogOpen(false);
-      await fetchPegawai(); // Refresh the data
-      toast.success('Data berhasil di upload');
+      const data = await readExcelFile(file)
+      await uploadBulkData(data)
+      setIsUploadDialogOpen(false)
+      await fetchPegawai() // Refresh the data
+      toast.success('Data berhasil di upload')
     } catch (error) {
-      console.error('Error uploading data:', error);
-      toast.error('Failed upload data');
+      console.error('Error uploading data:', error)
+      toast.error('Failed upload data')
     } finally {
-      setIsUploading(false);
+      setIsUploading(false)
     }
-  };
+  }
   const readExcelFile = (file: File): Promise<ExcelPegawai[]> => {
     return new Promise((resolve, reject) => {
-      const reader = new FileReader();
+      const reader = new FileReader()
       reader.onload = async e => {
         try {
-          const data = e.target?.result;
-          const workbook = XLSX.read(data, { type: 'binary' });
-          const sheetName = workbook.SheetNames[0];
-          const worksheet = workbook.Sheets[sheetName];
-          const jsonData = XLSX.utils.sheet_to_json(worksheet) as ExcelPegawai[];
-          resolve(jsonData);
+          const data = e.target?.result
+          const workbook = XLSX.read(data, { type: 'binary' })
+          const sheetName = workbook.SheetNames[0]
+          const worksheet = workbook.Sheets[sheetName]
+          const jsonData = XLSX.utils.sheet_to_json(worksheet) as ExcelPegawai[]
+          resolve(jsonData)
         } catch (error) {
-          reject(error);
+          reject(error)
         }
-      };
-      reader.onerror = error => reject(error);
-      reader.readAsBinaryString(file);
-    });
-  };
+      }
+      reader.onerror = error => reject(error)
+      reader.readAsBinaryString(file)
+    })
+  }
 
   const uploadBulkData = async (data: ExcelPegawai[]) => {
     for (const row of data) {
@@ -288,9 +288,9 @@ const EmployeeAS400Management = () => {
             },
           ])
           .select()
-          .single();
+          .single()
 
-        if (employeeError) throw employeeError;
+        if (employeeError) throw employeeError
 
         // Then, create the AS400 user for this employee
         if (row.username && row.ip_address) {
@@ -302,16 +302,16 @@ const EmployeeAS400Management = () => {
               ip_address: row.ip_address,
               mac_address: row.mac_address,
             },
-          ]);
+          ])
 
-          if (as400Error) throw as400Error;
+          if (as400Error) throw as400Error
         }
       } catch (error) {
-        console.error(`Gagal memproses tabel ${row.name}:`, error);
-        throw error;
+        console.error(`Gagal memproses tabel ${row.name}:`, error)
+        throw error
       }
     }
-  };
+  }
 
   //new component dialog untuk upload excel
   const UploadDialog = () => (
@@ -363,12 +363,12 @@ const EmployeeAS400Management = () => {
         </div>
       </DialogContent>
     </Dialog>
-  );
+  )
 
   // Fetch data pegawai dan user ESTIM
   // Perbaikan di fetchPegawai
   const fetchPegawai = async () => {
-    setLoading(true);
+    setLoading(true)
     try {
       let query = supabase.from('employees').select(
         `
@@ -381,34 +381,34 @@ const EmployeeAS400Management = () => {
             mac_address
           )
         `,
-      );
+      )
 
       // Apply search filter
       if (debouncedSearchTerm) {
-        query = query.ilike('name', `%${debouncedSearchTerm}%`);
+        query = query.ilike('name', `%${debouncedSearchTerm}%`)
       }
 
       // Apply department filter
       if (departmentFilter && departmentFilter !== 'all') {
-        query = query.eq('department', departmentFilter);
+        query = query.eq('department', departmentFilter)
       }
 
-      const { data, error } = await query;
+      const { data, error } = await query
 
-      if (error) throw error;
-      setPegawai(data || []);
+      if (error) throw error
+      setPegawai(data || [])
     } catch (error) {
-      console.error('Error fetching data:', error);
-      toast.error('Failed to fetch data');
+      console.error('Error fetching data:', error)
+      toast.error('Failed to fetch data')
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   // Export ke Excel
   const exportToExcel = async () => {
     try {
-      const XLSX = await import('xlsx');
+      const XLSX = await import('xlsx')
       const exportData = pegawai.map(emp => ({
         ID: emp.id,
         Nip: emp.nip,
@@ -418,120 +418,118 @@ const EmployeeAS400Management = () => {
         'User ESTIM': emp.as400_users.map(u => u.username).join(', '),
         'Display User': emp.as400_users.map(u => u.display_user).join(', '),
         'IP Address': emp.as400_users.map(u => u.ip_address).join(', '),
-      }));
+      }))
 
-      const ws = XLSX.utils.json_to_sheet(exportData);
-      const wb = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(wb, ws, 'User ESTIM');
-      XLSX.writeFile(wb, 'Data User ESTIM Pegawai.xlsx');
-      toast.success('Exported to Excel successfully');
+      const ws = XLSX.utils.json_to_sheet(exportData)
+      const wb = XLSX.utils.book_new()
+      XLSX.utils.book_append_sheet(wb, ws, 'User ESTIM')
+      XLSX.writeFile(wb, 'Data User ESTIM Pegawai.xlsx')
+      toast.success('Exported to Excel successfully')
     } catch (error) {
-      console.error('Error exporting to Excel:', error);
-      toast.error('Failed to export to Excel');
+      console.error('Error exporting to Excel:', error)
+      toast.error('Failed to export to Excel')
     }
-  };
+  }
 
   // Handle form input change
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
+    const { name, value } = e.target
     setNewPegawai(prev => ({
       ...prev,
       [name]: value,
-    }));
-  };
+    }))
+  }
 
   // Handle form submission
   const handleAddPegawai = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+    e.preventDefault()
     try {
-      const { data, error } = await supabase.from('employees').insert([newPegawai]).select();
+      const { data, error } = await supabase.from('employees').insert([newPegawai]).select()
 
-      if (error) throw error;
+      if (error) throw error
 
       if (data) {
-        setPegawai(prev => [...prev, data[0]]);
-        setIsAddDialogOpen(false);
+        setPegawai(prev => [...prev, data[0]])
+        setIsAddDialogOpen(false)
         setNewPegawai({
           nip: '',
           name: '',
           jabatan: '',
           department: '',
-        });
-        toast.success('Berhasil menambahkan data pegawai baru');
+        })
+        toast.success('Berhasil menambahkan data pegawai baru')
       }
     } catch (error) {
-      console.error('Error menambahkan pegawai:', error);
-      toast.error('Failed menambahkan data pegawai');
+      console.error('Error menambahkan pegawai:', error)
+      toast.error('Failed menambahkan data pegawai')
     }
-  };
+  }
 
   //handleEditPegawai
   const handleEditPegawai = async (pegawai: Pegawai) => {
-    setSelectedPegawai(pegawai);
+    setSelectedPegawai(pegawai)
     setNewPegawai({
       nip: pegawai.nip,
       name: pegawai.name,
       jabatan: pegawai.jabatan,
       department: pegawai.department,
-    });
-    setIsEditDialogOpen(true);
-  };
+    })
+    setIsEditDialogOpen(true)
+  }
 
   const handleUpdatePegawai = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    if (!selectedPegawai) return;
+    e.preventDefault()
+    if (!selectedPegawai) return
 
     try {
       const { data, error } = await supabase
         .from('employees')
         .update(newPegawai)
         .eq('id', selectedPegawai.id)
-        .select();
+        .select()
       if (error) {
-        throw error;
+        throw error
       }
 
-      setPegawai(prev =>
-        prev.map(p => (p.id === selectedPegawai.id ? { ...p, ...newPegawai } : p)),
-      );
-      setIsEditDialogOpen(false);
-      toast.success('Data Pegawai berhasil di update');
+      setPegawai(prev => prev.map(p => (p.id === selectedPegawai.id ? { ...p, ...newPegawai } : p)))
+      setIsEditDialogOpen(false)
+      toast.success('Data Pegawai berhasil di update')
     } catch (error) {
-      console.error('Error updating pegawai:', error);
-      toast.error('Failed update pegawai');
+      console.error('Error updating pegawai:', error)
+      toast.error('Failed update pegawai')
     }
-  };
+  }
 
   //handleDeletePegawai
   const handleDeletePegawai = async (pegawai: Pegawai) => {
     if (confirm('Apakah anda yakin akan menghapus data pegawai?')) {
       try {
-        const { error } = await supabase.from('employees').delete().eq('id', pegawai.id);
-        if (error) throw error;
+        const { error } = await supabase.from('employees').delete().eq('id', pegawai.id)
+        if (error) throw error
 
-        setPegawai(prev => prev.filter(p => p.id !== pegawai.id));
-        toast.success('Field Pegawai berhasil di hapus');
+        setPegawai(prev => prev.filter(p => p.id !== pegawai.id))
+        toast.success('Field Pegawai berhasil di hapus')
       } catch (error) {
-        console.error('Error menghapus pegawai:', error);
-        toast.error('Gagal Menghapus field pegawai');
+        console.error('Error menghapus pegawai:', error)
+        toast.error('Gagal Menghapus field pegawai')
       }
     }
-  };
+  }
   //handlerEditUserEstim
   const handleEditAS400User = (user: As400User) => {
-    setSelectedAS400User(user);
+    setSelectedAS400User(user)
     setNewAS400User({
       username: user.username,
       display_user: user.display_user,
       ip_address: user.ip_address,
       mac_address: user.mac_address,
-    });
-    setIsEditAS400DialogOpen(true);
-  };
+    })
+    setIsEditAS400DialogOpen(true)
+  }
   //handlerUpdateUserESTIm
   const handleUpdateAS400User = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    if (!selectedAS400User) return;
+    e.preventDefault()
+    if (!selectedAS400User) return
 
     try {
       const { data, error } = await supabase
@@ -543,9 +541,9 @@ const EmployeeAS400Management = () => {
           mac_address: newAS400User.mac_address,
         })
         .eq('id', selectedAS400User.id)
-        .select();
+        .select()
 
-      if (error) throw error;
+      if (error) throw error
       // Update local state
       setPegawai(prev =>
         prev.map(p => ({
@@ -554,44 +552,44 @@ const EmployeeAS400Management = () => {
             u.id === selectedAS400User.id ? { ...u, ...newAS400User } : u,
           ),
         })),
-      );
-      setIsEditAS400DialogOpen(false);
-      setSelectedAS400User(undefined);
-      setNewAS400User({ username: '', display_user: '', ip_address: '', mac_address: '' });
-      toast.success('User ESTIM berhasil di update');
+      )
+      setIsEditAS400DialogOpen(false)
+      setSelectedAS400User(undefined)
+      setNewAS400User({ username: '', display_user: '', ip_address: '', mac_address: '' })
+      toast.success('User ESTIM berhasil di update')
     } catch (error) {
-      console.error('Error updating user ESTIM:', error);
-      toast.error('Gagal mengubah user ESTIM');
+      console.error('Error updating user ESTIM:', error)
+      toast.error('Gagal mengubah user ESTIM')
     }
-  };
+  }
   //handleDeleteUserEstim
   const handleDeleteAS400User = async (user: As400User) => {
     if (confirm('Apakah anda yakin akan menghapus user ESTIM?')) {
       try {
-        const { error } = await supabase.from('as400_users').delete().eq('id', user.id);
-        if (error) throw error;
+        const { error } = await supabase.from('as400_users').delete().eq('id', user.id)
+        if (error) throw error
 
         setPegawai(prev =>
           prev.map(p => ({
             ...p,
             as400_users: p.as400_users.filter(u => u.id !== user.id),
           })),
-        );
-        toast.success('User Estim Berhasil Di Hapus');
+        )
+        toast.success('User Estim Berhasil Di Hapus')
       } catch (error) {
-        console.error('error gagal menghapus user:', error);
-        toast.error('Gagal Menghapus User Estim');
+        console.error('error gagal menghapus user:', error)
+        toast.error('Gagal Menghapus User Estim')
       }
     }
-  };
+  }
   //handlerAddUserEstim
   const handleAddAS400User = (pegawai: Pegawai) => {
-    setSelectedPegawai(pegawai);
-    setIsAddAS400DialogOpen(true);
-  };
+    setSelectedPegawai(pegawai)
+    setIsAddAS400DialogOpen(true)
+  }
   const handleSubmitAS400User = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    if (!selectedPegawai) return;
+    e.preventDefault()
+    if (!selectedPegawai) return
 
     try {
       const { data, error } = await supabase
@@ -602,8 +600,8 @@ const EmployeeAS400Management = () => {
             employee_id: selectedPegawai.id,
           },
         ])
-        .select();
-      if (error) throw error;
+        .select()
+      if (error) throw error
 
       // Update local state
       setPegawai(prev =>
@@ -612,66 +610,66 @@ const EmployeeAS400Management = () => {
             return {
               ...p,
               as400_users: [...(p.as400_users || []), data[0]],
-            };
+            }
           }
-          return p;
+          return p
         }),
-      );
-      setIsAddAS400DialogOpen(false);
-      setNewAS400User({ username: '', display_user: '', ip_address: '', mac_address: '' });
-      toast.success('AS400 user added successfully');
+      )
+      setIsAddAS400DialogOpen(false)
+      setNewAS400User({ username: '', display_user: '', ip_address: '', mac_address: '' })
+      toast.success('AS400 user added successfully')
     } catch (error) {
-      console.error('Error Menambahkan user ESTIM:', error);
-      toast.error('Gagal Menambahkan user ESTIM');
+      console.error('Error Menambahkan user ESTIM:', error)
+      toast.error('Gagal Menambahkan user ESTIM')
     }
-  };
+  }
 
   // Modifikasi fungsi filterDuplicatePegawai
   const filterDuplicatePegawai = () => {
     // Mencari NIP yang duplikat
     const nipCounts = pegawai.reduce(
       (acc, curr) => {
-        acc[curr.nip] = (acc[curr.nip] || 0) + 1;
-        return acc;
+        acc[curr.nip] = (acc[curr.nip] || 0) + 1
+        return acc
       },
       {} as Record<string, number>,
-    );
+    )
 
     // Filter pegawai yang memiliki NIP duplikat
-    const duplicates = pegawai.filter(p => nipCounts[p.nip] > 1);
+    const duplicates = pegawai.filter(p => nipCounts[p.nip] > 1)
 
     if (duplicates.length > 0) {
-      setPegawai(duplicates); // Update tabel dengan data duplikat
-      toast.success(`Ditemukan ${duplicates.length} data duplikat`);
+      setPegawai(duplicates) // Update tabel dengan data duplikat
+      toast.success(`Ditemukan ${duplicates.length} data duplikat`)
     } else {
-      toast.info('Tidak ditemukan data duplikat');
-      fetchPegawai(); // Kembalikan ke data semula jika tidak ada duplikat
+      toast.info('Tidak ditemukan data duplikat')
+      fetchPegawai() // Kembalikan ke data semula jika tidak ada duplikat
     }
-  };
+  }
 
   // Tambahkan tombol untuk mereset filter
   const resetFilter = async () => {
-    await fetchPegawai();
-    toast.success('Data berhasil direset');
-  };
+    await fetchPegawai()
+    toast.success('Data berhasil direset')
+  }
 
   // Generate page numbers
-  const pageNumbers = [];
+  const pageNumbers = []
   for (let i = 1; i <= Math.ceil(pegawai.length / itemsPerPage); i++) {
-    pageNumbers.push(i);
+    pageNumbers.push(i)
   }
 
   // Handle page changes
   const handlePageChange = (pageNumber: number) => {
-    setCurrentPage(pageNumber);
-  };
+    setCurrentPage(pageNumber)
+  }
 
   // Get visible page numbers with ellipsis
   const getVisiblePageNumbers = () => {
-    const delta = 2;
-    const range = [];
-    const rangeWithDots = [];
-    let l;
+    const delta = 2
+    const range = []
+    const rangeWithDots = []
+    let l
 
     for (let i = 1; i <= Math.ceil(pegawai.length / itemsPerPage); i++) {
       if (
@@ -679,24 +677,24 @@ const EmployeeAS400Management = () => {
         i === Math.ceil(pegawai.length / itemsPerPage) ||
         (i >= currentPage - delta && i <= currentPage + delta)
       ) {
-        range.push(i);
+        range.push(i)
       }
     }
 
     for (const i of range) {
       if (l) {
         if (i - l === 2) {
-          rangeWithDots.push(l + 1);
+          rangeWithDots.push(l + 1)
         } else if (i - l !== 1) {
-          rangeWithDots.push('...');
+          rangeWithDots.push('...')
         }
       }
-      rangeWithDots.push(i);
-      l = i;
+      rangeWithDots.push(i)
+      l = i
     }
 
-    return rangeWithDots;
-  };
+    return rangeWithDots
+  }
 
   // Tambahkan loading skeleton
   const TableSkeleton = () => (
@@ -719,7 +717,7 @@ const EmployeeAS400Management = () => {
         </div>
       </TableCell>
     </TableRow>
-  );
+  )
 
   // Komponen SortHeader
   const SortHeader = ({ column, label }: { column: SortConfig['key']; label: string }) => (
@@ -744,7 +742,7 @@ const EmployeeAS400Management = () => {
         </span>
       </div>
     </TableHead>
-  );
+  )
 
   return (
     <div className="p-4 sm:p-8">
@@ -1441,7 +1439,7 @@ const EmployeeAS400Management = () => {
         </DialogContent>
       </Dialog>
     </div>
-  );
-};
+  )
+}
 
-export default EmployeeAS400Management;
+export default EmployeeAS400Management

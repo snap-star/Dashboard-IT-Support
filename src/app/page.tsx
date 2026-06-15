@@ -1,12 +1,13 @@
-'use client';
-import { motion } from 'framer-motion';
-import { Moon, Sun } from 'lucide-react';
-import { useTheme } from 'next-themes';
-import Login from '@/components/login';
-import { Button } from '@/components/ui/button';
+'use client'
+import { motion } from 'framer-motion'
+import { Moon, Sun } from 'lucide-react'
+import { useTheme } from 'next-themes'
+import Login from '@/components/login'
+import { Button } from '@/components/ui/button'
+import Footer from '@/components/footer';
 
 export default function App() {
-  const { theme, setTheme } = useTheme();
+  const { theme, setTheme } = useTheme()
 
   return (
     <div className="min-h-screen relative bg-linear-to-br from-background to-secondary/20">
@@ -81,17 +82,8 @@ export default function App() {
         </main>
 
         {/* Footer */}
-        <footer className="py-4">
-          <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.5 }}
-            className="text-sm text-center text-muted-foreground"
-          >
-            &copy; Copyright 2023 - 2026 Dashboard IT Support by Oren
-          </motion.p>
-        </footer>
+        <Footer />
       </div>
     </div>
-  );
+  )
 }

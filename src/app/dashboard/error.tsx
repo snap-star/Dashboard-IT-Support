@@ -1,23 +1,23 @@
-'use client'; // Error boundaries must be Client Components
+'use client' // Error boundaries must be Client Components
 
-import '@/app/globals.css';
-import { WarningProvider } from '@radix-ui/react-dialog';
-import { useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import { Label } from '@/components/ui/label';
+import '@/app/globals.css'
+import { WarningProvider } from '@radix-ui/react-dialog'
+import { useEffect } from 'react'
+import { Button } from '@/components/ui/button'
+import { Card } from '@/components/ui/card'
+import { Label } from '@/components/ui/label'
 
 export default function Err({
   error,
   unstable_retry,
 }: {
-  error: Error & { digest?: string };
-  unstable_retry: () => void;
+  error: Error & { digest?: string }
+  unstable_retry: () => void
 }) {
   useEffect(() => {
     // Log the error to an error reporting service
-    console.error(error);
-  }, [error]);
+    console.error(error)
+  }, [error])
 
   return (
     <div className="h-full w-full flex flex-col items-center justify-center text-center ">
@@ -55,5 +55,5 @@ export default function Err({
         </Button>
       </Card>
     </div>
-  );
+  )
 }

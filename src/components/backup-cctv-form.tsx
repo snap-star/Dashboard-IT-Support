@@ -1,22 +1,22 @@
-'use client';
+'use client'
 
-import { zodResolver } from '@hookform/resolvers/zod';
-import { format } from 'date-fns';
-import { id } from 'date-fns/locale';
-import { CalendarIcon, Download, Loader2, Save } from 'lucide-react';
-import { useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { toast } from 'sonner';
-import * as XLSX from 'xlsx';
-import * as z from 'zod';
-import { Button } from '@/components/ui/button';
-import { Calendar } from '@/components/ui/calendar';
+import { zodResolver } from '@hookform/resolvers/zod'
+import { format } from 'date-fns'
+import { id } from 'date-fns/locale'
+import { CalendarIcon, Download, Loader2, Save } from 'lucide-react'
+import { useState } from 'react'
+import { useForm } from 'react-hook-form'
+import { toast } from 'sonner'
+import * as XLSX from 'xlsx'
+import * as z from 'zod'
+import { Button } from '@/components/ui/button'
+import { Calendar } from '@/components/ui/calendar'
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+} from '@/components/ui/dropdown-menu'
 import {
   Form,
   FormControl,
@@ -24,19 +24,19 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+} from '@/components/ui/form'
+import { Input } from '@/components/ui/input'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import supabase from '@/lib/supabase';
-import { cn } from '@/lib/utils';
-import { Card, CardContent, CardFooter, CardHeader } from './ui/card';
+} from '@/components/ui/select'
+import supabase from '@/lib/supabase'
+import { cn } from '@/lib/utils'
+import { Card, CardContent, CardFooter, CardHeader } from './ui/card'
 
 // Schema validasi form
 const formSchema = z.object({
@@ -65,7 +65,7 @@ const formSchema = z.object({
     message: 'Nama petugas harus diisi',
   }),
   notes: z.string().optional(),
-});
+})
 
 const locations = [
   { id: 'cabang-ponorogo', name: 'Cabang Ponorogo' },
@@ -85,10 +85,10 @@ const locations = [
   { id: 'jtm02019', name: 'JTM 02019 - ATM Pasar Legi' },
   { id: 'jtm02020', name: 'JTM 02020 - ATM Pasar Pon' },
   { id: 'jtm09302', name: 'JTM 09302 - ATM Pasar Bungkal' },
-];
+]
 
 export function BackupCCTVForm() {
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false)
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -99,11 +99,11 @@ export function BackupCCTVForm() {
       petugas: '',
       notes: '',
     },
-  });
+  })
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    setIsLoading(true);
-    const loadingToast = toast.loading('Menyimpan data...');
+    setIsLoading(true)
+    const loadingToast = toast.loading('Menyimpan data...')
 
     try {
       const { error } = await supabase.from('cctv_backups').insert([
@@ -115,9 +115,9 @@ export function BackupCCTVForm() {
           petugas: values.petugas,
           notes: values.notes,
         },
-      ]);
+      ])
 
-      if (error) throw error;
+      if (error) throw error
 
       form.reset(
         {
@@ -128,42 +128,42 @@ export function BackupCCTVForm() {
           notes: '',
         },
         { keepValues: false },
-      );
+      )
       toast.success('Data berhasil disimpan!', {
         id: loadingToast,
-      });
+      })
     } catch (error) {
-      console.error('Error:', error);
+      console.error('Error:', error)
       toast.error('Terjadi kesalahan saat menyimpan data', {
         id: loadingToast,
-      });
+      })
     } finally {
-      setIsLoading(false);
+      setIsLoading(false)
     }
   }
 
   async function exportToExcel(locationId?: string) {
-    const loadingToast = toast.loading('Mengekspor data...');
+    const loadingToast = toast.loading('Mengekspor data...')
 
     try {
       let query = supabase
         .from('cctv_backups')
         .select('*')
-        .order('tanggal_backup', { ascending: false });
+        .order('tanggal_backup', { ascending: false })
 
       if (locationId) {
-        query = query.eq('lokasi', locationId);
+        query = query.eq('lokasi', locationId)
       }
 
-      const { data, error } = await query;
+      const { data, error } = await query
 
-      if (error) throw error;
+      if (error) throw error
 
       if (!data || data.length === 0) {
         toast.error('Tidak ada data untuk diekspor', {
           id: loadingToast,
-        });
-        return;
+        })
+        return
       }
 
       // Format data sebelum di-export
@@ -171,26 +171,26 @@ export function BackupCCTVForm() {
         ...record,
         tanggal_backup: format(new Date(record.tanggal_backup), 'dd MMMM yyyy', { locale: id }),
         created_at: `${format(new Date(record.created_at), 'dd MMMM yyyy HH:mm:ss', { locale: id })} WIB`,
-      }));
+      }))
 
-      const ws = XLSX.utils.json_to_sheet(formattedData);
-      const wb = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(wb, ws, 'Backup CCTV');
+      const ws = XLSX.utils.json_to_sheet(formattedData)
+      const wb = XLSX.utils.book_new()
+      XLSX.utils.book_append_sheet(wb, ws, 'Backup CCTV')
 
       const fileName = locationId
         ? `backup-cctv-${locationId}-${format(new Date(), 'dd-MM-yyyy-HH-mm', { locale: id })}.xlsx`
-        : `backup-cctv-all-${format(new Date(), 'dd-MM-yyyy-HH-mm', { locale: id })}.xlsx`;
+        : `backup-cctv-all-${format(new Date(), 'dd-MM-yyyy-HH-mm', { locale: id })}.xlsx`
 
-      XLSX.writeFile(wb, fileName);
+      XLSX.writeFile(wb, fileName)
 
       toast.success('Data berhasil diekspor!', {
         id: loadingToast,
-      });
+      })
     } catch (error) {
-      console.error('Error:', error);
+      console.error('Error:', error)
       toast.error('Terjadi kesalahan saat mengekspor data', {
         id: loadingToast,
-      });
+      })
     }
   }
 
@@ -391,5 +391,5 @@ export function BackupCCTVForm() {
         </div>
       </div>
     </div>
-  );
+  )
 }

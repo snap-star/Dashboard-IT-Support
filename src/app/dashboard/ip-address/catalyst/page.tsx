@@ -1,7 +1,7 @@
-'use client';
+'use client'
 
-import { zodResolver } from '@hookform/resolvers/zod';
-import { createClient } from '@supabase/supabase-js';
+import { zodResolver } from '@hookform/resolvers/zod'
+import { createClient } from '@supabase/supabase-js'
 import {
   ArrowUpDown,
   Calculator,
@@ -13,11 +13,11 @@ import {
   Search,
   Trash,
   Trash2,
-} from 'lucide-react';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { toast } from 'sonner';
-import * as z from 'zod';
+} from 'lucide-react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
+import { useForm } from 'react-hook-form'
+import { toast } from 'sonner'
+import * as z from 'zod'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -27,9 +27,9 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+} from '@/components/ui/alert-dialog'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import {
   Dialog,
   DialogContent,
@@ -38,14 +38,14 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from '@/components/ui/dialog';
+} from '@/components/ui/dialog'
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+} from '@/components/ui/dropdown-menu'
 import {
   Form,
   FormControl,
@@ -53,16 +53,16 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+} from '@/components/ui/form'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
+} from '@/components/ui/select'
 import {
   Table,
   TableBody,
@@ -70,8 +70,8 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
-import { calculateSubnetInfo } from '@/lib/ip-calculator';
+} from '@/components/ui/table'
+import { calculateSubnetInfo } from '@/lib/ip-calculator'
 
 // Schema validasi form
 const formSchema = z.object({
@@ -82,19 +82,19 @@ const formSchema = z.object({
   description: z.string().optional(),
   username: z.string().optional(),
   display_user: z.string().optional(),
-});
+})
 
 // Update interface untuk menyesuaikan dengan Supabase
 interface IPAddress {
-  id: string;
-  created_at: string;
-  location: string;
-  ip_address: string;
-  subnet: string;
-  gateway: string;
-  description: string;
-  username: string;
-  display_user?: string;
+  id: string
+  created_at: string
+  location: string
+  ip_address: string
+  subnet: string
+  gateway: string
+  description: string
+  username: string
+  display_user?: string
 }
 
 const locationOptions = [
@@ -112,26 +112,26 @@ const locationOptions = [
   'Payment Point Samsat Ponorogo',
   'Payment Point BPKAD Ponorogo',
   'Mall Pelayanan Publik Ponorogo',
-];
+]
 
 // Update interface untuk IP Calculator props
 interface IPCalculatorProps {
   onGenerate: (
     ips: Array<{
-      location: string;
-      ip_address: string;
-      subnet: string;
-      gateway: string;
+      location: string
+      ip_address: string
+      subnet: string
+      gateway: string
     }>,
-  ) => void;
+  ) => void
 }
 
 // Update komponen IP Calculator
 const IPCalculator = ({ onGenerate }: IPCalculatorProps) => {
-  const [network, setNetwork] = useState('');
-  const [subnetMask, setSubnetMask] = useState('');
-  const [location, setLocation] = useState('');
-  const [error, setError] = useState('');
+  const [network, setNetwork] = useState('')
+  const [subnetMask, setSubnetMask] = useState('')
+  const [location, setLocation] = useState('')
+  const [error, setError] = useState('')
 
   // Gunakan location options yang sama dengan form utama
   const locationOptions = [
@@ -149,16 +149,16 @@ const IPCalculator = ({ onGenerate }: IPCalculatorProps) => {
     'Payment Point Samsat Ponorogo',
     'Payment Point BPKAD Ponorogo',
     'Mall Pelayanan Publik Ponorogo',
-  ];
+  ]
 
   const handleCalculate = () => {
     try {
       if (!location) {
-        throw new Error('Silakan pilih lokasi terlebih dahulu');
+        throw new Error('Silakan pilih lokasi terlebih dahulu')
       }
 
-      const subnetInfo = calculateSubnetInfo(network, subnetMask);
-      const gateway = subnetInfo.usableHosts[0]; // Ambil IP pertama sebagai gateway
+      const subnetInfo = calculateSubnetInfo(network, subnetMask)
+      const gateway = subnetInfo.usableHosts[0] // Ambil IP pertama sebagai gateway
 
       // Map IP addresses dengan lokasi dan subnet yang sama
       const generatedIPs = subnetInfo.usableHosts.slice(1).map(ip => ({
@@ -166,13 +166,13 @@ const IPCalculator = ({ onGenerate }: IPCalculatorProps) => {
         ip_address: ip,
         subnet: subnetMask,
         gateway: gateway,
-      }));
+      }))
 
-      onGenerate(generatedIPs);
+      onGenerate(generatedIPs)
     } catch (err: any) {
-      setError(err.message);
+      setError(err.message)
     }
-  };
+  }
 
   return (
     <div className="space-y-4">
@@ -214,38 +214,38 @@ const IPCalculator = ({ onGenerate }: IPCalculatorProps) => {
         Generate IP Address
       </Button>
     </div>
-  );
-};
+  )
+}
 
 // Types dan interfaces tetap di luar
 type SortConfig = {
-  column: string;
-  direction: 'asc' | 'desc';
-} | null;
+  column: string
+  direction: 'asc' | 'desc'
+} | null
 
 export default function CatalystIPAddressPage() {
   // Pindahkan state sortConfig ke dalam komponen - default sort by ip_address ascending
   const [sortConfig, setSortConfig] = useState<SortConfig>({
     column: 'ip_address',
     direction: 'asc',
-  });
-  const [ipAddresses, setIpAddresses] = useState<IPAddress[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [isDeleteAlertOpen, setIsDeleteAlertOpen] = useState(false);
-  const [selectedIp, setSelectedIp] = useState<IPAddress | null>(null);
-  const [isEditing, setIsEditing] = useState(false);
-  const [calculatedIPs, setCalculatedIPs] = useState<string[]>([]);
-  const [showIPCalculator, setShowIPCalculator] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedLocation, setSelectedLocation] = useState<string>('all');
-  const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(0);
-  const [isPurgeAlertOpen, setIsPurgeAlertOpen] = useState(false);
-  const [totalCount, setTotalCount] = useState(0);
-  const [isFetching, setIsFetching] = useState(false);
+  })
+  const [ipAddresses, setIpAddresses] = useState<IPAddress[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [isDialogOpen, setIsDialogOpen] = useState(false)
+  const [isDeleteAlertOpen, setIsDeleteAlertOpen] = useState(false)
+  const [selectedIp, setSelectedIp] = useState<IPAddress | null>(null)
+  const [isEditing, setIsEditing] = useState(false)
+  const [calculatedIPs, setCalculatedIPs] = useState<string[]>([])
+  const [showIPCalculator, setShowIPCalculator] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [selectedLocation, setSelectedLocation] = useState<string>('all')
+  const [currentPage, setCurrentPage] = useState(1)
+  const [totalPages, setTotalPages] = useState(0)
+  const [isPurgeAlertOpen, setIsPurgeAlertOpen] = useState(false)
+  const [totalCount, setTotalCount] = useState(0)
+  const [isFetching, setIsFetching] = useState(false)
 
-  const PAGE_SIZE = 10;
+  const PAGE_SIZE = 10
 
   // Initialize Supabase client outside render to avoid recreation
   const supabaseRef = useRef(
@@ -258,20 +258,20 @@ export default function CatalystIPAddressPage() {
         },
       },
     ),
-  );
-  const supabase = supabaseRef.current;
+  )
+  const supabase = supabaseRef.current
 
   // Fetch data dari Supabase dengan optimasi
   const fetchIpAddresses = useCallback(async () => {
     try {
-      setIsFetching(true);
+      setIsFetching(true)
 
       // Build the base query with search filter, location filter, and sorting
       const buildQuery = () => {
-        let query = supabase.from('ip_addresses').select('*', { count: 'exact' });
+        let query = supabase.from('ip_addresses').select('*', { count: 'exact' })
 
         if (selectedLocation && selectedLocation !== 'all') {
-          query = query.eq('location', selectedLocation);
+          query = query.eq('location', selectedLocation)
         }
 
         if (searchQuery) {
@@ -279,100 +279,100 @@ export default function CatalystIPAddressPage() {
             `ip_address.ilike.%${searchQuery}%,` +
               `location.ilike.%${searchQuery}%,` +
               `description.ilike.%${searchQuery}%`,
-          );
+          )
         }
 
         // Apply sorting
         if (sortConfig) {
           query = query.order(sortConfig.column, {
             ascending: sortConfig.direction === 'asc',
-          });
+          })
         } else {
-          query = query.order('ip_address', { ascending: true });
+          query = query.order('ip_address', { ascending: true })
         }
 
-        return query;
-      };
+        return query
+      }
 
       // First query: get count
-      const countQuery = buildQuery();
-      const { count, error: countError } = await countQuery;
+      const countQuery = buildQuery()
+      const { count, error: countError } = await countQuery
 
-      if (countError) throw countError;
+      if (countError) throw countError
 
-      const total = count || 0;
-      setTotalCount(total);
-      setTotalPages(Math.ceil(total / PAGE_SIZE));
+      const total = count || 0
+      setTotalCount(total)
+      setTotalPages(Math.ceil(total / PAGE_SIZE))
 
       // Second query: get paginated data
       const dataQuery = buildQuery().range(
         (currentPage - 1) * PAGE_SIZE,
         currentPage * PAGE_SIZE - 1,
-      );
+      )
 
-      const { data, error: dataError } = await dataQuery;
+      const { data, error: dataError } = await dataQuery
 
-      if (dataError) throw dataError;
+      if (dataError) throw dataError
 
-      setIpAddresses(data || []);
-      setIsLoading(false);
+      setIpAddresses(data || [])
+      setIsLoading(false)
     } catch (error: any) {
-      console.error('Error fetching IP addresses:', error);
-      toast.error(error.message || 'Gagal memuat data IP Address');
-      setIpAddresses([]);
-      setTotalPages(0);
-      setTotalCount(0);
-      setIsLoading(false);
+      console.error('Error fetching IP addresses:', error)
+      toast.error(error.message || 'Gagal memuat data IP Address')
+      setIpAddresses([])
+      setTotalPages(0)
+      setTotalCount(0)
+      setIsLoading(false)
     } finally {
-      setIsFetching(false);
+      setIsFetching(false)
     }
-  }, [supabase, searchQuery, sortConfig, currentPage, selectedLocation]);
+  }, [supabase, searchQuery, sortConfig, currentPage, selectedLocation])
 
   // Handle sorting dengan reset ke halaman 1
   const handleSort = useCallback((column: string) => {
     setSortConfig((current): SortConfig => {
       const newDirection: 'asc' | 'desc' =
-        current?.column === column && current.direction === 'asc' ? 'desc' : 'asc';
+        current?.column === column && current.direction === 'asc' ? 'desc' : 'asc'
       return {
         column,
         direction: newDirection,
-      };
-    });
-    setCurrentPage(1); // Reset to first page when sorting changes
-  }, []);
+      }
+    })
+    setCurrentPage(1) // Reset to first page when sorting changes
+  }, [])
 
   // Consolidated useEffect untuk fetch data dengan proper dependencies
   useEffect(() => {
     // Set loading state immediately when params change
-    setIsLoading(true);
+    setIsLoading(true)
 
     // Reset to first page when location or search changes
     if (searchQuery !== '' || selectedLocation !== 'all') {
-      setCurrentPage(1);
+      setCurrentPage(1)
     }
 
     // Debounce search queries
     const debounceTimer =
       searchQuery !== ''
         ? setTimeout(() => {
-            fetchIpAddresses();
+            fetchIpAddresses()
           }, 300)
-        : (fetchIpAddresses(), null);
+        : (fetchIpAddresses(), null)
 
     if (!debounceTimer) {
       // If not debouncing (search is empty), fetch immediately
-      return;
+      return
     }
 
     return () => {
-      if (debounceTimer) clearTimeout(debounceTimer);
-    };
-  }, [searchQuery, selectedLocation, fetchIpAddresses]);
+      if (debounceTimer) clearTimeout(debounceTimer)
+    }
+  }, [searchQuery, selectedLocation, fetchIpAddresses])
 
   // Fetch when pagination or sorting changes (no debounce needed)
   useEffect(() => {
-    fetchIpAddresses();
-  }, [currentPage, sortConfig, fetchIpAddresses]);
+    fetchIpAddresses()
+  }, [currentPage, sortConfig, fetchIpAddresses])
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -383,28 +383,28 @@ export default function CatalystIPAddressPage() {
       gateway: '',
       description: '',
     },
-  });
+  })
 
   // Tambahkan fungsi untuk cek duplikasi IP
   const checkDuplicateIP = async (ipAddress: string, currentId?: string) => {
     try {
-      let query = supabase.from('ip_addresses').select('id').eq('ip_address', ipAddress);
+      let query = supabase.from('ip_addresses').select('id').eq('ip_address', ipAddress)
 
       // Jika sedang edit, exclude IP yang sedang diedit
       if (currentId) {
-        query = query.neq('id', currentId);
+        query = query.neq('id', currentId)
       }
 
-      const { data, error } = await query;
+      const { data, error } = await query
 
-      if (error) throw error;
+      if (error) throw error
 
-      return data.length > 0;
+      return data.length > 0
     } catch (error) {
-      console.error('Error checking duplicate IP:', error);
-      return false;
+      console.error('Error checking duplicate IP:', error)
+      return false
     }
-  };
+  }
 
   // Update fungsi onSubmit untuk mengecek duplikasi
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
@@ -412,11 +412,11 @@ export default function CatalystIPAddressPage() {
       const isDuplicate = await checkDuplicateIP(
         values.ipAddress,
         isEditing ? selectedIp?.id : undefined,
-      );
+      )
 
       if (isDuplicate) {
-        toast.error('IP Address sudah digunakan');
-        return;
+        toast.error('IP Address sudah digunakan')
+        return
       }
 
       if (isEditing && selectedIp) {
@@ -432,10 +432,10 @@ export default function CatalystIPAddressPage() {
             username: values.username,
             display_user: values.display_user,
           })
-          .eq('id', selectedIp.id);
+          .eq('id', selectedIp.id)
 
-        if (error) throw error;
-        toast.success('IP Address berhasil diperbarui');
+        if (error) throw error
+        toast.success('IP Address berhasil diperbarui')
       } else {
         // Add new IP
         const { error } = await supabase.from('ip_addresses').insert([
@@ -448,24 +448,24 @@ export default function CatalystIPAddressPage() {
             username: values.username,
             display_user: values.display_user,
           },
-        ]);
+        ])
 
-        if (error) throw error;
-        toast.success('IP Address berhasil ditambahkan');
+        if (error) throw error
+        toast.success('IP Address berhasil ditambahkan')
       }
 
-      fetchIpAddresses();
-      handleCloseDialog();
+      fetchIpAddresses()
+      handleCloseDialog()
     } catch (error) {
-      console.error('Error saving IP address:', error);
-      toast.error('Gagal menyimpan data IP Address');
+      console.error('Error saving IP address:', error)
+      toast.error('Gagal menyimpan data IP Address')
     }
-  };
+  }
 
   const handleEdit = useCallback(
     (ip: IPAddress) => {
-      setSelectedIp(ip);
-      setIsEditing(true);
+      setSelectedIp(ip)
+      setIsEditing(true)
       form.reset({
         location: ip.location,
         ipAddress: ip.ip_address,
@@ -474,66 +474,66 @@ export default function CatalystIPAddressPage() {
         description: ip.description || '',
         username: ip.username || '',
         display_user: ip.display_user || '',
-      });
-      setIsDialogOpen(true);
+      })
+      setIsDialogOpen(true)
     },
     [form],
-  );
+  )
 
   const handleDelete = useCallback((ip: IPAddress) => {
-    setSelectedIp(ip);
-    setIsDeleteAlertOpen(true);
-  }, []);
+    setSelectedIp(ip)
+    setIsDeleteAlertOpen(true)
+  }, [])
 
   const confirmDelete = useCallback(async () => {
     if (selectedIp) {
       try {
-        const { error } = await supabase.from('ip_addresses').delete().eq('id', selectedIp.id);
+        const { error } = await supabase.from('ip_addresses').delete().eq('id', selectedIp.id)
 
-        if (error) throw error;
-        toast.success('IP Address berhasil dihapus');
-        await fetchIpAddresses(); // Refresh data
+        if (error) throw error
+        toast.success('IP Address berhasil dihapus')
+        await fetchIpAddresses() // Refresh data
       } catch (error) {
-        console.error('Error deleting IP address:', error);
-        toast.error('Gagal menghapus IP Address');
+        console.error('Error deleting IP address:', error)
+        toast.error('Gagal menghapus IP Address')
       }
     }
-    setIsDeleteAlertOpen(false);
-  }, [selectedIp, supabase, fetchIpAddresses]);
+    setIsDeleteAlertOpen(false)
+  }, [selectedIp, supabase, fetchIpAddresses])
 
   const handleCloseDialog = useCallback(() => {
-    setIsDialogOpen(false);
-    setIsEditing(false);
-    setSelectedIp(null);
+    setIsDialogOpen(false)
+    setIsEditing(false)
+    setSelectedIp(null)
     form.reset({
       location: '',
       ipAddress: '',
       subnet: '',
       gateway: '',
       description: '',
-    });
-  }, [form]);
+    })
+  }, [form])
 
   const handleAddNew = useCallback(() => {
-    setIsEditing(false);
-    setSelectedIp(null);
+    setIsEditing(false)
+    setSelectedIp(null)
     form.reset({
       location: '',
       ipAddress: '',
       subnet: '',
       gateway: '',
       description: '',
-    });
-    setIsDialogOpen(true);
-  }, [form]);
+    })
+    setIsDialogOpen(true)
+  }, [form])
 
   const handleGenerateIPs = useCallback(
     async (
       generatedIPs: Array<{
-        location: string;
-        ip_address: string;
-        subnet: string;
-        gateway: string;
+        location: string
+        ip_address: string
+        subnet: string
+        gateway: string
       }>,
     ) => {
       try {
@@ -542,22 +542,22 @@ export default function CatalystIPAddressPage() {
           description: '', // Kolom description kosong untuk diisi manual nanti
           username: '',
           display_user: '',
-        }));
+        }))
 
-        const { error } = await supabase.from('ip_addresses').insert(newIPs);
+        const { error } = await supabase.from('ip_addresses').insert(newIPs)
 
-        if (error) throw error;
+        if (error) throw error
 
-        toast.success(`${newIPs.length} IP Addresses berhasil ditambahkan`);
-        await fetchIpAddresses();
-        setShowIPCalculator(false);
+        toast.success(`${newIPs.length} IP Addresses berhasil ditambahkan`)
+        await fetchIpAddresses()
+        setShowIPCalculator(false)
       } catch (error: any) {
-        console.error('Error adding IP addresses:', error);
-        toast.error(error.message || 'Gagal menambahkan IP Addresses');
+        console.error('Error adding IP addresses:', error)
+        toast.error(error.message || 'Gagal menambahkan IP Addresses')
       }
     },
     [supabase, fetchIpAddresses],
-  );
+  )
 
   // Tambahkan fungsi untuk purge data
   const handlePurgeData = useCallback(async () => {
@@ -566,22 +566,22 @@ export default function CatalystIPAddressPage() {
       const { error } = await supabase
         .from('ip_addresses')
         .delete()
-        .neq('id', '00000000-0000-0000-0000-000000000000'); // Gunakan UUID kosong sebagai placeholder jika perlu
+        .neq('id', '00000000-0000-0000-0000-000000000000') // Gunakan UUID kosong sebagai placeholder jika perlu
 
       if (error) {
-        console.error('Supabase error:', error);
-        throw new Error(error.message);
+        console.error('Supabase error:', error)
+        throw new Error(error.message)
       }
 
-      toast.success('Semua data berhasil dihapus');
-      await fetchIpAddresses(); // Tunggu sampai data selesai di-fetch
+      toast.success('Semua data berhasil dihapus')
+      await fetchIpAddresses() // Tunggu sampai data selesai di-fetch
     } catch (error: any) {
-      console.error('Error detail:', error);
-      toast.error(error.message || 'Gagal menghapus data');
+      console.error('Error detail:', error)
+      toast.error(error.message || 'Gagal menghapus data')
     } finally {
-      setIsPurgeAlertOpen(false);
+      setIsPurgeAlertOpen(false)
     }
-  }, [supabase, fetchIpAddresses]);
+  }, [supabase, fetchIpAddresses])
 
   // Tambahkan loading state di table
   if (isLoading) {
@@ -589,7 +589,7 @@ export default function CatalystIPAddressPage() {
       <div className="flex items-center justify-center h-96">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900" />
       </div>
-    );
+    )
   }
 
   return (
@@ -1051,5 +1051,5 @@ export default function CatalystIPAddressPage() {
         </AlertDialogContent>
       </AlertDialog>
     </div>
-  );
+  )
 }

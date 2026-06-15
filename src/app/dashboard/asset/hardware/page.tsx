@@ -1,4 +1,4 @@
-'use client';
+'use client'
 
 import {
   type ColumnDef,
@@ -11,13 +11,13 @@ import {
   type SortingState,
   useReactTable,
   type VisibilityState,
-} from '@tanstack/react-table';
-import { ArrowUpDown, MoreHorizontal } from 'lucide-react';
-import * as React from 'react';
-import * as XLSX from 'xlsx';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+} from '@tanstack/react-table'
+import { ArrowUpDown, MoreHorizontal } from 'lucide-react'
+import * as React from 'react'
+import * as XLSX from 'xlsx'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -25,15 +25,15 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { Input } from '@/components/ui/input';
+} from '@/components/ui/dropdown-menu'
+import { Input } from '@/components/ui/input'
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
+} from '@/components/ui/select'
 import {
   Table,
   TableBody,
@@ -41,36 +41,36 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
-import supabase from '@/lib/supabase';
+} from '@/components/ui/table'
+import supabase from '@/lib/supabase'
 
 type Hardware = {
-  id: number;
-  nama_aset: string;
-  jenis: string;
-  merk: string;
-  serial_number: string;
-  tahun: string;
-  pengguna: string;
-  lokasi: string;
-  status: string;
-  keterangan: string;
-};
+  id: number
+  nama_aset: string
+  jenis: string
+  merk: string
+  serial_number: string
+  tahun: string
+  pengguna: string
+  lokasi: string
+  status: string
+  keterangan: string
+}
 
 type User = {
-  id: string;
-  name: string;
-};
+  id: string
+  name: string
+}
 
 export default function AssetHardware() {
-  const [hardware, setHardware] = React.useState<Hardware[]>([]);
-  const [globalFilter, setGlobalFilter] = React.useState('');
-  const [sorting, setSorting] = React.useState<SortingState>([]);
-  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
-  const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
-  const [isDialogOpen, setIsDialogOpen] = React.useState(false);
-  const [editingHardware, setEditingHardware] = React.useState<Hardware | null>(null);
-  const [lastUpdated, setLastUpdated] = React.useState<string>('');
+  const [hardware, setHardware] = React.useState<Hardware[]>([])
+  const [globalFilter, setGlobalFilter] = React.useState('')
+  const [sorting, setSorting] = React.useState<SortingState>([])
+  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
+  const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({})
+  const [isDialogOpen, setIsDialogOpen] = React.useState(false)
+  const [editingHardware, setEditingHardware] = React.useState<Hardware | null>(null)
+  const [lastUpdated, setLastUpdated] = React.useState<string>('')
   const [newHardware, setNewHardware] = React.useState<Omit<Hardware, 'id'>>({
     nama_aset: '',
     jenis: '',
@@ -81,43 +81,43 @@ export default function AssetHardware() {
     lokasi: '',
     status: '',
     keterangan: '',
-  });
-  const [users, setUsers] = React.useState<User[]>([]);
-  const [penggunaSearch, setPenggunaSearch] = React.useState<string>('');
-  const [showPenggunaDropdown, setShowPenggunaDropdown] = React.useState(false);
+  })
+  const [users, setUsers] = React.useState<User[]>([])
+  const [penggunaSearch, setPenggunaSearch] = React.useState<string>('')
+  const [showPenggunaDropdown, setShowPenggunaDropdown] = React.useState(false)
 
   React.useEffect(() => {
-    fetchHardware();
-    fetchUsers();
-  }, []);
+    fetchHardware()
+    fetchUsers()
+  }, [])
 
   // Set pengguna search when editing
   React.useEffect(() => {
     if (editingHardware?.pengguna) {
-      const selectedUser = users.find(u => u.id === editingHardware.pengguna);
+      const selectedUser = users.find(u => u.id === editingHardware.pengguna)
       if (selectedUser) {
-        setPenggunaSearch(selectedUser.name);
+        setPenggunaSearch(selectedUser.name)
       }
     }
-  }, [editingHardware?.pengguna, users]);
+  }, [editingHardware?.pengguna, users])
 
   async function fetchHardware() {
-    const { data, error } = await supabase.from('hardware').select('*');
+    const { data, error } = await supabase.from('hardware').select('*')
     if (error) {
-      console.error('Error fetching hardware:', error);
+      console.error('Error fetching hardware:', error)
     } else {
-      setHardware(data || []);
-      setLastUpdated(new Date().toLocaleString());
+      setHardware(data || [])
+      setLastUpdated(new Date().toLocaleString())
     }
   }
 
   async function fetchUsers() {
-    const { data, error } = await supabase.from('employees').select('id, name');
+    const { data, error } = await supabase.from('employees').select('id, name')
 
     if (error) {
-      console.error('Error fetching users:', error);
+      console.error('Error fetching users:', error)
     } else {
-      setUsers(data || []);
+      setUsers(data || [])
     }
   }
 
@@ -126,22 +126,22 @@ export default function AssetHardware() {
       const { error } = await supabase
         .from('hardware')
         .update(editingHardware)
-        .eq('id', editingHardware.id);
+        .eq('id', editingHardware.id)
       if (error) {
-        console.error('Error updating hardware:', error);
-        return;
+        console.error('Error updating hardware:', error)
+        return
       }
     } else {
-      const { error } = await supabase.from('hardware').insert([newHardware]);
+      const { error } = await supabase.from('hardware').insert([newHardware])
       if (error) {
-        console.error('Error creating hardware:', error);
-        return;
+        console.error('Error creating hardware:', error)
+        return
       }
     }
-    fetchHardware();
-    setIsDialogOpen(false);
-    setEditingHardware(null);
-    setPenggunaSearch('');
+    fetchHardware()
+    setIsDialogOpen(false)
+    setEditingHardware(null)
+    setPenggunaSearch('')
     setNewHardware({
       nama_aset: '',
       jenis: '',
@@ -152,22 +152,22 @@ export default function AssetHardware() {
       lokasi: '',
       status: '',
       keterangan: '',
-    });
+    })
   }
 
   async function handleDeleteHardware(id: number) {
-    const { error } = await supabase.from('hardware').delete().eq('id', id);
+    const { error } = await supabase.from('hardware').delete().eq('id', id)
     if (error) {
-      console.error('Error deleting hardware:', error);
-      return;
+      console.error('Error deleting hardware:', error)
+      return
     }
-    fetchHardware();
+    fetchHardware()
   }
 
   function handleResetForm() {
-    setEditingHardware(null);
-    setPenggunaSearch('');
-    setShowPenggunaDropdown(false);
+    setEditingHardware(null)
+    setPenggunaSearch('')
+    setShowPenggunaDropdown(false)
     setNewHardware({
       nama_aset: '',
       jenis: '',
@@ -178,15 +178,15 @@ export default function AssetHardware() {
       lokasi: '',
       status: '',
       keterangan: '',
-    });
+    })
   }
 
   const exportToExcel = () => {
-    const worksheet = XLSX.utils.json_to_sheet(hardware);
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, 'Hardware Assets');
-    XLSX.writeFile(workbook, 'Data_Aset_Hardware.xlsx');
-  };
+    const worksheet = XLSX.utils.json_to_sheet(hardware)
+    const workbook = XLSX.utils.book_new()
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Hardware Assets')
+    XLSX.writeFile(workbook, 'Data_Aset_Hardware.xlsx')
+  }
 
   const columns: ColumnDef<Hardware>[] = [
     {
@@ -246,8 +246,8 @@ export default function AssetHardware() {
             <DropdownMenuLabel>Actions</DropdownMenuLabel>
             <DropdownMenuItem
               onClick={() => {
-                setEditingHardware(row.original);
-                setIsDialogOpen(true);
+                setEditingHardware(row.original)
+                setIsDialogOpen(true)
               }}
             >
               Edit
@@ -260,7 +260,7 @@ export default function AssetHardware() {
         </DropdownMenu>
       ),
     },
-  ];
+  ]
 
   const table = useReactTable({
     data: hardware,
@@ -278,7 +278,7 @@ export default function AssetHardware() {
     getFilteredRowModel: getFilteredRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
-  });
+  })
 
   return (
     <div className="w-full">
@@ -295,8 +295,8 @@ export default function AssetHardware() {
           </Button>
           <Button
             onClick={() => {
-              handleResetForm();
-              setIsDialogOpen(true);
+              handleResetForm()
+              setIsDialogOpen(true)
             }}
           >
             Tambah Aset Baru
@@ -307,10 +307,10 @@ export default function AssetHardware() {
       <Dialog
         open={isDialogOpen}
         onOpenChange={isOpen => {
-          setIsDialogOpen(isOpen);
+          setIsDialogOpen(isOpen)
           if (!isOpen) {
-            setPenggunaSearch('');
-            setShowPenggunaDropdown(false);
+            setPenggunaSearch('')
+            setShowPenggunaDropdown(false)
           }
         }}
       >
@@ -390,8 +390,8 @@ export default function AssetHardware() {
                 placeholder="Cari Pengguna..."
                 value={penggunaSearch}
                 onChange={e => {
-                  setPenggunaSearch(e.target.value);
-                  setShowPenggunaDropdown(true);
+                  setPenggunaSearch(e.target.value)
+                  setShowPenggunaDropdown(true)
                 }}
                 onFocus={() => setShowPenggunaDropdown(true)}
                 onBlur={() => setTimeout(() => setShowPenggunaDropdown(false), 200)}
@@ -414,12 +414,12 @@ export default function AssetHardware() {
                         className="w-full text-left px-4 py-2 hover:bg-gray-500 transition-colors"
                         onClick={() => {
                           if (editingHardware) {
-                            setEditingHardware({ ...editingHardware, pengguna: user.name });
+                            setEditingHardware({ ...editingHardware, pengguna: user.name })
                           } else {
-                            setNewHardware({ ...newHardware, pengguna: user.name });
+                            setNewHardware({ ...newHardware, pengguna: user.name })
                           }
-                          setPenggunaSearch(user.name);
-                          setShowPenggunaDropdown(false);
+                          setPenggunaSearch(user.name)
+                          setShowPenggunaDropdown(false)
                         }}
                       >
                         {user.name}
@@ -553,5 +553,5 @@ export default function AssetHardware() {
         </CardFooter>
       </Card>
     </div>
-  );
+  )
 }

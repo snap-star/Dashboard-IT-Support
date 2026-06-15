@@ -1,4 +1,4 @@
-'use client';
+'use client'
 
 import {
   AudioWaveform,
@@ -12,25 +12,25 @@ import {
   PieChart,
   Settings2,
   SquareTerminal,
-} from 'lucide-react';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import * as React from 'react';
+} from 'lucide-react'
+import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import * as React from 'react'
 
-import { NavMain } from '@/components/nav-main';
-import { Button } from '@/components/ui/button';
+import { NavMain } from '@/components/nav-main'
+import { Button } from '@/components/ui/button'
 import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
   SidebarHeader,
   SidebarRail,
-} from '@/components/ui/sidebar';
-import { navMain, singleNavMain } from '@/config/menuItems';
-import supabase from '@/lib/supabase';
-import { cn } from '@/lib/utils';
-import { ModeToggle } from './ui/darkmode';
-import { Label } from './ui/label';
+} from '@/components/ui/sidebar'
+import { navMain, singleNavMain } from '@/config/menuItems'
+import supabase from '@/lib/supabase'
+import { cn } from '@/lib/utils'
+import { ModeToggle } from './ui/darkmode'
+import { Label } from './ui/label'
 
 // This is sample data.
 const data = {
@@ -160,24 +160,24 @@ const data = {
       icon: Map,
     },
   ],
-};
+}
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  const router = useRouter();
-  const [isLoggingOut, setIsLoggingOut] = React.useState(false);
+  const router = useRouter()
+  const [isLoggingOut, setIsLoggingOut] = React.useState(false)
 
   const handleLogout = async () => {
-    setIsLoggingOut(true);
+    setIsLoggingOut(true)
     try {
-      const { error } = await supabase.auth.signOut();
-      if (error) throw error;
-      router.push('/');
+      const { error } = await supabase.auth.signOut()
+      if (error) throw error
+      router.push('/')
     } catch (error) {
-      console.error('Error logging out:', error);
+      console.error('Error logging out:', error)
     } finally {
-      setIsLoggingOut(false);
+      setIsLoggingOut(false)
     }
-  };
+  }
 
   return (
     <Sidebar collapsible="offcanvas" {...props}>
@@ -230,5 +230,5 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>
-  );
+  )
 }

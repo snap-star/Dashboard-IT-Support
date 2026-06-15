@@ -1,36 +1,36 @@
 // components/TotalIncidentsCard.tsx
-'use client';
-import { motion } from 'framer-motion';
-import { AlertOctagon } from 'lucide-react';
-import { useEffect, useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import supabase from '@/lib/supabase';
+'use client'
+import { motion } from 'framer-motion'
+import { AlertOctagon } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import supabase from '@/lib/supabase'
 
 export function TotalIncidentsCard() {
-  const [totalIncidents, setTotalIncidents] = useState<number>(0);
-  const [isLoading, setIsLoading] = useState(true);
-  const [lastUpdated, setLastUpdated] = useState<string>('');
+  const [totalIncidents, setTotalIncidents] = useState<number>(0)
+  const [isLoading, setIsLoading] = useState(true)
+  const [lastUpdated, setLastUpdated] = useState<string>('')
 
   useEffect(() => {
-    fetchTotalIncidents();
-  }, []);
+    fetchTotalIncidents()
+  }, [])
 
   async function fetchTotalIncidents() {
-    setIsLoading(true);
+    setIsLoading(true)
     try {
       const { count, error } = await supabase
         .from('atm_complaints')
-        .select('*', { count: 'exact', head: true });
+        .select('*', { count: 'exact', head: true })
 
       if (error) {
-        console.error('Error fetching total incidents:', error);
+        console.error('Error fetching total incidents:', error)
       } else {
-        setTotalIncidents(count || 0);
+        setTotalIncidents(count || 0)
         //TODO mitigate Date hydration error
         // setLastUpdated(new Date as string);
       }
     } finally {
-      setIsLoading(false);
+      setIsLoading(false)
     }
   }
 
@@ -48,8 +48,8 @@ export function TotalIncidentsCard() {
       >
         {value.toLocaleString()}
       </motion.div>
-    );
-  };
+    )
+  }
 
   return (
     <motion.div
@@ -112,5 +112,5 @@ export function TotalIncidentsCard() {
         </CardContent>
       </Card>
     </motion.div>
-  );
+  )
 }
