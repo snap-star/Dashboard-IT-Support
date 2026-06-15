@@ -22,7 +22,7 @@ export default function Dashboard() {
             <DashboardOverview />
           </Card>
           <Card className="p-4 md:col-span-2 lg:col-span-1">
-            <ITIncidentOverviewCard />
+            {/* <ITIncidentOverviewCard /> */}
           </Card>
         </div>
 
@@ -41,7 +41,7 @@ export default function Dashboard() {
         {/* Recent Activity or Table Section */}
         <Card className="p-4">
           {/* Add your table or recent activity component here */}
-          <div className="h-[300px] rounded-lg bg-muted/50" />
+          <div className="h-75 rounded-lg bg-muted/50" />
         </Card>
       </div>
     </ScrollArea>

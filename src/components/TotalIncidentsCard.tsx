@@ -26,7 +26,8 @@ export function TotalIncidentsCard() {
         console.error('Error fetching total incidents:', error);
       } else {
         setTotalIncidents(count || 0);
-        setLastUpdated(new Date().toLocaleString());
+        //TODO mitigate Date hydration error
+        // setLastUpdated(new Date as string);
       }
     } finally {
       setIsLoading(false);
