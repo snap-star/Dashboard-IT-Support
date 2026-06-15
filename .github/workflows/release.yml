@@ -1,0 +1,192 @@
+name: Release & Semantic Versioning
+
+# Trigger the workflow on push to main branch or when manually dispatched
+on:
+  push:
+    branches:
+      - master
+      - main
+  workflow_dispatch:
+    inputs:
+      version_bump:
+        description: 'Version bump type (for manual bump only)'
+        required: false
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+          - prerelease
+      prerelease_identifier:
+        description: 'Prerelease identifier (only for prerelease bump, e.g. beta, rc)'
+        required: false
+        type: string
+
+# Permissions required for creating releases and pushing tags
+permissions:
+  contents: write
+  issues: write
+  pull-requests: read
+
+env:
+  DEFAULT_BRANCH: ${{ github.ref_name }}
+
+jobs:
+  release:
+    name: Automatic Semantic Release
+    runs-on: ubuntu-latest
+    if: github.repository_owner == 'snap-star' && github.event_name == 'push'
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+      - name: Install pnpm
+        continue-on-error: true
+        run: npm install -g pnpm
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+          cache: 'pnpm'
+          cache-dependency-path: '/pnpm-lock.yaml'
+        continue-on-error: true
+        
+      - name: Install semantic-release dependencies
+        run: |
+          pnpm install -g @semantic-release/commit-analyzer @semantic-release/release-notes-generator @semantic-release/changelog @semantic-release/npm @semantic-release/git @semantic-release/github conventional-changelog-conventionalcommits semantic-release
+        continue-on-error: true
+          
+      - name: Install frontend dependencies
+        run: |
+          cd /
+          pnpm install
+          
+      - name: Run TypeScript checks (frontend)
+        run: |
+          cd /
+          pnpm tsc -b
+          
+      - name: Build frontend for production
+        run: |
+          cd /
+          pnpm run build
+          
+      - name: Install @semantic-release/commit-analyzer
+        run: |
+          npm install -D @semantic-release/commit-analyzer
+          
+      - name: Run semantic-release
+        id: release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          npx semantic-release --extends ./semantic-release.config.js
+          
+      - name: Upload release artifacts
+        if: steps.release.outputs.release_tag != ''
+        uses: actions/upload-artifact@v7
+        with:
+          name: dashboard-it-support-release-${{ steps.release.outputs.release_tag }}
+          path: |
+            /.next/standalone
+            /.next/static
+          if-no-files-found: ignore
+
+  manual-bump:
+    name: Manual Version Bump
+    runs-on: ubuntu-latest
+    if: github.repository_owner == 'snap-star' && github.event_name == 'workflow_dispatch' && github.event.inputs.version_bump != ''
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+          
+      - name: Install semver tool
+        run: pnpm install -g semver
+          
+      - name: Read current version from CHANGELOG
+        id: get-current-version
+        run: |
+          CURRENT_VERSION=$(grep -m 1 "## \[" /CHANGELOG.md | grep -oP '\[\K\d+\.\d+\.\d+')
+          echo "current_version=$CURRENT_VERSION" >> $GITHUB_OUTPUT
+          echo "Current version: $CURRENT_VERSION"
+          
+      - name: Bump version
+        id: bump-version
+        run: |
+          if [ "${{ github.event.inputs.version_bump }}" = "prerelease" ]; then
+            PREID="${{ github.event.inputs.prerelease_identifier}}"
+            if [ -z "$PREID" ]; then PREID="rc"; fi
+            NEW_VERSION=$(semver ${{ steps.get-current-version.outputs.current_version }} -i prerelease --preid $PREID)
+          else
+            NEW_VERSION=$(semver ${{ steps.get-current-version.outputs.current_version }} -i ${{ github.event.inputs.version_bump }})
+          fi
+          echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
+          echo "New version: $NEW_VERSION"
+          
+      - name: Update CHANGELOG.md with new version
+        run: |
+          TODAY=$(date +%Y-%m-%d)
+          NEW_VERSION="${{ steps.bump-version.outputs.new_version }}"
+          CURRENT_VERSION="${{ steps.get-current-version.outputs.current_version }}"
+          sed -i "0,/## \[/s/## \[/## [$NEW_VERSION] - $TODAY\n\n### Summary\nAutomated version bump from $CURRENT_VERSION\n\n---\n\n## [/" /CHANGELOG.md
+          
+      - name: Update version.json with new version
+        run: |
+          NEW_VERSION="${{ steps.bump-version.outputs.new_version }}"
+          node -e "
+            const fs = require('fs');
+            const data = JSON.parse(fs.readFileSync('./version.json', 'utf8'));
+            data.version = '$NEW_VERSION';
+            const parts = '$NEW_VERSION'.split('.');
+            data.version_code = parseInt(parts[0])*10000 + parseInt(parts[1])*100 + parseInt(parts[2]);
+            data.release_date = new Date().toISOString().split('T')[0];
+            fs.writeFileSync('./version.json', JSON.stringify(data, null, 2) + '\\n');
+          "
+          
+      - name: Update root package.json
+        run: |
+          NEW_VERSION="${{ steps.bump-version.outputs.new_version }}"
+          node -e "
+            const fs = require('fs');
+            const data = JSON.parse(fs.readFileSync('./package.json', 'utf8'));
+            data.version = '$NEW_VERSION';
+            fs.writeFileSync('./package.json', JSON.stringify(data, null, 2) + '\\n');
+          "
+          
+      - name: Update frontend package.json
+        run: |
+          NEW_VERSION="${{ steps.bump-version.outputs.new_version }}"
+          node -e "
+            const fs = require('fs');
+            const data = JSON.parse(fs.readFileSync('./package.json', 'utf8'));
+            data.version = '$NEW_VERSION';
+            fs.writeFileSync('./package.json', JSON.stringify(data, null, 2) + '\\n');
+          "
+          
+      - name: Commit and push version bump changes
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add version.json
+          git add package.json
+          git add /package.json
+          git add /CHANGELOG.md
+          git commit -m "chore: bump version to ${{ steps.bump-version.outputs.new_version }}"
+          
+      - name: Push changes and create tag
+        uses: ad-m/github-push-action@master
+        with:
+          branch: ${{ github.ref_name }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          tags: true
