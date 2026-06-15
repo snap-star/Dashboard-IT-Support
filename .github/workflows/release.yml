@@ -62,17 +62,14 @@ jobs:
           
       - name: Install frontend dependencies
         run: |
-          cd /
           pnpm install
           
       - name: Run TypeScript checks (frontend)
         run: |
-          cd /
           pnpm tsc -b
           
       - name: Build frontend for production
         run: |
-          cd /
           pnpm run build
           
       - name: Install @semantic-release/commit-analyzer
@@ -101,7 +98,7 @@ jobs:
     runs-on: ubuntu-latest
     if: github.repository_owner == 'snap-star' && github.event_name == 'workflow_dispatch' && github.event.inputs.version_bump != ''
     steps:
-      - name: Checkout
+      - name: Checkout repository
         uses: actions/checkout@v6
         with:
           fetch-depth: 0
