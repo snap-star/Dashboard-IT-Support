@@ -51,8 +51,8 @@ export function PaginationControls({ currentPage, totalPages, onPageChange }: Pa
         </Button>
         {getVisiblePageNumbers().map((page, index) => (
           <Button
-            key={`${page}-${// biome-ignore lint/suspicious/noArrayIndexKey: <next implementation will fix>
-index}`}
+          // biome-ignore lint/suspicious/noArrayIndexKey: <next implementation will fix>
+            key={`${page}-${index}`}
             variant={page === currentPage ? 'default' : 'ghost'}
             size="sm"
             onClick={() => typeof page === 'number' && onPageChange(page)}
