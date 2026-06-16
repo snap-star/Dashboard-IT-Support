@@ -8,7 +8,6 @@ import {
   Frame,
   GalleryVerticalEnd,
   LogOut,
-  Map,
   PieChart,
   Settings2,
   SquareTerminal,

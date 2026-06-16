@@ -12,8 +12,8 @@ export default function RegisterPage() {
   return (
     <div className="min-h-screen relative bg-linear-to-br from-background to-secondary/20">
       {/* Animated Background Elements */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute -inset-2.5 opacity-50">
+      <div className="relative inset-0 overflow-hidden">
+        <div className="relative -inset-2.5 opacity-50">
           <motion.div
             className="absolute top-1/4 left-1/4 w-72 h-72 bg-primary/10 rounded-full mix-blend-multiply filter blur-xl"
             animate={{
@@ -54,7 +54,7 @@ export default function RegisterPage() {
       </div>
 
       {/* Main Content */}
-      <div className="relative z-10 flex flex-col min-h-screen">
+      <div className="relative z-10 -space-y-4 flex flex-col min-h-screen">
         {/* Header with Theme Toggle */}
         <header className="w-full p-4 flex justify-end">
           <Button

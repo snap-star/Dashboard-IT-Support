@@ -24,7 +24,13 @@ import { Button } from '@/components/ui/button'
 import { Calendar } from '@/components/ui/calendar'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { DatePickerDefault } from '@/components/ui/date-picker-default'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import {
@@ -44,30 +50,14 @@ import {
 } from '@/components/ui/table'
 import { Textarea } from '@/components/ui/textarea'
 import supabase from '@/lib/supabase'
+import type { Incident } from '@/lib/types/Incident/formIncident'
+import getPriorityColor from '@/lib/types/util/getPriorityColor'
+import getStatusColor from '@/lib/types/util/getStatusColor'
 import { cn } from '@/lib/utils'
 
-type Incident = {
-  id: number
-  title: string
-  description: string
-  reported_by: string
-  date_reported: string
-  status: 'Open' | 'In Progress' | 'Resolved' | 'Closed'
-  priority: 'Low' | 'Medium' | 'High' | 'Critical'
-  resolution?: string
-}
-
 export default function ITIncidentManagement() {
-  const [incidents, setIncidents] = React.useState<Incident[]>([])
-  const [newIncident, setNewIncident] = React.useState<Omit<Incident, 'id'>>({
-    title: '',
-    description: '',
-    reported_by: '',
-    date_reported: new Date().toISOString(),
-    status: 'Open',
-    priority: 'Medium',
-    resolution: '',
-  })
+  const [incidents, setIncidents] = React.useState<(typeof Incident)[]>([])
+  const [newIncident, setNewIncident] = React.useState<Omit<typeof Incident, 'id'>[]>([])
   const [editingIncident, setEditingIncident] = React.useState<Incident | null>(null)
   const [isDialogOpen, setIsDialogOpen] = React.useState(false)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = React.useState(false)
@@ -119,15 +109,7 @@ export default function ITIncidentManagement() {
     fetchIncidents()
     setIsDialogOpen(false)
     setEditingIncident(null)
-    setNewIncident({
-      title: '',
-      description: '',
-      reported_by: '',
-      date_reported: new Date().toISOString(),
-      status: 'Open',
-      priority: 'Medium',
-      resolution: '',
-    })
+    setNewIncident([])
   }
 
   async function handleDelete(id: number) {
@@ -148,36 +130,6 @@ export default function ITIncidentManagement() {
     })
   }
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'Open':
-        return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300'
-      case 'In Progress':
-        return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300'
-      case 'Resolved':
-        return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300'
-      case 'Closed':
-        return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300'
-      default:
-        return 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300'
-    }
-  }
-
-  const getPriorityColor = (priority: string) => {
-    switch (priority) {
-      case 'Critical':
-        return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300'
-      case 'High':
-        return 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300'
-      case 'Medium':
-        return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300'
-      case 'Low':
-        return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300'
-      default:
-        return 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300'
-    }
-  }
-
   const columns: ColumnDef<Incident>[] = [
     {
       accessorKey: 'title',
@@ -188,7 +140,7 @@ export default function ITIncidentManagement() {
       accessorKey: 'description',
       header: 'Deskripsi',
       cell: ({ row }) => (
-        <div className="max-w-[300px] truncate" title={row.getValue('description')}>
+        <div className="max-w-75 truncate" title={row.getValue('description')}>
           {row.getValue('description')}
         </div>
       ),
@@ -311,7 +263,7 @@ export default function ITIncidentManagement() {
   const downloadExcel = async (filtered = false) => {
     setIsExporting(true)
     try {
-      let dataToExport
+      let dataToExport: Incident[] = []
 
       if (filtered && dateRange?.from && dateRange?.to) {
         const { data, error } = await supabase
@@ -369,8 +321,11 @@ export default function ITIncidentManagement() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>{editingIncident ? 'Edit Incident' : 'Add New Incident'}</DialogTitle>
+            <DialogDescription>
+              {editingIncident ? 'Edit the details of the incident' : 'Add a new incident'}
+            </DialogDescription>
           </DialogHeader>
-          <div className="grid gap-4 py-4">
+          <div className="grid gap-4 py-4 overflow-auto">
             <Input
               placeholder="Title"
               value={editingIncident ? editingIncident.title : newIncident.title}
@@ -413,67 +368,75 @@ export default function ITIncidentManagement() {
                     })
               }
             />
-            <DatePickerDefault
-              date={
-                editingIncident
-                  ? editingIncident.date_reported
-                    ? new Date(editingIncident.date_reported)
-                    : new Date()
-                  : newIncident.date_reported
-                    ? new Date(newIncident.date_reported)
-                    : new Date()
-              }
-              setDateAction={(newDate: Date | undefined) => {
-                const selectedDate = newDate || new Date()
-                if (editingIncident) {
-                  setEditingIncident({
-                    ...editingIncident,
-                    date_reported: selectedDate.toISOString().split('T')[0],
-                  })
-                } else {
-                  setNewIncident({
-                    ...newIncident,
-                    date_reported: selectedDate.toISOString().split('T')[0],
-                  })
-                }
-              }}
-            />
-            <Select
-              value={editingIncident ? editingIncident.status : newIncident.status}
-              onValueChange={(value: any) =>
-                editingIncident
-                  ? setEditingIncident({ ...editingIncident, status: value })
-                  : setNewIncident({ ...newIncident, status: value })
-              }
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select Status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="Open">Open</SelectItem>
-                <SelectItem value="In Progress">In Progress</SelectItem>
-                <SelectItem value="Resolved">Resolved</SelectItem>
-                <SelectItem value="Closed">Closed</SelectItem>
-              </SelectContent>
-            </Select>
-            <Select
-              value={editingIncident ? editingIncident.priority : newIncident.priority}
-              onValueChange={(value: any) =>
-                editingIncident
-                  ? setEditingIncident({ ...editingIncident, priority: value })
-                  : setNewIncident({ ...newIncident, priority: value })
-              }
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select Priority" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="Low">Low</SelectItem>
-                <SelectItem value="Medium">Medium</SelectItem>
-                <SelectItem value="High">High</SelectItem>
-                <SelectItem value="Critical">Critical</SelectItem>
-              </SelectContent>
-            </Select>
+            <div className="flex flex-cols-3 justify-start gap-3">
+              <div className="flex flex-col justify-between gap-4 w-36">
+                <DatePickerDefault
+                  date={
+                    editingIncident
+                      ? editingIncident.date_reported
+                        ? new Date(editingIncident.date_reported)
+                        : new Date()
+                      : newIncident.date_reported
+                        ? new Date(newIncident.date_reported)
+                        : new Date()
+                  }
+                  setDateAction={(newDate: Date | undefined) => {
+                    const selectedDate = newDate || new Date()
+                    if (editingIncident) {
+                      setEditingIncident({
+                        ...editingIncident,
+                        date_reported: selectedDate.toISOString().split('T')[0],
+                      })
+                    } else {
+                      setNewIncident({
+                        ...newIncident,
+                        date_reported: selectedDate.toISOString().split('T')[0],
+                      })
+                    }
+                  }}
+                />
+              </div>
+              <div className="flex flex-cols-2 justify-start gap-4">
+                {/* Select Status */}
+                <Select
+                  value={editingIncident ? editingIncident.status : newIncident.status}
+                  onValueChange={(value: any) =>
+                    editingIncident
+                      ? setEditingIncident({ ...editingIncident, status: value })
+                      : setNewIncident({ ...newIncident, status: value })
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Open">Open</SelectItem>
+                    <SelectItem value="In Progress">In Progress</SelectItem>
+                    <SelectItem value="Resolved">Resolved</SelectItem>
+                    <SelectItem value="Closed">Closed</SelectItem>
+                  </SelectContent>
+                </Select>
+                {/* Select Priority */}
+                <Select
+                  value={editingIncident ? editingIncident.priority : newIncident.priority}
+                  onValueChange={(value: any) =>
+                    editingIncident
+                      ? setEditingIncident({ ...editingIncident, priority: value })
+                      : setNewIncident({ ...newIncident, priority: value })
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Priority" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Low">Low</SelectItem>
+                    <SelectItem value="Medium">Medium</SelectItem>
+                    <SelectItem value="High">High</SelectItem>
+                    <SelectItem value="Critical">Critical</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
             {editingIncident && (
               <Textarea
                 placeholder="Resolution (optional)"
@@ -610,7 +573,7 @@ export default function ITIncidentManagement() {
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0" align="end">
                     <Calendar
-                      initialFocus
+                      initialFocus={false}
                       mode="range"
                       defaultMonth={dateRange?.from}
                       selected={dateRange}
